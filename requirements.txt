@@ -1,0 +1,8 @@
+# 供应链控制塔运行依赖（Python 3.10 / 3.11 / 3.12）
+# 已实测通过 3.10 / 3.11 / 3.12；3.13 及以上请确认 rapidocr_onnxruntime 有对应 wheel
+openpyxl>=3.1          # 读取台账 / 资金占用费表 Excel
+pymupdf>=1.23           # PDF 文字提取
+pypdf>=4.0              # PDF 回单文字提取
+rapidocr_onnxruntime>=1.2  # 回款回单 / 扫描件本地 OCR（模型随包内置，离线推理）
+python-docx>=1.1        # 生成催款函 Word
+watchdog>=3.0           # 项目文件夹变更自动刷新（可选）
