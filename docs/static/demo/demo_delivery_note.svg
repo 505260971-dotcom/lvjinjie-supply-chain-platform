@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="620" viewBox="0 0 900 620">
+<rect width="900" height="620" fill="#fff"/><rect x="35" y="28" width="830" height="560" fill="#fff" stroke="#26364a" stroke-width="2"/>
+<text x="450" y="70" text-anchor="middle" font-size="28" font-family="Microsoft YaHei" font-weight="bold">A项目演示送货单</text>
+<text x="65" y="108" font-size="16" font-family="Microsoft YaHei">演示供应商：示例钢材有限公司</text><text x="360" y="108" font-size="16" font-family="Microsoft YaHei">品牌：示例钢厂A</text><text x="580" y="108" font-size="16" font-family="Microsoft YaHei">单号：DEMO-20260725-001</text>
+<text x="65" y="140" font-size="16" font-family="Microsoft YaHei">项目名称：A项目演示</text><text x="580" y="140" font-size="16" font-family="Microsoft YaHei">送货日期：2026年7月25日</text>
+<g stroke="#526273" fill="none"><rect x="55" y="165" width="790" height="260"/><path d="M55 215h790M55 265h790M55 315h790M55 365h790M170 165v260M390 165v260M520 165v260M650 165v260"/></g>
+<g font-family="Microsoft YaHei" font-size="15" fill="#1f2937"><text x="82" y="197">序号</text><text x="205" y="197">品名</text><text x="430" y="197">规格</text><text x="548" y="197">数量(吨)</text><text x="688" y="197">车号</text>
+<text x="105" y="247">1</text><text x="198" y="247">螺纹钢</text><text x="430" y="247">HRB400E Φ22</text><text x="555" y="247">31.471</text><text x="690" y="247">演示A001</text>
+<text x="105" y="297">2</text><text x="198" y="297">盘螺</text><text x="430" y="297">HRB400E Φ10</text><text x="555" y="297">18.260</text><text x="690" y="297">演示A002</text>
+<text x="105" y="347">3</text><text x="198" y="347">高线</text><text x="430" y="347">HPB300 Φ8</text><text x="555" y="347">12.880</text><text x="690" y="347">演示A003</text>
+<text x="65" y="465">合计重量：62.611 吨</text><text x="65" y="505">收货单位：示例项目方有限公司</text><text x="580" y="505">制单：演示系统 OCR</text><text x="65" y="550">本凭证仅用于系统功能演示，不对应真实项目。</text></g>
+</svg>

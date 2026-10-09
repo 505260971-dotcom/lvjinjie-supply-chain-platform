@@ -1,0 +1,20 @@
+# 本仓库为「绿金街供应链项目管理平台」演示作品
+# 以下为运行时/本地文件，不应入库
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+*.bak-*
+*.tmp
+*.tmp-del
+runtime/
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+# 本机密钥（绝不入库）
+*.pem
+id_rsa*
+id_ed25519*
