@@ -4538,10 +4538,13 @@ def _build_minister_report_docx(text: str) -> tuple[str, str]:
 
 
 # ==================== 多项目数据隔离 ====================
+# ★ 下拉框 / 经理工作台只显示这里列出的项目 + 真实导入的项目（registry.json）。
+#   demo_c（C项目）**不在这里** —— 它是「新增项目」向导的演示落点，
+#   不能作为常驻演示项目出现在下拉框里（用户 2026-10-10 明确：C项目是试用新增用的，不应显示）。
+#   它的取数配置仍保留在下方 VIRTUAL_CONFIG["demo_c"]，供向导注册后临时使用。
 PROJECTS = [
     {"id": "demo_a", "name": "A项目", "is_real": True, "owner": "李经理", "data_mode": "live", "sync_scope": "项目文件夹实时监听"},
     {"id": "demo_b", "name": "B项目", "is_real": False, "owner": "李经理", "data_mode": "linked_demo", "sync_scope": "项目数据已接入（演示快照）"},
-    {"id": "demo_c", "name": "C项目", "is_real": False, "owner": "李经理", "data_mode": "not_connected", "sync_scope": "尚未接入项目资料", "visible": True},
     {"id": "demo_d", "name": "D项目", "is_real": False, "owner": "业务员1", "data_mode": "demo", "sync_scope": "演示数据快照"},
     {"id": "demo_e", "name": "E项目", "is_real": False, "owner": "业务员2", "data_mode": "demo", "sync_scope": "演示数据快照"},
     {"id": "demo_f", "name": "F项目", "is_real": False, "owner": "业务员3", "data_mode": "demo", "sync_scope": "演示数据快照"},
