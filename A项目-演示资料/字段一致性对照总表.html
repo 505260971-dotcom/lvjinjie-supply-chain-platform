@@ -1,0 +1,355 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">
+<title>一套单据字段一致性对照总表</title><style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;background:#f5f6f8;color:#1f2329;margin:0;padding:28px}
+h1{font-size:21px;margin:0 0 6px}
+.sub{color:#646a73;font-size:13px;margin-bottom:18px}
+.card{background:#fff;border:1px solid #e3e6eb;border-radius:10px;padding:16px 18px;margin-bottom:18px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+.card h2{font-size:15px;margin:0 0 10px;display:flex;align-items:center;gap:8px}
+.badge{background:#eef4ff;color:#2a5bd7;font-size:11px;padding:2px 7px;border-radius:4px;font-weight:600}
+table{border-collapse:collapse;width:100%;font-size:12px}
+th,td{border:1px solid #e3e6eb;padding:5px 7px;text-align:center;vertical-align:middle}
+th{background:#f0f2f5;font-weight:600;color:#3d444d}
+td.l{text-align:left}
+.ok{color:#12892d;font-weight:700}
+.bad{color:#d92c20;font-weight:700}
+.warn{color:#b7791f;font-weight:700}
+.chip{display:inline-block;padding:1px 6px;border-radius:4px;font-size:11px;margin:1px}
+.c1{background:#e8f0fe;color:#1a56db}
+.c2{background:#fdf0e3;color:#a8620a}
+.c3{background:#e6f6ec;color:#0f7b32}
+.c4{background:#f3e8fd;color:#7127b8}
+.sum{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.kpi{background:#fff;border:1px solid #e3e6eb;border-radius:8px;padding:10px 14px;min-width:120px}
+.kpi .n{font-size:20px;font-weight:700}
+.kpi .t{font-size:11px;color:#646a73;margin-top:2px}
+code{background:#f0f2f5;padding:1px 5px;border-radius:3px;font-size:11px}
+</style></head><body>
+<h1>A项目演示资料 —— 一套单据字段一致性对照总表</h1>
+<div class="sub">数据来源：直接反读交付目录 <code><交付目录>/A项目-演示资料</code> 下的 PDF 文本，非取自生成脚本；每一行都是「纸张上印了什么」。核对维度与用户点名一致：品名 / 规格 / 品牌 / 网价 / 下浮 / 结算价 / 重量 / 日期。</div>
+<div class="sum">
+<div class="kpi"><div class="n">6</div><div class="t">演示日期</div></div>
+<div class="kpi"><div class="n">42</div><div class="t">单据文件（7类×6日期）</div></div>
+<div class="kpi"><div class="n ok">182/0</div><div class="t">验收 PASS / FAIL</div></div>
+<div class="kpi"><div class="n">4</div><div class="t">覆盖品牌</div></div>
+</div>
+<div class="card">
+<h2>2026-07-28 <span class="badge">行数 4</span></h2>
+<table><tr><th>维度</th><th>上游送货单</th><th>下游送货单</th><th>上游对账单</th><th>下游对账单</th><th>上游发票</th><th>下游发票</th><th>网价单</th></tr>
+<tr><td class='l'><b>规格</b></td>
+<td>Φ18 Φ20 Φ20 Φ18</td>
+<td>Φ18 Φ20 Φ20 Φ18</td>
+<td>Φ18 Φ20 Φ20 Φ18</td>
+<td>Φ18 Φ20 Φ20 Φ18</td>
+<td>Φ18 Φ20 Φ20 Φ18</td>
+<td>Φ18 Φ20 Φ20 Φ18</td>
+<td>Φ18 Φ20</td>
+</tr>
+<tr><td class='l'><b>品牌</b></td>
+<td><span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span></td>
+<td><span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span></td>
+<td><span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span></td>
+<td><span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span></td>
+<td><span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span></td>
+<td><span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span></td>
+<td><span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span></td>
+</tr>
+<tr><td class='l'><b>重量(吨)</b></td>
+<td class='ok'>22.640 18.315 21.106 11.320</td>
+<td class='ok'>22.640 18.315 21.106 11.320</td>
+<td class='ok'>22.640 18.315 21.106 11.320</td>
+<td class='ok'>22.640 18.315 21.106 11.320</td>
+<td class='ok'>22.640 18.315 21.106 11.320</td>
+<td class='ok'>22.640 18.315 21.106 11.320</td>
+<td>—</td></tr>
+<tr><td class='l'><b>重量合计</b></td><td colspan='6' class='ok'>6 类单据合计一致 = <b>73.381</b> 吨</td><td class='ok'>—</td></tr>
+<tr><td class='l'><b>计划结算网价</b></td>
+<td>3170 3270</td>
+<td>3170 3270</td>
+<td>3170 3270</td>
+<td>3170 3270</td>
+<td>—</td><td>—</td>
+<td class='ok'>3170 3270</td></tr>
+<tr><td class='l'><b>下浮(元/吨)</b></td><td>—</td><td>—</td>
+<td class='ok'>135</td>
+<td class='ok'>60</td>
+<td>—</td><td>—</td>
+<td class='ok'>不含（仅行情价）</td></tr>
+<tr><td class='l'><b>实际结算单价</b></td><td>—</td><td>—</td>
+<td class='ok'>3035.00 3135.00 3952.48</td>
+<td class='ok'>3110.00 3210.00</td>
+<td class='ok'>3035.00 3135.00 3952.48</td>
+<td class='ok'>3110.00 3210.00</td>
+<td>—</td></tr>
+<tr><td class='l'><b>日期</b></td><td colspan='6'>各单据日期均为 <b>2026年07月28日</b>，网价单发布日期一致</td><td>2026-07-28</td></tr>
+<tr><td class='l'><b>一致性判定</b></td><td colspan='7' class='ok'>✔ 全部维度一致</td></tr>
+</table></div>
+<div class="card">
+<h2>2026-08-04 <span class="badge">行数 4</span></h2>
+<table><tr><th>维度</th><th>上游送货单</th><th>下游送货单</th><th>上游对账单</th><th>下游对账单</th><th>上游发票</th><th>下游发票</th><th>网价单</th></tr>
+<tr><td class='l'><b>规格</b></td>
+<td>Φ14 Φ18 Φ25 Φ14</td>
+<td>Φ14 Φ18 Φ25 Φ14</td>
+<td>Φ14 Φ18 Φ25 Φ14</td>
+<td>Φ14 Φ18 Φ25 Φ14</td>
+<td>Φ14 Φ18 Φ25 Φ14</td>
+<td>Φ14 Φ18 Φ25 Φ14</td>
+<td>Φ14 Φ18 Φ25</td>
+</tr>
+<tr><td class='l'><b>品牌</b></td>
+<td><span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span></td>
+<td><span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span></td>
+<td><span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span></td>
+<td><span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span></td>
+<td><span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span></td>
+<td><span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span></td>
+<td><span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span></td>
+</tr>
+<tr><td class='l'><b>重量(吨)</b></td>
+<td class='ok'>15.228 22.640 26.351 9.137</td>
+<td class='ok'>15.228 22.640 26.351 9.137</td>
+<td class='ok'>15.228 22.640 26.351 9.137</td>
+<td class='ok'>15.228 22.640 26.351 9.137</td>
+<td class='ok'>15.228 22.640 26.351 9.137</td>
+<td class='ok'>15.228 22.640 26.351 9.137</td>
+<td>—</td></tr>
+<tr><td class='l'><b>重量合计</b></td><td colspan='6' class='ok'>6 类单据合计一致 = <b>73.356</b> 吨</td><td class='ok'>—</td></tr>
+<tr><td class='l'><b>计划结算网价</b></td>
+<td>3240 3130 3250</td>
+<td>3240 3130 3250</td>
+<td>3240 3130 3250</td>
+<td>3240 3130 3250</td>
+<td>—</td><td>—</td>
+<td class='ok'>3240 3130 3250</td></tr>
+<tr><td class='l'><b>下浮(元/吨)</b></td><td>—</td><td>—</td>
+<td class='ok'>135</td>
+<td class='ok'>60</td>
+<td>—</td><td>—</td>
+<td class='ok'>不含（仅行情价）</td></tr>
+<tr><td class='l'><b>实际结算单价</b></td><td>—</td><td>—</td>
+<td class='ok'>3105.00 3115.00 3263.85</td>
+<td class='ok'>3070.00 3180.00 3190.00 3342.69</td>
+<td class='ok'>3105.00 3115.00 3263.85</td>
+<td class='ok'>3070.00 3180.00 3190.00 3342.69</td>
+<td>—</td></tr>
+<tr><td class='l'><b>日期</b></td><td colspan='6'>各单据日期均为 <b>2026年08月04日</b>，网价单发布日期一致</td><td>2026-08-04</td></tr>
+<tr><td class='l'><b>一致性判定</b></td><td colspan='7' class='ok'>✔ 全部维度一致</td></tr>
+</table></div>
+<div class="card">
+<h2>2026-08-11 <span class="badge">行数 5</span></h2>
+<table><tr><th>维度</th><th>上游送货单</th><th>下游送货单</th><th>上游对账单</th><th>下游对账单</th><th>上游发票</th><th>下游发票</th><th>网价单</th></tr>
+<tr><td class='l'><b>规格</b></td>
+<td>Φ12 Φ14 Φ16 Φ18 Φ22</td>
+<td>Φ12 Φ14 Φ16 Φ18 Φ22</td>
+<td>Φ12 Φ14 Φ16 Φ18 Φ22</td>
+<td>Φ12 Φ14 Φ16 Φ18 Φ22</td>
+<td>Φ12 Φ14 Φ16 Φ18 Φ22</td>
+<td>Φ12 Φ14 Φ16 Φ18 Φ22</td>
+<td>Φ12 Φ14 Φ16 Φ18 Φ22</td>
+</tr>
+<tr><td class='l'><b>品牌</b></td>
+<td><span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span> <span class="chip c2">乙钢</span> <span class="chip c2">乙钢</span> <span class="chip c2">乙钢</span></td>
+<td><span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span> <span class="chip c2">乙钢</span> <span class="chip c2">乙钢</span> <span class="chip c2">乙钢</span></td>
+<td><span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span> <span class="chip c2">乙钢</span> <span class="chip c2">乙钢</span> <span class="chip c2">乙钢</span></td>
+<td><span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span> <span class="chip c2">乙钢</span> <span class="chip c2">乙钢</span> <span class="chip c2">乙钢</span></td>
+<td><span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span> <span class="chip c2">乙钢</span> <span class="chip c2">乙钢</span> <span class="chip c2">乙钢</span></td>
+<td><span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span> <span class="chip c2">乙钢</span> <span class="chip c2">乙钢</span> <span class="chip c2">乙钢</span></td>
+<td><span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span> <span class="chip c2">乙钢</span> <span class="chip c2">乙钢</span> <span class="chip c2">乙钢</span></td>
+</tr>
+<tr><td class='l'><b>重量(吨)</b></td>
+<td class='ok'>24.680 13.705 27.027 3.188 8.583</td>
+<td class='ok'>24.680 13.705 27.027 3.188 8.583</td>
+<td class='ok'>24.680 13.705 27.027 3.188 8.583</td>
+<td class='ok'>24.680 13.705 27.027 3.188 8.583</td>
+<td class='ok'>24.680 13.705 27.027 3.188 8.583</td>
+<td class='ok'>24.680 13.705 27.027 3.188 8.583</td>
+<td>—</td></tr>
+<tr><td class='l'><b>重量合计</b></td><td colspan='6' class='ok'>6 类单据合计一致 = <b>77.183</b> 吨</td><td class='ok'>—</td></tr>
+<tr><td class='l'><b>计划结算网价</b></td>
+<td>3250 3250 3280 3190 3290</td>
+<td>3250 3250 3280 3190 3290</td>
+<td>3250 3250 3280 3190 3290</td>
+<td>3250 3250 3280 3190 3290</td>
+<td>—</td><td>—</td>
+<td class='ok'>3250 3250 3280 3190 3290</td></tr>
+<tr><td class='l'><b>下浮(元/吨)</b></td><td>—</td><td>—</td>
+<td class='ok'>135</td>
+<td class='ok'>60</td>
+<td>—</td><td>—</td>
+<td class='ok'>不含（仅行情价）</td></tr>
+<tr><td class='l'><b>实际结算单价</b></td><td>—</td><td>—</td>
+<td class='ok'>3055.00 3115.00 3115.33 3145.00 3155.00</td>
+<td class='ok'>3130.00 3189.38 3190.00 3220.00 3230.00</td>
+<td class='ok'>3055.00 3115.00 3115.33 3145.00 3155.00</td>
+<td class='ok'>3130.00 3189.38 3190.00 3220.00 3230.00</td>
+<td>—</td></tr>
+<tr><td class='l'><b>日期</b></td><td colspan='6'>各单据日期均为 <b>2026年08月11日</b>，网价单发布日期一致</td><td>2026-08-11</td></tr>
+<tr><td class='l'><b>一致性判定</b></td><td colspan='7' class='ok'>✔ 全部维度一致</td></tr>
+</table></div>
+<div class="card">
+<h2>2026-08-13 <span class="badge">行数 4</span></h2>
+<table><tr><th>维度</th><th>上游送货单</th><th>下游送货单</th><th>上游对账单</th><th>下游对账单</th><th>上游发票</th><th>下游发票</th><th>网价单</th></tr>
+<tr><td class='l'><b>规格</b></td>
+<td>Φ10 Φ18 Φ20 Φ25</td>
+<td>Φ10 Φ18 Φ20 Φ25</td>
+<td>Φ10 Φ18 Φ20 Φ25</td>
+<td>Φ10 Φ18 Φ20 Φ25</td>
+<td>Φ10 Φ18 Φ20 Φ25</td>
+<td>Φ10 Φ18 Φ20 Φ25</td>
+<td>Φ10 Φ18 Φ20 Φ25</td>
+</tr>
+<tr><td class='l'><b>品牌</b></td>
+<td><span class="chip c2">乙钢</span> <span class="chip c2">乙钢</span> <span class="chip c2">乙钢</span> <span class="chip c2">乙钢</span></td>
+<td><span class="chip c2">乙钢</span> <span class="chip c2">乙钢</span> <span class="chip c2">乙钢</span> <span class="chip c2">乙钢</span></td>
+<td><span class="chip c2">乙钢</span> <span class="chip c2">乙钢</span> <span class="chip c2">乙钢</span> <span class="chip c2">乙钢</span></td>
+<td><span class="chip c2">乙钢</span> <span class="chip c2">乙钢</span> <span class="chip c2">乙钢</span> <span class="chip c2">乙钢</span></td>
+<td><span class="chip c2">乙钢</span> <span class="chip c2">乙钢</span> <span class="chip c2">乙钢</span> <span class="chip c2">乙钢</span></td>
+<td><span class="chip c2">乙钢</span> <span class="chip c2">乙钢</span> <span class="chip c2">乙钢</span> <span class="chip c2">乙钢</span></td>
+<td><span class="chip c2">乙钢</span> <span class="chip c2">乙钢</span> <span class="chip c2">乙钢</span> <span class="chip c2">乙钢</span></td>
+</tr>
+<tr><td class='l'><b>重量(吨)</b></td>
+<td class='ok'>12.776 4.126 3.029 8.512</td>
+<td class='ok'>12.776 4.126 3.029 8.512</td>
+<td class='ok'>12.776 4.126 3.029 8.512</td>
+<td class='ok'>12.776 4.126 3.029 8.512</td>
+<td class='ok'>12.776 4.126 3.029 8.512</td>
+<td class='ok'>12.776 4.126 3.029 8.512</td>
+<td>—</td></tr>
+<tr><td class='l'><b>重量合计</b></td><td colspan='6' class='ok'>6 类单据合计一致 = <b>28.443</b> 吨</td><td class='ok'>—</td></tr>
+<tr><td class='l'><b>计划结算网价</b></td>
+<td>3520 3190 3290 3310</td>
+<td>3520 3190 3290 3310</td>
+<td>3520 3190 3290 3310</td>
+<td>3520 3190 3290 3310</td>
+<td>—</td><td>—</td>
+<td class='ok'>3520 3190 3290 3310</td></tr>
+<tr><td class='l'><b>下浮(元/吨)</b></td><td>—</td><td>—</td>
+<td class='ok'>135</td>
+<td class='ok'>60</td>
+<td>—</td><td>—</td>
+<td class='ok'>不含（仅行情价）</td></tr>
+<tr><td class='l'><b>实际结算单价</b></td><td>—</td><td>—</td>
+<td class='ok'>3055.00 3109.14 3155.00 3175.00 3385.00</td>
+<td class='ok'>3130.00 3182.58 3230.00 3250.00 3460.00</td>
+<td class='ok'>3055.00 3109.14 3155.00 3175.00 3385.00</td>
+<td class='ok'>3130.00 3182.58 3230.00 3250.00 3460.00</td>
+<td>—</td></tr>
+<tr><td class='l'><b>日期</b></td><td colspan='6'>各单据日期均为 <b>2026年08月13日</b>，网价单发布日期一致</td><td>2026-08-13</td></tr>
+<tr><td class='l'><b>一致性判定</b></td><td colspan='7' class='ok'>✔ 全部维度一致</td></tr>
+</table></div>
+<div class="card">
+<h2>2026-08-17 <span class="badge">行数 7</span></h2>
+<table><tr><th>维度</th><th>上游送货单</th><th>下游送货单</th><th>上游对账单</th><th>下游对账单</th><th>上游发票</th><th>下游发票</th><th>网价单</th></tr>
+<tr><td class='l'><b>规格</b></td>
+<td>Φ12 Φ16 Φ16 Φ25 Φ14 Φ16 Φ22</td>
+<td>Φ12 Φ16 Φ16 Φ25 Φ14 Φ16 Φ22</td>
+<td>Φ12 Φ16 Φ16 Φ25 Φ14 Φ16 Φ22</td>
+<td>Φ12 Φ16 Φ16 Φ25 Φ14 Φ16 Φ22</td>
+<td>Φ12 Φ16 Φ16 Φ25 Φ14 Φ16 Φ22</td>
+<td>Φ12 Φ16 Φ16 Φ25 Φ14 Φ16 Φ22</td>
+<td>Φ12 Φ16 Φ25 Φ14 Φ22</td>
+</tr>
+<tr><td class='l'><b>品牌</b></td>
+<td><span class="chip c3">丙钢</span> <span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span> <span class="chip c4">丁钢</span> <span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span></td>
+<td><span class="chip c3">丙钢</span> <span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span> <span class="chip c4">丁钢</span> <span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span></td>
+<td><span class="chip c3">丙钢</span> <span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span> <span class="chip c4">丁钢</span> <span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span></td>
+<td><span class="chip c3">丙钢</span> <span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span> <span class="chip c4">丁钢</span> <span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span></td>
+<td><span class="chip c3">丙钢</span> <span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span> <span class="chip c4">丁钢</span> <span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span></td>
+<td><span class="chip c3">丙钢</span> <span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span> <span class="chip c4">丁钢</span> <span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span></td>
+<td><span class="chip c3">丙钢</span> <span class="chip c1">甲钢</span> <span class="chip c4">丁钢</span> <span class="chip c1">甲钢</span> <span class="chip c1">甲钢</span></td>
+</tr>
+<tr><td class='l'><b>重量(吨)</b></td>
+<td class='ok'>32.824 27.027 3.188 3.029 12.776 12.136 8.583</td>
+<td class='ok'>32.824 27.027 3.188 3.029 12.776 12.136 8.583</td>
+<td class='ok'>32.824 27.027 3.188 3.029 12.776 12.136 8.583</td>
+<td class='ok'>32.824 27.027 3.188 3.029 12.776 12.136 8.583</td>
+<td class='ok'>32.824 27.027 3.188 3.029 12.776 12.136 8.583</td>
+<td class='ok'>32.824 27.027 3.188 3.029 12.776 12.136 8.583</td>
+<td>—</td></tr>
+<tr><td class='l'><b>重量合计</b></td><td colspan='6' class='ok'>6 类单据合计一致 = <b>99.563</b> 吨</td><td class='ok'>—</td></tr>
+<tr><td class='l'><b>计划结算网价</b></td>
+<td>3410 3260 3300 3280 3270</td>
+<td>3410 3260 3300 3280 3270</td>
+<td>3410 3260 3300 3280 3270</td>
+<td>3410 3260 3300 3280 3270</td>
+<td>—</td><td>—</td>
+<td class='ok'>3410 3260 3300 3280 3270</td></tr>
+<tr><td class='l'><b>下浮(元/吨)</b></td><td>—</td><td>—</td>
+<td class='ok'>135</td>
+<td class='ok'>60</td>
+<td>—</td><td>—</td>
+<td class='ok'>不含（仅行情价）</td></tr>
+<tr><td class='l'><b>实际结算单价</b></td><td>—</td><td>—</td>
+<td class='ok'>3095.58 3125.00 3135.00 3145.00 3165.00 3275.00</td>
+<td class='ok'>3169.63 3200.00 3210.00 3220.00 3240.00 3350.00</td>
+<td class='ok'>3095.58 3125.00 3135.00 3145.00 3165.00 3275.00</td>
+<td class='ok'>3169.63 3200.00 3210.00 3220.00 3240.00 3350.00</td>
+<td>—</td></tr>
+<tr><td class='l'><b>日期</b></td><td colspan='6'>各单据日期均为 <b>2026年08月17日</b>，网价单发布日期一致</td><td>2026-08-17</td></tr>
+<tr><td class='l'><b>一致性判定</b></td><td colspan='7' class='ok'>✔ 全部维度一致</td></tr>
+</table></div>
+<div class="card">
+<h2>2026-08-25 <span class="badge">行数 4</span></h2>
+<table><tr><th>维度</th><th>上游送货单</th><th>下游送货单</th><th>上游对账单</th><th>下游对账单</th><th>上游发票</th><th>下游发票</th><th>网价单</th></tr>
+<tr><td class='l'><b>规格</b></td>
+<td>Φ12 Φ16 Φ25 Φ12</td>
+<td>Φ12 Φ16 Φ25 Φ12</td>
+<td>Φ12 Φ16 Φ25 Φ12</td>
+<td>Φ12 Φ16 Φ25 Φ12</td>
+<td>Φ12 Φ16 Φ25 Φ12</td>
+<td>Φ12 Φ16 Φ25 Φ12</td>
+<td>Φ12 Φ16 Φ25</td>
+</tr>
+<tr><td class='l'><b>品牌</b></td>
+<td><span class="chip c3">丙钢</span> <span class="chip c3">丙钢</span> <span class="chip c3">丙钢</span> <span class="chip c3">丙钢</span></td>
+<td><span class="chip c3">丙钢</span> <span class="chip c3">丙钢</span> <span class="chip c3">丙钢</span> <span class="chip c3">丙钢</span></td>
+<td><span class="chip c3">丙钢</span> <span class="chip c3">丙钢</span> <span class="chip c3">丙钢</span> <span class="chip c3">丙钢</span></td>
+<td><span class="chip c3">丙钢</span> <span class="chip c3">丙钢</span> <span class="chip c3">丙钢</span> <span class="chip c3">丙钢</span></td>
+<td><span class="chip c3">丙钢</span> <span class="chip c3">丙钢</span> <span class="chip c3">丙钢</span> <span class="chip c3">丙钢</span></td>
+<td><span class="chip c3">丙钢</span> <span class="chip c3">丙钢</span> <span class="chip c3">丙钢</span> <span class="chip c3">丙钢</span></td>
+<td><span class="chip c3">丙钢</span> <span class="chip c3">丙钢</span> <span class="chip c3">丙钢</span></td>
+</tr>
+<tr><td class='l'><b>重量(吨)</b></td>
+<td class='ok'>21.380 28.416 25.180 14.966</td>
+<td class='ok'>21.380 28.416 25.180 14.966</td>
+<td class='ok'>21.380 28.416 25.180 14.966</td>
+<td class='ok'>21.380 28.416 25.180 14.966</td>
+<td class='ok'>21.380 28.416 25.180 14.966</td>
+<td class='ok'>21.380 28.416 25.180 14.966</td>
+<td>—</td></tr>
+<tr><td class='l'><b>重量合计</b></td><td colspan='6' class='ok'>6 类单据合计一致 = <b>89.942</b> 吨</td><td class='ok'>—</td></tr>
+<tr><td class='l'><b>计划结算网价</b></td>
+<td>3480 3420 3430</td>
+<td>3480 3420 3430</td>
+<td>3480 3420 3430</td>
+<td>3480 3420 3430</td>
+<td>—</td><td>—</td>
+<td class='ok'>3480 3420 3430</td></tr>
+<tr><td class='l'><b>下浮(元/吨)</b></td><td>—</td><td>—</td>
+<td class='ok'>135</td>
+<td class='ok'>60</td>
+<td>—</td><td>—</td>
+<td class='ok'>不含（仅行情价）</td></tr>
+<tr><td class='l'><b>实际结算单价</b></td><td>—</td><td>—</td>
+<td class='ok'>3285.00 3295.00 3345.00</td>
+<td class='ok'>3360.00 3370.00 3420.00</td>
+<td class='ok'>3285.00 3295.00 3345.00</td>
+<td class='ok'>3360.00 3370.00 3420.00</td>
+<td>—</td></tr>
+<tr><td class='l'><b>日期</b></td><td colspan='6'>各单据日期均为 <b>2026年08月25日</b>，网价单发布日期一致</td><td>2026-08-25</td></tr>
+<tr><td class='l'><b>一致性判定</b></td><td colspan='7' class='ok'>✔ 全部维度一致</td></tr>
+</table></div>
+<div class="card"><h2>结论与口径说明</h2>
+<table>
+<tr><th>关系</th><th>规则</th><th>校验方式</th></tr>
+<tr><td class='l'>上下游送货单</td><td class='l'>货品字段<b>完全一致</b>（品名/材质/规格/品牌/件数/理重/磅重/车号/日期），仅送货单位·收货单位不同</td><td class='ok'>逐行序列比对通过</td></tr>
+<tr><td class='l'>对账单 = 送货单</td><td class='l'>货品行继承送货单，另加 计划结算网价 / 下浮 / 实际结算单价 / 实际结算金额</td><td class='ok'>规格·品牌序列逐一相等</td></tr>
+<tr><td class='l'>上游结算单价</td><td class='l'><code>网价 − 135</code></td><td class='ok'>从网价单反读网价后现算</td></tr>
+<tr><td class='l'>下游结算单价</td><td class='l'><code>网价 − 60</code></td><td class='ok'>从网价单反读网价后现算</td></tr>
+<tr><td class='l'>发票 = 同侧对账单</td><td class='l'>数量 / 含税单价 / 含税金额 / 品牌 / 规格逐行相等；税额 = 金额÷1.13×13%</td><td class='ok'>逐行比对通过</td></tr>
+<tr><td class='l'>网价单</td><td class='l'>第三方行情留存：仅 品名/规格/材质/产地(品牌)/价格/比昨天/备注，<b>不含</b>下浮与结算价</td><td class='ok'>表体区已确认无下浮字样</td></tr>
+<tr><td class='l'>品牌</td><td class='l'>虚构 甲钢/乙钢/丙钢/丁钢，随每行货品给出；网价单以「产地」列承载</td><td class='ok'>≥2 种，可作统计维度</td></tr>
+</table>
+<div class="sub" style="margin:12px 0 0">品名口径说明：送货单·对账单用<b>「螺纹钢」</b>（与真实送货单一致）、网价单用<b>「三级螺纹钢」</b>（与兰格钢铁网截图的品名口径一致）、发票用税收分类简称<b>「*黑色金属冶炼压延品*热轧带肋钢筋」</b>（发票固有写法）。三者指向同一货品，非不一致。</div>
+</div>
+</body></html>

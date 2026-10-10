@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<title>A项目演示资料 · 数据集验收报告</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--ink:#1f2328;--mut:#6b7280;--line:#e3e6ea;
+--ok:#137333;--okbg:#e6f4ea;--bad:#c5221f;--badbg:#fce8e6;--warn:#8a6d00;--warnbg:#fff8e1;
+--accent:#1a56b8;--accentbg:#eaf1fd;}
+*{box-sizing:border-box}
+body{margin:0;padding:28px 20px 60px;background:var(--bg);color:var(--ink);
+font:14px/1.7 -apple-system,"Segoe UI","Microsoft YaHei",sans-serif}
+.wrap{max-width:1180px;margin:0 auto}
+h1{font-size:24px;margin:0 0 4px}
+.sub{color:var(--mut);font-size:13px;margin-bottom:20px}
+.verdict{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--line);
+border-radius:12px;padding:18px 22px;margin-bottom:22px}
+.badge{font-size:22px;font-weight:700;color:#fff;background:#137333;
+border-radius:10px;padding:8px 20px;white-space:nowrap}
+.stats{display:flex;gap:26px;flex-wrap:wrap}
+.stat b{display:block;font-size:21px}
+.stat span{color:var(--mut);font-size:12px}
+h2{font-size:16px;margin:26px 0 10px;padding-left:10px;border-left:4px solid var(--accent)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;
+margin-bottom:18px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:#f0f2f5;font-weight:600;white-space:nowrap}
+tr:last-child td{border-bottom:none}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tag{display:inline-block;padding:1px 8px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
+.ok{background:var(--okbg);color:var(--ok)}
+.bad{background:var(--badbg);color:var(--bad)}
+.warn{background:var(--warnbg);color:var(--warn)}
+.mut{color:var(--mut)}
+.foot{color:var(--mut);font-size:12px;margin-top:26px;border-top:1px solid var(--line);padding-top:14px}
+code{background:#eef1f5;padding:1px 5px;border-radius:4px;font-size:12px}
+</style></head><body><div class="wrap">
+<h1>A项目演示资料 · 数据集验收报告</h1>
+<div class="sub">第一阶段：数据集验收 · 目录 <code>&lt;交付目录&gt;/A项目-演示资料</code> · 生成时间 2026-09-28 11:49</div>
+<div class="verdict"><div class="badge">通过</div><div class="stats">
+<div class="stat"><b style="color:var(--ok)">88</b><span>通过</span></div>
+<div class="stat"><b style="color:var(--bad)">0</b><span>未通过</span></div>
+<div class="stat"><b>0</b><span>提示</span></div>
+<div class="stat"><b>47</b><span>PDF 文件</span></div>
+<div class="stat"><b>174</b><span>定位记录</span></div>
+</div></div>
+<h2>1. 数据集结构</h2><div class="card"><table>
+<tr><th>目录 / 文件</th><th class="n">份数</th><th>内容</th></tr>
+<tr><td><code>合同/</code></td><td class="n">1</td><td class="mut">物资采购与供应合同（演示版）</td></tr>
+<tr><td><code>上游-送货单/</code></td><td class="n">6</td><td class="mut">供方 → 我方，6 个日期</td></tr>
+<tr><td><code>上游-对账单/</code></td><td class="n">6</td><td class="mut">上游结算：网价 − 135</td></tr>
+<tr><td><code>上游-发票/</code></td><td class="n">6</td><td class="mut">增值税专用发票（进项）</td></tr>
+<tr><td><code>下游-送货单/</code></td><td class="n">6</td><td class="mut">我方 → 收货方，6 个日期</td></tr>
+<tr><td><code>下游-对账单/</code></td><td class="n">6</td><td class="mut">下游结算：网价 − 60</td></tr>
+<tr><td><code>下游-发票/</code></td><td class="n">6</td><td class="mut">增值税专用发票（销项）</td></tr>
+<tr><td><code>回款回单/</code></td><td class="n">3</td><td class="mut">银行电子回单，3 笔</td></tr>
+<tr><td><code>网价（示例）/</code></td><td class="n">6</td><td class="mut">第三方行情价留档</td></tr>
+<tr><td><code>A项目-回款与逾期核算表.pdf</code></td><td class="n">1</td><td class="mut">回款 / 资金占用费 / 逾期</td></tr>
+<tr><td><code>字段一致性对照总表.html</code></td><td class="n">1</td><td class="mut">逐日字段一致性对照</td></tr>
+</table></div>
+<h2>2. 逐日期单据齐备与上下游关联</h2><div class="card"><table>
+<tr><th>日期</th><th class="n">行数</th><th>规格</th><th>品牌</th><th class="n">上游结算</th><th class="n">下游结算</th><th>上下游关联</th><th>发票=对账</th></tr>
+<tr><td><b>2026-06-28</b></td><td class="n">4</td><td>Φ18/Φ20/Φ20/Φ18</td><td>甲钢</td><td class="n">226,653.44</td><td class="n">232,157.01</td><td><span class="tag ok">一致</span></td><td><span class="tag ok">一致</span></td></tr>
+<tr><td><b>2026-07-04</b></td><td class="n">4</td><td>Φ14/Φ18/Φ25/Φ14</td><td>甲钢</td><td class="n">225,543.49</td><td class="n">231,045.19</td><td><span class="tag ok">一致</span></td><td><span class="tag ok">一致</span></td></tr>
+<tr><td><b>2026-07-11</b></td><td class="n">5</td><td>Φ12/Φ14/Φ16/Φ18/Φ22</td><td>乙钢/甲钢</td><td class="n">241,387.90</td><td class="n">247,176.62</td><td><span class="tag ok">一致</span></td><td><span class="tag ok">一致</span></td></tr>
+<tr><td><b>2026-07-13</b></td><td class="n">4</td><td>Φ10/Φ18/Φ20/Φ25</td><td>乙钢</td><td class="n">92,433.78</td><td class="n">94,567.01</td><td><span class="tag ok">一致</span></td><td><span class="tag ok">一致</span></td></tr>
+<tr><td><b>2026-07-17</b></td><td class="n">7</td><td>Φ12/Φ16/Φ16/Φ25/Φ14/Φ16/Φ22</td><td>丁钢/丙钢/甲钢</td><td class="n">316,520.49</td><td class="n">323,987.71</td><td><span class="tag ok">一致</span></td><td><span class="tag ok">一致</span></td></tr>
+<tr><td><b>2026-07-25</b></td><td class="n">4</td><td>Φ12/Φ16/Φ25/Φ12</td><td>丙钢</td><td class="n">297,892.03</td><td class="n">304,637.68</td><td><span class="tag ok">一致</span></td><td><span class="tag ok">一致</span></td></tr>
+</table></div>
+<h2>3. 发票金额与对账金额勾稽（独立复算）</h2><div class="card"><table>
+<tr><th>日期</th><th class="n">上游对账=发票</th><th class="n">下游对账=发票</th></tr>
+<tr><td><b>2026-06-28</b></td><td class="n">226,653.44</td><td class="n">232,157.01</td></tr>
+<tr><td><b>2026-07-04</b></td><td class="n">225,543.49</td><td class="n">231,045.19</td></tr>
+<tr><td><b>2026-07-11</b></td><td class="n">241,387.90</td><td class="n">247,176.62</td></tr>
+<tr><td><b>2026-07-13</b></td><td class="n">92,433.78</td><td class="n">94,567.01</td></tr>
+<tr><td><b>2026-07-17</b></td><td class="n">316,520.49</td><td class="n">323,987.71</td></tr>
+<tr><td><b>2026-07-25</b></td><td class="n">297,892.03</td><td class="n">304,637.68</td></tr>
+<tr><td><b>周期一 6/21-7/20</b></td><td class="n mut">—</td><td class="n"><b>1,128,933.54</b></td></tr>
+<tr><td><b>周期二 7/21-8/20</b></td><td class="n mut">—</td><td class="n"><b>304,637.68</b></td></tr>
+<tr><td><b>应收总额</b></td><td class="n mut">—</td><td class="n"><b>1,433,571.22</b></td></tr>
+</table></div>
+<h2>4. 回款与项目关联</h2><div class="card"><table>
+<tr><th>#</th><th>回单文件</th><th>日期</th><th class="n">金额</th><th>付款方 → 收款方</th><th>项目关联</th></tr>
+<tr><td>1</td><td><code>回款回单/A项目-回款回单1-20260915.pdf</code></td><td>2026-09-15</td><td class="n">500,000.00</td><td class="mut">C建设工程集团 → A项目投资管理</td><td><span class="tag ok">A项目</span></td></tr>
+<tr><td>2</td><td><code>回款回单/A项目-回款回单2-20261010.pdf</code></td><td>2026-10-10</td><td class="n">500,000.00</td><td class="mut">C建设工程集团 → A项目投资管理</td><td><span class="tag ok">A项目</span></td></tr>
+<tr><td>3</td><td><code>回款回单/A项目-回款回单3-20261018.pdf</code></td><td>2026-10-18</td><td class="n">300,000.00</td><td class="mut">C建设工程集团 → A项目投资管理</td><td><span class="tag ok">A项目</span></td></tr>
+<tr><td colspan="3"><b>合计</b></td><td class="n"><b>1,300,000.00</b></td><td colspan="2" class="mut">见 <code>A项目-回款与逾期核算表.pdf</code></td></tr>
+</table></div>
+<h2>5. 资金占用费复算（本金 × 0.0002 × 天数）</h2>
+<div class="sub" style="margin:-6px 0 10px">日利率 0.6%/30 = <b>0.0002</b>；逾期起始日 = 周期结束月+2 月 8 日；计息含首含尾；<b>回款日不计息</b>；结息边界每月 21 日。</div>
+<div class="card"><table>
+<tr><th>周期</th><th class="n">计息本金</th><th>起</th><th>止</th><th class="n">天数</th><th class="n">资金占用费</th><th>说明</th></tr>
+<tr><td>周期一</td><td class="n">1,128,933.54</td><td>2026-09-08</td><td>2026-09-14</td><td class="n">7</td><td class="n">1,580.51</td><td class="mut">回款1前 全额计息</td></tr>
+<tr><td>周期一</td><td class="n">628,933.54</td><td>2026-09-15</td><td>2026-09-20</td><td class="n">6</td><td class="n">754.72</td><td class="mut">回款1后 余额计息至结息日</td></tr>
+<tr><td>周期一</td><td class="n">628,933.54</td><td>2026-09-21</td><td>2026-10-09</td><td class="n">19</td><td class="n">2,389.95</td><td class="mut">新周期续计至回款2前一日</td></tr>
+<tr><td>周期一</td><td class="n">131,268.77</td><td>2026-10-10</td><td>2026-10-17</td><td class="n">8</td><td class="n">210.03</td><td class="mut">回款2后 余额计息至回款3前一日</td></tr>
+<tr><td>周期二</td><td class="n">304,637.68</td><td>2026-10-08</td><td>2026-10-09</td><td class="n">2</td><td class="n">121.86</td><td class="mut">周期二逾期起 全额计息</td></tr>
+<tr><td>周期二</td><td class="n">304,637.68</td><td>2026-10-10</td><td>2026-10-17</td><td class="n">8</td><td class="n">487.42</td><td class="mut">回款2冲周期二后（回款3未冲二期）</td></tr>
+<tr><td>周期二</td><td class="n">135,906.45</td><td>2026-10-18</td><td>2026-10-20</td><td class="n">3</td><td class="n">81.54</td><td class="mut">期末仍在计息</td></tr>
+<tr><td colspan="5"><b>合计（含税）</b></td><td class="n"><b>5,626.03</b></td><td class="mut">不含税 4,978.79（÷1.13）</td></tr>
+</table></div>
+<h2>6. 期末逾期情况</h2><div class="card"><table>
+<tr><th>项目</th><th class="n">金额</th><th>说明</th></tr>
+<tr><td>已回款合计</td><td class="n">1,300,000.00</td><td class="mut">三笔之和</td></tr>
+<tr><td>其中：冲抵本金</td><td class="n">1,297,664.77</td><td class="mut">按 先旧后新 顺序</td></tr>
+<tr><td>其中：冲抵前期资金占用费</td><td class="n">2,335.23</td><td class="mut">优先级 ①</td></tr>
+<tr><td>期末未收本金</td><td class="n">135,906.45</td><td class="mut">周期二余额</td></tr>
+<tr><td>期末未收资金占用费</td><td class="n">3,290.80</td><td class="mut">已计未收</td></tr>
+<tr><td>逾期余额合计</td><td class="n" style="font-weight:700">139,197.25</td><td class="mut">未收本金 + 未收资金占用费</td></tr>
+</table></div>
+<h2>7. 全记录定位台账（文件名 + 页码）</h2>
+<div class="sub" style="margin:-6px 0 10px">共 174 条记录，覆盖 46 份文件。每条业务记录均可由「文件路径 + 页码 + 行/段标识」唯一定位。</div>
+<div class="card"><table>
+<tr><th>类别</th><th>文件</th><th class="n">页</th><th>定位</th></tr>
+<tr><td>上游送货单·货品</td><td><code>上游-送货单/A项目-送货单20260628.pdf</code></td><td class="n">1</td><td class="mut">第1行 品牌甲钢 规格Φ18 重量22.640</td></tr>
+<tr><td>上游送货单·货品</td><td><code>上游-送货单/A项目-送货单20260628.pdf</code></td><td class="n">1</td><td class="mut">第2行 品牌甲钢 规格Φ20 重量18.315</td></tr>
+<tr><td>上游送货单·货品</td><td><code>上游-送货单/A项目-送货单20260628.pdf</code></td><td class="n">1</td><td class="mut">第3行 品牌甲钢 规格Φ20 重量21.106</td></tr>
+<tr><td>上游送货单·货品</td><td><code>上游-送货单/A项目-送货单20260628.pdf</code></td><td class="n">1</td><td class="mut">第4行 品牌甲钢 规格Φ18 重量11.320</td></tr>
+<tr><td>下游送货单·货品</td><td><code>下游-送货单/A项目-送货单20260628.pdf</code></td><td class="n">1</td><td class="mut">第1行 品牌甲钢 规格Φ18 重量22.640</td></tr>
+<tr><td>下游送货单·货品</td><td><code>下游-送货单/A项目-送货单20260628.pdf</code></td><td class="n">1</td><td class="mut">第2行 品牌甲钢 规格Φ20 重量18.315</td></tr>
+<tr><td>下游送货单·货品</td><td><code>下游-送货单/A项目-送货单20260628.pdf</code></td><td class="n">1</td><td class="mut">第3行 品牌甲钢 规格Φ20 重量21.106</td></tr>
+<tr><td>下游送货单·货品</td><td><code>下游-送货单/A项目-送货单20260628.pdf</code></td><td class="n">1</td><td class="mut">第4行 品牌甲钢 规格Φ18 重量11.320</td></tr>
+<tr><td>上游对账单·货品</td><td><code>上游-对账单/A项目-对账单20260628.pdf</code></td><td class="n">1</td><td class="mut">第1行 规格Φ18 重量22.640</td></tr>
+<tr><td>上游对账单·货品</td><td><code>上游-对账单/A项目-对账单20260628.pdf</code></td><td class="n">1</td><td class="mut">第2行 规格Φ20 重量18.315</td></tr>
+<tr><td>上游对账单·货品</td><td><code>上游-对账单/A项目-对账单20260628.pdf</code></td><td class="n">1</td><td class="mut">第3行 规格Φ20 重量21.106</td></tr>
+<tr><td>上游对账单·货品</td><td><code>上游-对账单/A项目-对账单20260628.pdf</code></td><td class="n">1</td><td class="mut">第4行 规格Φ18 重量11.320</td></tr>
+<tr><td>上游对账单·合计</td><td><code>上游-对账单/A项目-对账单20260628.pdf</code></td><td class="n">1</td><td class="mut">合计行 金额 226,653.44</td></tr>
+<tr><td>下游对账单·货品</td><td><code>下游-对账单/A项目-对账单20260628.pdf</code></td><td class="n">1</td><td class="mut">第1行 规格Φ18 重量22.640</td></tr>
+<tr><td>下游对账单·货品</td><td><code>下游-对账单/A项目-对账单20260628.pdf</code></td><td class="n">1</td><td class="mut">第2行 规格Φ20 重量18.315</td></tr>
+<tr><td>下游对账单·货品</td><td><code>下游-对账单/A项目-对账单20260628.pdf</code></td><td class="n">1</td><td class="mut">第3行 规格Φ20 重量21.106</td></tr>
+<tr><td>下游对账单·货品</td><td><code>下游-对账单/A项目-对账单20260628.pdf</code></td><td class="n">1</td><td class="mut">第4行 规格Φ18 重量11.320</td></tr>
+<tr><td>下游对账单·合计</td><td><code>下游-对账单/A项目-对账单20260628.pdf</code></td><td class="n">1</td><td class="mut">合计行 金额 232,157.01</td></tr>
+<tr><td>上游发票·价税合计</td><td><code>上游-发票/A项目-发票20260628.pdf</code></td><td class="n">1</td><td class="mut">价税合计（小写）226,653.44</td></tr>
+<tr><td>下游发票·价税合计</td><td><code>下游-发票/A项目-发票20260628.pdf</code></td><td class="n">1</td><td class="mut">价税合计（小写）232,157.01</td></tr>
+<tr><td>网价单·行情</td><td><code>网价（示例）/20260628网价.pdf</code></td><td class="n">1</td><td class="mut">甲钢 Φ18 网价3170</td></tr>
+<tr><td>网价单·行情</td><td><code>网价（示例）/20260628网价.pdf</code></td><td class="n">1</td><td class="mut">甲钢 Φ20 网价3270</td></tr>
+<tr><td>网价单·行情</td><td><code>网价（示例）/20260628网价.pdf</code></td><td class="n">1</td><td class="mut">甲钢 Φ20 网价3270</td></tr>
+<tr><td>网价单·行情</td><td><code>网价（示例）/20260628网价.pdf</code></td><td class="n">1</td><td class="mut">甲钢 Φ18 网价3170</td></tr>
+<tr><td>上游送货单·货品</td><td><code>上游-送货单/A项目-送货单20260704.pdf</code></td><td class="n">1</td><td class="mut">第1行 品牌甲钢 规格Φ14 重量15.228</td></tr>
+<tr><td>上游送货单·货品</td><td><code>上游-送货单/A项目-送货单20260704.pdf</code></td><td class="n">1</td><td class="mut">第2行 品牌甲钢 规格Φ18 重量22.640</td></tr>
+<tr><td>上游送货单·货品</td><td><code>上游-送货单/A项目-送货单20260704.pdf</code></td><td class="n">1</td><td class="mut">第3行 品牌甲钢 规格Φ25 重量26.351</td></tr>
+<tr><td>上游送货单·货品</td><td><code>上游-送货单/A项目-送货单20260704.pdf</code></td><td class="n">1</td><td class="mut">第4行 品牌甲钢 规格Φ14 重量9.137</td></tr>
+<tr><td>下游送货单·货品</td><td><code>下游-送货单/A项目-送货单20260704.pdf</code></td><td class="n">1</td><td class="mut">第1行 品牌甲钢 规格Φ14 重量15.228</td></tr>
+<tr><td>下游送货单·货品</td><td><code>下游-送货单/A项目-送货单20260704.pdf</code></td><td class="n">1</td><td class="mut">第2行 品牌甲钢 规格Φ18 重量22.640</td></tr>
+<tr><td>下游送货单·货品</td><td><code>下游-送货单/A项目-送货单20260704.pdf</code></td><td class="n">1</td><td class="mut">第3行 品牌甲钢 规格Φ25 重量26.351</td></tr>
+<tr><td>下游送货单·货品</td><td><code>下游-送货单/A项目-送货单20260704.pdf</code></td><td class="n">1</td><td class="mut">第4行 品牌甲钢 规格Φ14 重量9.137</td></tr>
+<tr><td>上游对账单·货品</td><td><code>上游-对账单/A项目-对账单20260704.pdf</code></td><td class="n">1</td><td class="mut">第1行 规格Φ14 重量15.228</td></tr>
+<tr><td>上游对账单·货品</td><td><code>上游-对账单/A项目-对账单20260704.pdf</code></td><td class="n">1</td><td class="mut">第2行 规格Φ18 重量22.640</td></tr>
+<tr><td>上游对账单·货品</td><td><code>上游-对账单/A项目-对账单20260704.pdf</code></td><td class="n">1</td><td class="mut">第3行 规格Φ25 重量26.351</td></tr>
+<tr><td>上游对账单·货品</td><td><code>上游-对账单/A项目-对账单20260704.pdf</code></td><td class="n">1</td><td class="mut">第4行 规格Φ14 重量9.137</td></tr>
+<tr><td>上游对账单·合计</td><td><code>上游-对账单/A项目-对账单20260704.pdf</code></td><td class="n">1</td><td class="mut">合计行 金额 225,543.49</td></tr>
+<tr><td>下游对账单·货品</td><td><code>下游-对账单/A项目-对账单20260704.pdf</code></td><td class="n">1</td><td class="mut">第1行 规格Φ14 重量15.228</td></tr>
+<tr><td>下游对账单·货品</td><td><code>下游-对账单/A项目-对账单20260704.pdf</code></td><td class="n">1</td><td class="mut">第2行 规格Φ18 重量22.640</td></tr>
+<tr><td>下游对账单·货品</td><td><code>下游-对账单/A项目-对账单20260704.pdf</code></td><td class="n">1</td><td class="mut">第3行 规格Φ25 重量26.351</td></tr>
+<tr><td>下游对账单·货品</td><td><code>下游-对账单/A项目-对账单20260704.pdf</code></td><td class="n">1</td><td class="mut">第4行 规格Φ14 重量9.137</td></tr>
+<tr><td>下游对账单·合计</td><td><code>下游-对账单/A项目-对账单20260704.pdf</code></td><td class="n">1</td><td class="mut">合计行 金额 231,045.19</td></tr>
+<tr><td>上游发票·价税合计</td><td><code>上游-发票/A项目-发票20260704.pdf</code></td><td class="n">1</td><td class="mut">价税合计（小写）225,543.49</td></tr>
+<tr><td>下游发票·价税合计</td><td><code>下游-发票/A项目-发票20260704.pdf</code></td><td class="n">1</td><td class="mut">价税合计（小写）231,045.19</td></tr>
+<tr><td>网价单·行情</td><td><code>网价（示例）/20260704网价.pdf</code></td><td class="n">1</td><td class="mut">甲钢 Φ14 网价3240</td></tr>
+<tr><td>网价单·行情</td><td><code>网价（示例）/20260704网价.pdf</code></td><td class="n">1</td><td class="mut">甲钢 Φ18 网价3130</td></tr>
+<tr><td>网价单·行情</td><td><code>网价（示例）/20260704网价.pdf</code></td><td class="n">1</td><td class="mut">甲钢 Φ25 网价3250</td></tr>
+<tr><td>网价单·行情</td><td><code>网价（示例）/20260704网价.pdf</code></td><td class="n">1</td><td class="mut">甲钢 Φ14 网价3240</td></tr>
+<tr><td>上游送货单·货品</td><td><code>上游-送货单/A项目-送货单20260711.pdf</code></td><td class="n">1</td><td class="mut">第1行 品牌甲钢 规格Φ12 重量24.680</td></tr>
+<tr><td>上游送货单·货品</td><td><code>上游-送货单/A项目-送货单20260711.pdf</code></td><td class="n">1</td><td class="mut">第2行 品牌甲钢 规格Φ14 重量13.705</td></tr>
+<tr><td>上游送货单·货品</td><td><code>上游-送货单/A项目-送货单20260711.pdf</code></td><td class="n">1</td><td class="mut">第3行 品牌乙钢 规格Φ16 重量27.027</td></tr>
+<tr><td>上游送货单·货品</td><td><code>上游-送货单/A项目-送货单20260711.pdf</code></td><td class="n">1</td><td class="mut">第4行 品牌乙钢 规格Φ18 重量3.188</td></tr>
+<tr><td>上游送货单·货品</td><td><code>上游-送货单/A项目-送货单20260711.pdf</code></td><td class="n">1</td><td class="mut">第5行 品牌乙钢 规格Φ22 重量8.583</td></tr>
+<tr><td>下游送货单·货品</td><td><code>下游-送货单/A项目-送货单20260711.pdf</code></td><td class="n">1</td><td class="mut">第1行 品牌甲钢 规格Φ12 重量24.680</td></tr>
+<tr><td>下游送货单·货品</td><td><code>下游-送货单/A项目-送货单20260711.pdf</code></td><td class="n">1</td><td class="mut">第2行 品牌甲钢 规格Φ14 重量13.705</td></tr>
+<tr><td>下游送货单·货品</td><td><code>下游-送货单/A项目-送货单20260711.pdf</code></td><td class="n">1</td><td class="mut">第3行 品牌乙钢 规格Φ16 重量27.027</td></tr>
+<tr><td>下游送货单·货品</td><td><code>下游-送货单/A项目-送货单20260711.pdf</code></td><td class="n">1</td><td class="mut">第4行 品牌乙钢 规格Φ18 重量3.188</td></tr>
+<tr><td>下游送货单·货品</td><td><code>下游-送货单/A项目-送货单20260711.pdf</code></td><td class="n">1</td><td class="mut">第5行 品牌乙钢 规格Φ22 重量8.583</td></tr>
+<tr><td>上游对账单·货品</td><td><code>上游-对账单/A项目-对账单20260711.pdf</code></td><td class="n">1</td><td class="mut">第1行 规格Φ12 重量24.680</td></tr>
+<tr><td>上游对账单·货品</td><td><code>上游-对账单/A项目-对账单20260711.pdf</code></td><td class="n">1</td><td class="mut">第2行 规格Φ14 重量13.705</td></tr>
+<tr><td>上游对账单·货品</td><td><code>上游-对账单/A项目-对账单20260711.pdf</code></td><td class="n">1</td><td class="mut">第3行 规格Φ16 重量27.027</td></tr>
+<tr><td>上游对账单·货品</td><td><code>上游-对账单/A项目-对账单20260711.pdf</code></td><td class="n">1</td><td class="mut">第4行 规格Φ18 重量3.188</td></tr>
+<tr><td>上游对账单·货品</td><td><code>上游-对账单/A项目-对账单20260711.pdf</code></td><td class="n">1</td><td class="mut">第5行 规格Φ22 重量8.583</td></tr>
+<tr><td>上游对账单·合计</td><td><code>上游-对账单/A项目-对账单20260711.pdf</code></td><td class="n">1</td><td class="mut">合计行 金额 241,387.90</td></tr>
+<tr><td>下游对账单·货品</td><td><code>下游-对账单/A项目-对账单20260711.pdf</code></td><td class="n">1</td><td class="mut">第1行 规格Φ12 重量24.680</td></tr>
+<tr><td>下游对账单·货品</td><td><code>下游-对账单/A项目-对账单20260711.pdf</code></td><td class="n">1</td><td class="mut">第2行 规格Φ14 重量13.705</td></tr>
+<tr><td>下游对账单·货品</td><td><code>下游-对账单/A项目-对账单20260711.pdf</code></td><td class="n">1</td><td class="mut">第3行 规格Φ16 重量27.027</td></tr>
+<tr><td>下游对账单·货品</td><td><code>下游-对账单/A项目-对账单20260711.pdf</code></td><td class="n">1</td><td class="mut">第4行 规格Φ18 重量3.188</td></tr>
+<tr><td>下游对账单·货品</td><td><code>下游-对账单/A项目-对账单20260711.pdf</code></td><td class="n">1</td><td class="mut">第5行 规格Φ22 重量8.583</td></tr>
+<tr><td>下游对账单·合计</td><td><code>下游-对账单/A项目-对账单20260711.pdf</code></td><td class="n">1</td><td class="mut">合计行 金额 247,176.62</td></tr>
+<tr><td>上游发票·价税合计</td><td><code>上游-发票/A项目-发票20260711.pdf</code></td><td class="n">1</td><td class="mut">价税合计（小写）241,387.90</td></tr>
+<tr><td>下游发票·价税合计</td><td><code>下游-发票/A项目-发票20260711.pdf</code></td><td class="n">1</td><td class="mut">价税合计（小写）247,176.62</td></tr>
+<tr><td>网价单·行情</td><td><code>网价（示例）/20260711网价.pdf</code></td><td class="n">1</td><td class="mut">甲钢 Φ12 网价3250</td></tr>
+<tr><td>网价单·行情</td><td><code>网价（示例）/20260711网价.pdf</code></td><td class="n">1</td><td class="mut">甲钢 Φ14 网价3250</td></tr>
+<tr><td>网价单·行情</td><td><code>网价（示例）/20260711网价.pdf</code></td><td class="n">1</td><td class="mut">乙钢 Φ16 网价3280</td></tr>
+<tr><td>网价单·行情</td><td><code>网价（示例）/20260711网价.pdf</code></td><td class="n">1</td><td class="mut">乙钢 Φ18 网价3190</td></tr>
+<tr><td>网价单·行情</td><td><code>网价（示例）/20260711网价.pdf</code></td><td class="n">1</td><td class="mut">乙钢 Φ22 网价3290</td></tr>
+<tr><td>上游送货单·货品</td><td><code>上游-送货单/A项目-送货单20260713.pdf</code></td><td class="n">1</td><td class="mut">第1行 品牌乙钢 规格Φ10 重量12.776</td></tr>
+<tr><td>上游送货单·货品</td><td><code>上游-送货单/A项目-送货单20260713.pdf</code></td><td class="n">1</td><td class="mut">第2行 品牌乙钢 规格Φ18 重量4.126</td></tr>
+<tr><td>上游送货单·货品</td><td><code>上游-送货单/A项目-送货单20260713.pdf</code></td><td class="n">1</td><td class="mut">第3行 品牌乙钢 规格Φ20 重量3.029</td></tr>
+<tr><td>上游送货单·货品</td><td><code>上游-送货单/A项目-送货单20260713.pdf</code></td><td class="n">1</td><td class="mut">第4行 品牌乙钢 规格Φ25 重量8.512</td></tr>
+<tr><td>下游送货单·货品</td><td><code>下游-送货单/A项目-送货单20260713.pdf</code></td><td class="n">1</td><td class="mut">第1行 品牌乙钢 规格Φ10 重量12.776</td></tr>
+<tr><td>下游送货单·货品</td><td><code>下游-送货单/A项目-送货单20260713.pdf</code></td><td class="n">1</td><td class="mut">第2行 品牌乙钢 规格Φ18 重量4.126</td></tr>
+<tr><td>下游送货单·货品</td><td><code>下游-送货单/A项目-送货单20260713.pdf</code></td><td class="n">1</td><td class="mut">第3行 品牌乙钢 规格Φ20 重量3.029</td></tr>
+<tr><td>下游送货单·货品</td><td><code>下游-送货单/A项目-送货单20260713.pdf</code></td><td class="n">1</td><td class="mut">第4行 品牌乙钢 规格Φ25 重量8.512</td></tr>
+<tr><td>上游对账单·货品</td><td><code>上游-对账单/A项目-对账单20260713.pdf</code></td><td class="n">1</td><td class="mut">第1行 规格Φ10 重量12.776</td></tr>
+<tr><td>上游对账单·货品</td><td><code>上游-对账单/A项目-对账单20260713.pdf</code></td><td class="n">1</td><td class="mut">第2行 规格Φ18 重量4.126</td></tr>
+<tr><td>上游对账单·货品</td><td><code>上游-对账单/A项目-对账单20260713.pdf</code></td><td class="n">1</td><td class="mut">第3行 规格Φ20 重量3.029</td></tr>
+<tr><td>上游对账单·货品</td><td><code>上游-对账单/A项目-对账单20260713.pdf</code></td><td class="n">1</td><td class="mut">第4行 规格Φ25 重量8.512</td></tr>
+<tr><td>上游对账单·合计</td><td><code>上游-对账单/A项目-对账单20260713.pdf</code></td><td class="n">1</td><td class="mut">合计行 金额 92,433.78</td></tr>
+<tr><td>下游对账单·货品</td><td><code>下游-对账单/A项目-对账单20260713.pdf</code></td><td class="n">1</td><td class="mut">第1行 规格Φ10 重量12.776</td></tr>
+<tr><td>下游对账单·货品</td><td><code>下游-对账单/A项目-对账单20260713.pdf</code></td><td class="n">1</td><td class="mut">第2行 规格Φ18 重量4.126</td></tr>
+<tr><td>下游对账单·货品</td><td><code>下游-对账单/A项目-对账单20260713.pdf</code></td><td class="n">1</td><td class="mut">第3行 规格Φ20 重量3.029</td></tr>
+<tr><td>下游对账单·货品</td><td><code>下游-对账单/A项目-对账单20260713.pdf</code></td><td class="n">1</td><td class="mut">第4行 规格Φ25 重量8.512</td></tr>
+<tr><td>下游对账单·合计</td><td><code>下游-对账单/A项目-对账单20260713.pdf</code></td><td class="n">1</td><td class="mut">合计行 金额 94,567.01</td></tr>
+<tr><td>上游发票·价税合计</td><td><code>上游-发票/A项目-发票20260713.pdf</code></td><td class="n">1</td><td class="mut">价税合计（小写）92,433.78</td></tr>
+<tr><td>下游发票·价税合计</td><td><code>下游-发票/A项目-发票20260713.pdf</code></td><td class="n">1</td><td class="mut">价税合计（小写）94,567.01</td></tr>
+<tr><td>网价单·行情</td><td><code>网价（示例）/20260713网价.pdf</code></td><td class="n">1</td><td class="mut">乙钢 Φ10 网价3520</td></tr>
+<tr><td>网价单·行情</td><td><code>网价（示例）/20260713网价.pdf</code></td><td class="n">1</td><td class="mut">乙钢 Φ18 网价3190</td></tr>
+<tr><td>网价单·行情</td><td><code>网价（示例）/20260713网价.pdf</code></td><td class="n">1</td><td class="mut">乙钢 Φ20 网价3290</td></tr>
+<tr><td>网价单·行情</td><td><code>网价（示例）/20260713网价.pdf</code></td><td class="n">1</td><td class="mut">乙钢 Φ25 网价3310</td></tr>
+<tr><td>上游送货单·货品</td><td><code>上游-送货单/A项目-送货单20260717.pdf</code></td><td class="n">1</td><td class="mut">第1行 品牌丙钢 规格Φ12 重量32.824</td></tr>
+<tr><td>上游送货单·货品</td><td><code>上游-送货单/A项目-送货单20260717.pdf</code></td><td class="n">1</td><td class="mut">第2行 品牌甲钢 规格Φ16 重量27.027</td></tr>
+<tr><td>上游送货单·货品</td><td><code>上游-送货单/A项目-送货单20260717.pdf</code></td><td class="n">1</td><td class="mut">第3行 品牌甲钢 规格Φ16 重量3.188</td></tr>
+<tr><td>上游送货单·货品</td><td><code>上游-送货单/A项目-送货单20260717.pdf</code></td><td class="n">1</td><td class="mut">第4行 品牌丁钢 规格Φ25 重量3.029</td></tr>
+<tr><td>上游送货单·货品</td><td><code>上游-送货单/A项目-送货单20260717.pdf</code></td><td class="n">1</td><td class="mut">第5行 品牌甲钢 规格Φ14 重量12.776</td></tr>
+<tr><td>上游送货单·货品</td><td><code>上游-送货单/A项目-送货单20260717.pdf</code></td><td class="n">1</td><td class="mut">第6行 品牌甲钢 规格Φ16 重量12.136</td></tr>
+<tr><td>上游送货单·货品</td><td><code>上游-送货单/A项目-送货单20260717.pdf</code></td><td class="n">1</td><td class="mut">第7行 品牌甲钢 规格Φ22 重量8.583</td></tr>
+<tr><td>下游送货单·货品</td><td><code>下游-送货单/A项目-送货单20260717.pdf</code></td><td class="n">1</td><td class="mut">第1行 品牌丙钢 规格Φ12 重量32.824</td></tr>
+<tr><td>下游送货单·货品</td><td><code>下游-送货单/A项目-送货单20260717.pdf</code></td><td class="n">1</td><td class="mut">第2行 品牌甲钢 规格Φ16 重量27.027</td></tr>
+<tr><td>下游送货单·货品</td><td><code>下游-送货单/A项目-送货单20260717.pdf</code></td><td class="n">1</td><td class="mut">第3行 品牌甲钢 规格Φ16 重量3.188</td></tr>
+<tr><td>下游送货单·货品</td><td><code>下游-送货单/A项目-送货单20260717.pdf</code></td><td class="n">1</td><td class="mut">第4行 品牌丁钢 规格Φ25 重量3.029</td></tr>
+<tr><td>下游送货单·货品</td><td><code>下游-送货单/A项目-送货单20260717.pdf</code></td><td class="n">1</td><td class="mut">第5行 品牌甲钢 规格Φ14 重量12.776</td></tr>
+<tr><td>下游送货单·货品</td><td><code>下游-送货单/A项目-送货单20260717.pdf</code></td><td class="n">1</td><td class="mut">第6行 品牌甲钢 规格Φ16 重量12.136</td></tr>
+<tr><td>下游送货单·货品</td><td><code>下游-送货单/A项目-送货单20260717.pdf</code></td><td class="n">1</td><td class="mut">第7行 品牌甲钢 规格Φ22 重量8.583</td></tr>
+<tr><td>上游对账单·货品</td><td><code>上游-对账单/A项目-对账单20260717.pdf</code></td><td class="n">1</td><td class="mut">第1行 规格Φ12 重量32.824</td></tr>
+<tr><td>上游对账单·货品</td><td><code>上游-对账单/A项目-对账单20260717.pdf</code></td><td class="n">1</td><td class="mut">第2行 规格Φ16 重量27.027</td></tr>
+<tr><td>上游对账单·货品</td><td><code>上游-对账单/A项目-对账单20260717.pdf</code></td><td class="n">1</td><td class="mut">第3行 规格Φ16 重量3.188</td></tr>
+<tr><td>上游对账单·货品</td><td><code>上游-对账单/A项目-对账单20260717.pdf</code></td><td class="n">1</td><td class="mut">第4行 规格Φ25 重量3.029</td></tr>
+<tr><td>上游对账单·货品</td><td><code>上游-对账单/A项目-对账单20260717.pdf</code></td><td class="n">1</td><td class="mut">第5行 规格Φ14 重量12.776</td></tr>
+<tr><td>上游对账单·货品</td><td><code>上游-对账单/A项目-对账单20260717.pdf</code></td><td class="n">1</td><td class="mut">第6行 规格Φ16 重量12.136</td></tr>
+<tr><td>上游对账单·货品</td><td><code>上游-对账单/A项目-对账单20260717.pdf</code></td><td class="n">1</td><td class="mut">第7行 规格Φ22 重量8.583</td></tr>
+<tr><td>上游对账单·合计</td><td><code>上游-对账单/A项目-对账单20260717.pdf</code></td><td class="n">1</td><td class="mut">合计行 金额 316,520.49</td></tr>
+<tr><td>下游对账单·货品</td><td><code>下游-对账单/A项目-对账单20260717.pdf</code></td><td class="n">1</td><td class="mut">第1行 规格Φ12 重量32.824</td></tr>
+<tr><td>下游对账单·货品</td><td><code>下游-对账单/A项目-对账单20260717.pdf</code></td><td class="n">1</td><td class="mut">第2行 规格Φ16 重量27.027</td></tr>
+<tr><td>下游对账单·货品</td><td><code>下游-对账单/A项目-对账单20260717.pdf</code></td><td class="n">1</td><td class="mut">第3行 规格Φ16 重量3.188</td></tr>
+<tr><td>下游对账单·货品</td><td><code>下游-对账单/A项目-对账单20260717.pdf</code></td><td class="n">1</td><td class="mut">第4行 规格Φ25 重量3.029</td></tr>
+<tr><td>下游对账单·货品</td><td><code>下游-对账单/A项目-对账单20260717.pdf</code></td><td class="n">1</td><td class="mut">第5行 规格Φ14 重量12.776</td></tr>
+<tr><td>下游对账单·货品</td><td><code>下游-对账单/A项目-对账单20260717.pdf</code></td><td class="n">1</td><td class="mut">第6行 规格Φ16 重量12.136</td></tr>
+<tr><td>下游对账单·货品</td><td><code>下游-对账单/A项目-对账单20260717.pdf</code></td><td class="n">1</td><td class="mut">第7行 规格Φ22 重量8.583</td></tr>
+<tr><td>下游对账单·合计</td><td><code>下游-对账单/A项目-对账单20260717.pdf</code></td><td class="n">1</td><td class="mut">合计行 金额 323,987.71</td></tr>
+<tr><td>上游发票·价税合计</td><td><code>上游-发票/A项目-发票20260717.pdf</code></td><td class="n">1</td><td class="mut">价税合计（小写）316,520.49</td></tr>
+<tr><td>下游发票·价税合计</td><td><code>下游-发票/A项目-发票20260717.pdf</code></td><td class="n">1</td><td class="mut">价税合计（小写）323,987.71</td></tr>
+<tr><td>网价单·行情</td><td><code>网价（示例）/20260717网价.pdf</code></td><td class="n">1</td><td class="mut">丙钢 Φ12 网价3410</td></tr>
+<tr><td>网价单·行情</td><td><code>网价（示例）/20260717网价.pdf</code></td><td class="n">1</td><td class="mut">甲钢 Φ16 网价3260</td></tr>
+<tr><td>网价单·行情</td><td><code>网价（示例）/20260717网价.pdf</code></td><td class="n">1</td><td class="mut">甲钢 Φ16 网价3260</td></tr>
+<tr><td>网价单·行情</td><td><code>网价（示例）/20260717网价.pdf</code></td><td class="n">1</td><td class="mut">丁钢 Φ25 网价3300</td></tr>
+<tr><td>网价单·行情</td><td><code>网价（示例）/20260717网价.pdf</code></td><td class="n">1</td><td class="mut">甲钢 Φ14 网价3280</td></tr>
+<tr><td>网价单·行情</td><td><code>网价（示例）/20260717网价.pdf</code></td><td class="n">1</td><td class="mut">甲钢 Φ16 网价3260</td></tr>
+<tr><td>网价单·行情</td><td><code>网价（示例）/20260717网价.pdf</code></td><td class="n">1</td><td class="mut">甲钢 Φ22 网价3270</td></tr>
+<tr><td>上游送货单·货品</td><td><code>上游-送货单/A项目-送货单20260725.pdf</code></td><td class="n">1</td><td class="mut">第1行 品牌丙钢 规格Φ12 重量21.380</td></tr>
+<tr><td>上游送货单·货品</td><td><code>上游-送货单/A项目-送货单20260725.pdf</code></td><td class="n">1</td><td class="mut">第2行 品牌丙钢 规格Φ16 重量28.416</td></tr>
+<tr><td>上游送货单·货品</td><td><code>上游-送货单/A项目-送货单20260725.pdf</code></td><td class="n">1</td><td class="mut">第3行 品牌丙钢 规格Φ25 重量25.180</td></tr>
+<tr><td>上游送货单·货品</td><td><code>上游-送货单/A项目-送货单20260725.pdf</code></td><td class="n">1</td><td class="mut">第4行 品牌丙钢 规格Φ12 重量14.966</td></tr>
+<tr><td>下游送货单·货品</td><td><code>下游-送货单/A项目-送货单20260725.pdf</code></td><td class="n">1</td><td class="mut">第1行 品牌丙钢 规格Φ12 重量21.380</td></tr>
+<tr><td>下游送货单·货品</td><td><code>下游-送货单/A项目-送货单20260725.pdf</code></td><td class="n">1</td><td class="mut">第2行 品牌丙钢 规格Φ16 重量28.416</td></tr>
+<tr><td>下游送货单·货品</td><td><code>下游-送货单/A项目-送货单20260725.pdf</code></td><td class="n">1</td><td class="mut">第3行 品牌丙钢 规格Φ25 重量25.180</td></tr>
+<tr><td>下游送货单·货品</td><td><code>下游-送货单/A项目-送货单20260725.pdf</code></td><td class="n">1</td><td class="mut">第4行 品牌丙钢 规格Φ12 重量14.966</td></tr>
+<tr><td>上游对账单·货品</td><td><code>上游-对账单/A项目-对账单20260725.pdf</code></td><td class="n">1</td><td class="mut">第1行 规格Φ12 重量21.380</td></tr>
+<tr><td>上游对账单·货品</td><td><code>上游-对账单/A项目-对账单20260725.pdf</code></td><td class="n">1</td><td class="mut">第2行 规格Φ16 重量28.416</td></tr>
+<tr><td>上游对账单·货品</td><td><code>上游-对账单/A项目-对账单20260725.pdf</code></td><td class="n">1</td><td class="mut">第3行 规格Φ25 重量25.180</td></tr>
+<tr><td>上游对账单·货品</td><td><code>上游-对账单/A项目-对账单20260725.pdf</code></td><td class="n">1</td><td class="mut">第4行 规格Φ12 重量14.966</td></tr>
+<tr><td>上游对账单·合计</td><td><code>上游-对账单/A项目-对账单20260725.pdf</code></td><td class="n">1</td><td class="mut">合计行 金额 297,892.03</td></tr>
+<tr><td>下游对账单·货品</td><td><code>下游-对账单/A项目-对账单20260725.pdf</code></td><td class="n">1</td><td class="mut">第1行 规格Φ12 重量21.380</td></tr>
+<tr><td>下游对账单·货品</td><td><code>下游-对账单/A项目-对账单20260725.pdf</code></td><td class="n">1</td><td class="mut">第2行 规格Φ16 重量28.416</td></tr>
+<tr><td>下游对账单·货品</td><td><code>下游-对账单/A项目-对账单20260725.pdf</code></td><td class="n">1</td><td class="mut">第3行 规格Φ25 重量25.180</td></tr>
+<tr><td>下游对账单·货品</td><td><code>下游-对账单/A项目-对账单20260725.pdf</code></td><td class="n">1</td><td class="mut">第4行 规格Φ12 重量14.966</td></tr>
+<tr><td>下游对账单·合计</td><td><code>下游-对账单/A项目-对账单20260725.pdf</code></td><td class="n">1</td><td class="mut">合计行 金额 304,637.68</td></tr>
+<tr><td>上游发票·价税合计</td><td><code>上游-发票/A项目-发票20260725.pdf</code></td><td class="n">1</td><td class="mut">价税合计（小写）297,892.03</td></tr>
+<tr><td>下游发票·价税合计</td><td><code>下游-发票/A项目-发票20260725.pdf</code></td><td class="n">1</td><td class="mut">价税合计（小写）304,637.68</td></tr>
+<tr><td colspan="4" class="mut">… 其余 14 条同格式（完整清单见控制台输出）</td></tr>
+</table></div>
+<h2>验收结论</h2><div class="card" style="padding:16px 20px">
+<p style="margin:0 0 10px"><span class="tag ok">通过</span> 本数据集可作为独立数据集使用。7 项验收全部通过，共 <b>88</b> 项断言。</p>
+<p class="mut" style="margin:0;font-size:12px">验收方法：只读已部署 PDF；表体按坐标读取（<code>get_text("words")</code> → 按 y 聚行 → 按 x 取格）；金额一律独立重算（单价 × 重量、本金 × 费率 × 天数），不查表、不复用生成器中间量。</p>
+</div>
+<h2>合规说明与已知局限</h2><div class="card" style="padding:16px 20px">
+<p style="margin:0 0 8px"><span class="tag ok">已处理</span> <b>合同内嵌电子签章的证书载荷已清除。</b>原件的 86 个签章域内嵌 CFCA / SHECA / UniTrust 数字证书，证书主体含真实企业名、统一社会信用代码与经办人身份证号。这些字节位于 PKCS7 二进制中，<b>页面文本层扫描无法发现</b>，已按「等长置零 <code>/Contents</code> + 抹除加密声明」处理。本验收已新增二进制级扫描断言。</p>
+<p style="margin:0 0 8px"><span class="tag ok">已处理</span> <b>印章图形已全部换为「演示用章」。</b>原件 12 处盖章位置内嵌 3 张红色公章位图，字面印有企业名称与统一社会信用代码样式的数字，单看版面极像有效公章。现已<b>按原尺寸、原对象原地替换</b>为标注「演示用章 / 仅供演示 / 不具法律效力」的图形，位置、大小、透明度保持不变，<b>正文文本层零改动</b>（逐页 sha256 一致）。</p>
+<p style="margin:0 0 8px"><span class="tag warn">局限</span> <b>本合同不是有效签署的合同。</b>脱敏改写改变了 <code>/ByteRange</code> 覆盖的字节，原签章的密码学校验必然失效；印章图形亦已明确替换为演示样式。本件<b>仅供系统演示使用</b>，不具备任何法律效力，请勿当作已签署的有效合同使用。</p>
+<p class="mut" style="margin:0;font-size:12px">其余说明：演示数据均为虚构，与任何真实企业、项目、自然人无关；页面均带「演示样张」水印与免责声明。</p>
+</div>
+<div class="foot">本报告由 <code>verify_dataset.py</code> 自动生成，数字全部来自交付目录内的 PDF 原件。</div>
+</div></body></html>
