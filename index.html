@@ -734,7 +734,7 @@
               </div>
               <div class="lg-node" id="lgN2" style="left:170px;top:118px;min-width:148px">
                 <span class="lg-ic" style="background:#efe9fb;color:#6d3fd4"><i data-lucide="brain-circuit"></i></span>
-                <span class="lg-tx"><b>查询计划</b><small>DeepSeek 结构化规划</small></span>
+                <span class="lg-tx"><b>查询计划</b><small>大模型结构化规划</small></span>
               </div>
               <div class="lg-node" id="lgN3a" style="left:370px;top:24px;min-width:180px">
                 <span class="lg-ic" style="background:var(--green-soft);color:var(--green)"><i data-lucide="database"></i></span>
@@ -2082,7 +2082,7 @@
       if (banner) { banner.style.background=tone.bg; banner.style.borderColor=tone.border; banner.style.color=tone.text; }
       if (icon) { icon.textContent=tone.icon; icon.style.color=tone.text; }
       const agentDegraded = agent.degraded !== undefined ? agent.degraded : (agent.trace && agent.trace.degraded);
-      if (tag) { tag.textContent = agentDegraded ? '规则判定（模型未参与）' : (level ? 'DeepSeek Agent 已判断' : '持续监控'); tag.className = `tag ${tone.tag}`; }
+      if (tag) { tag.textContent = agentDegraded ? '规则判定（模型未参与）' : (level ? '大模型已判断' : '持续监控'); tag.className = `tag ${tone.tag}`; }
       if (!top) {
         if (title) { title.textContent = agent.message || '当前无逾期 · 系统持续监控'; title.style.color=tone.text; }
         if (desc) desc.textContent = '未达到起息日或已完成回款，不启动大模型判断。';
@@ -3315,6 +3315,9 @@
       const tool = dbg.tool_call && dbg.tool_call.name ? dbg.tool_call.name : '无需查询';
       const retrieval = dbg.retrieval || 'none';
       const provider = dbg.model_provider || 'unknown';
+      // ★ 口径纪律：界面对外只说"大模型"，不点名具体供应商。
+      // deepseek=云端大模型，ollama=本机大模型；未知时保留原文便于排查。
+      const providerLabel = ({deepseek:'云端大模型', ollama:'本机大模型'})[String(provider).toLowerCase()] || '大模型';
       const sourceItems = (Array.isArray(data.sources) && data.sources.length ? data.sources : ((dbg.tool_result || {}).sources || []));
       const sources = sourceItems.slice(0, 6).map(item => {
         const doc = typeof item === 'string' ? item : (item.doc || item.file || item.source || '演示资料');
@@ -3323,7 +3326,7 @@
       }).join('');
       const degraded = dbg.llm_degraded
         ? `<div style="margin-top:9px;padding:8px 10px;border:1px solid #fed7aa;border-radius:7px;background:#fff7ed;color:#9a3412;font-size:12px"><b>本地规则引擎已接管</b> · 大模型暂不可用：${escapeAskHtml(dbg.llm_error_reason || '调用失败')}</div>`
-        : `<span class="tag ok">模型：${escapeAskHtml(provider)}${dbg.llm_calls ? ' · 已调用' : ' · 规则直答'}</span>`;
+        : `<span class="tag ok">模型：${escapeAskHtml(providerLabel)}${dbg.llm_calls ? ' · 已调用' : ' · 规则直答'}</span>`;
       return `<div class="ans-debug" style="margin-top:12px">
         <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center"><span class="tag neutral"><i data-lucide="workflow" width="12"></i>执行链路</span><span style="font-size:11.5px;color:#536675">${traceText || '本地规则直答'}</span><span class="tag neutral">总耗时 ${total.toFixed(1)}ms</span></div>
         <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:7px"><span class="tag neutral">工具：${escapeAskHtml(tool)}</span><span class="tag neutral">检索：${escapeAskHtml(retrieval)}</span>${degraded}</div>
@@ -3523,7 +3526,7 @@
         }).join('');
         const verdicts = Array.isArray(auditData?.agent_verdicts) ? auditData.agent_verdicts : [];
         const trace = auditData?.audit_trace || {};
-        const traceHtml = `<div class="audit-trace" style="margin:10px 0;padding:10px 12px;border:1px solid #dbeafe;background:#f8fbff;border-radius:10px"><div style="font-weight:700;margin-bottom:8px">审核 Agent 取证轨迹 <span class="tag ${trace.degraded ? 'warn' : 'ok'}">${trace.degraded ? '本地规则引擎已接管' : 'DeepSeek 已参与'}</span></div>${(trace.nodes || []).map(n => `<div style="display:flex;gap:8px;align-items:center;padding:4px 0;font-size:12px"><span class="tag neutral">${n.label || n.id}</span><span style="color:#64748b">${n.duration_ms ?? 0} ms</span><span>${n.detail || ''}</span></div>`).join('')}<div style="margin-top:6px;color:#64748b;font-size:11px">总耗时 ${trace.total_ms ?? '-'} ms</div></div>`;
+        const traceHtml = `<div class="audit-trace" style="margin:10px 0;padding:10px 12px;border:1px solid #dbeafe;background:#f8fbff;border-radius:10px"><div style="font-weight:700;margin-bottom:8px">审核 Agent 取证轨迹 <span class="tag ${trace.degraded ? 'warn' : 'ok'}">${trace.degraded ? '本地规则引擎已接管' : '大模型已参与'}</span></div>${(trace.nodes || []).map(n => `<div style="display:flex;gap:8px;align-items:center;padding:4px 0;font-size:12px"><span class="tag neutral">${n.label || n.id}</span><span style="color:#64748b">${n.duration_ms ?? 0} ms</span><span>${n.detail || ''}</span></div>`).join('')}<div style="margin-top:6px;color:#64748b;font-size:11px">总耗时 ${trace.total_ms ?? '-'} ms</div></div>`;
         const verdictHtml = verdicts.length ? `<div class="audit-verdicts" style="margin:10px 0"><div style="font-weight:700;margin-bottom:7px">Agent 定性与证据链</div>${verdicts.map(v => `<article class="audit-issue-card ${v.verified ? 'conflict' : 'missing'}"><span class="audit-issue-card-label">${v.verdict || '待复核'}</span><div><div class="audit-issue-card-date">${v.date || '未标日期'} · ${v.decided_by === 'llm' ? '模型定性' : '规则接管'}</div><div class="audit-issue-card-detail">${v.conclusion || '证据不足，建议人工复核'}${(v.evidence || []).map(e => `<div style="font-size:11px;color:#64748b;margin-top:3px">证据：${e.doc || e.source || ''} · ${e.location || ''}</div>`).join('')}</div></div>${v.file ? `<button class="button ghost" onclick="window.open('/api/ledger/voucher?source=${encodeURIComponent(v.file)}','_blank')">查看原件</button>` : ''}</article>`).join('')}</div>` : '';
         const degradedHtml = trace.degraded ? `<div style="margin:8px 0;padding:9px 12px;border-radius:8px;background:#fff7ed;color:#9a3412;border:1px solid #fed7aa">本地规则引擎已接管 · 大模型暂不可用：${trace.llm?.reason || '取证循环未完成'}</div>` : '';
         const conclusionHtml = hasIssues

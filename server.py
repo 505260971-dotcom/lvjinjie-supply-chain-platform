@@ -1766,8 +1766,8 @@ def retrieve_chunks(question: str, limit: int = 4) -> list[dict[str, Any]]:
 def ollama_chat(messages: list[dict[str, str]], temperature: float = 0.1) -> str | None:
     if MODEL_PROVIDER == "deepseek":
         if not DEEPSEEK_API_KEY:
-            _set_llm_error("未配置 DeepSeek API Key", "missing_key")
-            print("[llm] DeepSeek key missing; using local rules", flush=True)
+            _set_llm_error("未配置云端大模型 API Key", "missing_key")
+            print("[llm] cloud LLM key missing; using local rules", flush=True)
             return None
         payload = json.dumps({
             # 400 tokens 曾把「action_detail 写得很长」的 JSON 截断在字符串中间；
@@ -1783,35 +1783,35 @@ def ollama_chat(messages: list[dict[str, str]], temperature: float = 0.1) -> str
                 body = json.loads(resp.read().decode("utf-8"))
                 choices = body.get("choices") or []
                 if not choices or not isinstance(choices[0], dict):
-                    _set_llm_error("DeepSeek 返回格式无效", "invalid_response")
+                    _set_llm_error("云端大模型返回格式无效", "invalid_response")
                     return None
                 message = choices[0].get("message") or {}
                 if not isinstance(message, dict):
-                    _set_llm_error("DeepSeek 返回格式无效", "invalid_response")
+                    _set_llm_error("云端大模型返回格式无效", "invalid_response")
                     return None
                 content = message.get("content")
                 if isinstance(content, str):
                     _clear_llm_error()
                     return content
-                _set_llm_error("DeepSeek 返回内容为空", "empty_response")
+                _set_llm_error("云端大模型返回内容为空", "empty_response")
                 return None
         except HTTPError as exc:
-            reasons = {401: "DeepSeek 密钥无效", 402: "DeepSeek 账户余额不足", 429: "DeepSeek 请求频率受限"}
-            reason = reasons.get(exc.code, f"DeepSeek 服务返回 HTTP {exc.code}")
+            reasons = {401: "云端大模型密钥无效", 402: "云端大模型账户余额不足", 429: "云端大模型请求频率受限"}
+            reason = reasons.get(exc.code, f"云端大模型服务返回 HTTP {exc.code}")
             _set_llm_error(reason, f"http_{exc.code}")
-            print(f"[llm] DeepSeek HTTP {exc.code}; using local rules", flush=True)
+            print(f"[llm] cloud LLM HTTP {exc.code}; using local rules", flush=True)
             return None
         except TimeoutError:
-            _set_llm_error("DeepSeek 请求超时", "timeout")
-            print("[llm] DeepSeek timeout after 8s; using local rules", flush=True)
+            _set_llm_error("云端大模型请求超时", "timeout")
+            print("[llm] cloud LLM timeout after 8s; using local rules", flush=True)
             return None
         except URLError as exc:
-            _set_llm_error("DeepSeek 网络连接失败", "network")
-            print(f"[llm] DeepSeek network error ({exc.reason}); using local rules", flush=True)
+            _set_llm_error("云端大模型网络连接失败", "network")
+            print(f"[llm] cloud LLM network error ({exc.reason}); using local rules", flush=True)
             return None
         except Exception as exc:
-            _set_llm_error(f"DeepSeek 响应异常（{type(exc).__name__}）", "response_error")
-            print(f"[llm] DeepSeek response error ({type(exc).__name__}); using local rules", flush=True)
+            _set_llm_error(f"云端大模型响应异常（{type(exc).__name__}）", "response_error")
+            print(f"[llm] cloud LLM response error ({type(exc).__name__}); using local rules", flush=True)
             return None
     _clear_llm_error()
     payload = json.dumps(
@@ -4260,7 +4260,7 @@ def health_payload() -> dict[str, Any]:
     if ollama_available and reindex.get("status") == "done":
         embedding_status = {"status": "ready", "model": EMBED_MODEL}
     elif not ollama_available:
-        embedding_status = {"status": "degraded", "model": EMBED_MODEL, "reason": "未检测到 Ollama"}
+        embedding_status = {"status": "degraded", "model": EMBED_MODEL, "reason": "未检测到本机大模型服务"}
     else:
         embedding_status = {"status": reindex.get("status", "pending"), "model": EMBED_MODEL}
     return {
@@ -6212,7 +6212,7 @@ need_human: {\"action\":\"need_human\",\"reason\":\"原因\"}
 def _audit_parse_plan(raw: str | None) -> dict[str, Any] | None:
     """容错解析 LLM 返回的 JSON 计划。
 
-    DeepSeek 经常：(1) 漏写收尾的 {}；(2) 在 JSON 后追加 `,"}` 这类残留字符；
+    DeepSeek 等云端大模型经常：(1) 漏写收尾的 {}；(2) 在 JSON 后追加 `,"}` 这类残留字符；
     (3) 用 ```json 围栏或前后加说明文字。做法是：剥掉围栏后，**从右向左**对每个
     `}` 的位置尝试补 0~3 个 `}` 再解析，第一个能解析成非空 dict 的位置即为答案；
     尾随垃圾位于最后一个合法 JSON 之外，因此会被自然跳过。
@@ -6663,7 +6663,7 @@ def overdue_risk_payload(project_id: str = "demo_a", as_of_date: str | None = No
             period["risk_reason"] = "尚未达到起息日，继续监控。" if fact.get("unpaid", 0) else "该周期已结清。"
             period["risk_decided_by"] = "rules"
     risk["facts"] = facts
-    # 前端读的是 risk_agent.degraded（徽标「DeepSeek Agent 已判断 / 规则判定」），
+    # 前端读的是 risk_agent.degraded（徽标「大模型已判断 / 规则判定」），
     # 而 degraded 原先只写在 trace 里，导致徽标恒显示「已判断」。此处补一个顶层字段。
     risk["degraded"] = bool((risk.get("trace") or {}).get("degraded"))
     risk["summary"] = status.get("summary", {})
