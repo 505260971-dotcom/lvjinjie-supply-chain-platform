@@ -1622,21 +1622,38 @@ window.__SS_VOUCHER__ = {"A项目-回款与逾期核算表.pdf": "assets/voucher
       };
        setText('feeBoardTotal', summary.current_total);
        setText('feeBoardLatest', summary.current_sheet_total);
-       const latestMonth = (summary.periods || []).slice().sort((a,b)=>String(a.period_key||'').localeCompare(String(b.period_key||''))).pop();
        const title = document.getElementById('feeBoardTitle');
        const source = document.getElementById('feeBoardSource');
-       if (latestMonth) {
-         if (title) title.textContent = `${latestMonth.period_key} 资金占用费确认单`;
-         if (source) source.textContent = `${latestMonth.period_key} 最新月份 · 规则引擎重算`;
-       }
+       // ★ 标题口径：不再写 "2026.9 最新月份"。
+       //   原因：这张表展示的是「按结算周期（上月21日~当月20日）聚合的计息明细」，
+       //   与"月度确认单"（fee_summary.periods，取值 2026.9 / 2026.10）不是同一个维度；
+       //   之前用月度确认单的 period_key 去筛选结算周期明细，两边永远对不上 → 表格恒为空。
+       if (title) title.textContent = '资金占用费计息明细（按结算周期）';
+       if (source) source.textContent = '规则引擎重算 · 结算周期 上月21日~当月20日';
       const feeDesc = document.getElementById('feeTotalDesc');
       if (feeDesc) feeDesc.textContent = summary.forecast_fee
         ? `已确认 ${money(summary.confirmed_total)} 元 + 合同规则实时估算 ${money(summary.forecast_fee)} 元`
         : `已确认累计 ${money(summary.confirmed_total)} 元 · 来源：资金占用费表（总表）`;
       const body = document.getElementById('feeBody');
       if (!body) return;
-       const latestKey = latestMonth ? String(latestMonth.period_key) : '';
-       const rows=[]; cycles.forEach(c=>{(c.interest_segments||[]).filter(s=>!latestKey || String(s.end||'').slice(0,7).replace('-','.') === latestKey).forEach((s,i)=>rows.push(`<tr><td>${c.cycle_label}</td><td>${i+1}</td><td>¥ ${money(s.principal)}</td><td>${s.start}</td><td>${s.end}</td><td>${s.days}</td><td>0.02% / 日</td><td>¥ ${money(s.fee)}</td></tr>`))});
+      // ★ 直接渲染后端聚合好的 fee_summary.cycle_periods（按结算周期分组，含 segments），
+      //   不再用 cycles[].interest_segments 做"月份过滤"——那两个字段同名不同义，
+      //   且原过滤键是 end 日期反推的，与 period_key（20260621-20260720 式）永不相等。
+      const groups = (summary.cycle_periods || []).filter(g => (g.segments || []).length);
+      // 兜底：若后端未给出 cycle_periods（老数据），则退回 cycles 平铺，保证不空表
+      const fallback = [];
+      if (!groups.length) {
+        cycles.forEach(c => (c.interest_segments || []).forEach(s => fallback.push({
+          period: c.cycle_label, segments: [s]
+        })));
+      }
+      const src = groups.length ? groups : fallback;
+      const rows = [];
+      src.forEach(g => {
+        (g.segments || []).forEach((s, i) => rows.push(
+          `<tr><td>${g.period || s.period || '-'}</td><td>${i + 1}</td><td>¥ ${money(s.principal !== undefined && s.principal !== null ? s.principal : s.amount)}</td><td>${s.start || '-'}</td><td>${s.end || '-'}</td><td>${s.days || 0}</td><td>0.02% / 日</td><td>¥ ${money(s.fee)}</td></tr>`
+        ));
+      });
       body.innerHTML = rows.join('') || '<tr><td colspan="8" class="empty">暂无资金占用费周期数据</td></tr>';
       renderReceipts(snapshot);
     }
