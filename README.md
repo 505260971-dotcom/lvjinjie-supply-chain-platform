@@ -38,7 +38,7 @@
 ## 启动
 
 ```powershell
-cd C:\Users\<user>\Documents\Codex\2026-09-24\wo
+cd <解压目录>\供应链控制塔演示版_交付
 pip install -r requirements.txt   # 首次运行安装依赖
 python server.py
 ```

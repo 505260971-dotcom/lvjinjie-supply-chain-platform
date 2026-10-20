@@ -18,3 +18,5 @@ Thumbs.db
 *.pem
 id_rsa*
 id_ed25519*
+# 隔离出的真实业务单据（绝不上传）
+_quarantine_*/
