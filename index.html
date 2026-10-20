@@ -1707,8 +1707,8 @@
     let demoGen = 0;
     const DEMO_STEP_MS = 1500;
     const demoFields = [['date','日期'],['spec','规格型号'],['product','品名'],['brand','品牌'],['vehicle','车号'],['weight','重量(吨)']];
-    // 送货单原件(delivery_note.png)上的字段高亮框坐标(%):OCR 识别到哪,图上的框就亮到哪
-    // 坐标依据 20251226-3 号送货单扫描件实际排版:日期在右上、明细行在表格中部、车号/重量在对应列
+    // 送货单原件(demo_delivery_original_crop.png)上的字段高亮框坐标(%):OCR 识别到哪,图上的框就亮到哪
+    // 坐标依据脱敏演示单据的实际排版:日期在右上、明细行在表格中部、车号/重量在对应列
     const demoOcrBoxes = {
       date:   {left:64, top:18, w:14, h:4},
       product:{left:20, top:35, w:10, h:5},
