@@ -382,6 +382,7 @@
     .fee-summary{gap:12px;grid-template-columns:repeat(3,minmax(0,1fr)) !important}
     .fee-summary-item{padding:14px 16px}
     .fee-summary-item span{font-size:11px;color:#6b7280}.fee-summary-item b{font-size:18px;font-weight:600;white-space:nowrap;overflow:visible}
+    .pay-waterfall{display:grid;gap:10px}.pay-waterfall-tabs{display:flex;gap:7px;flex-wrap:wrap}.pay-waterfall-tab{border:1px solid var(--line);background:#fff;border-radius:7px;padding:8px 11px;cursor:pointer;font-size:12px;color:#334155}.pay-waterfall-tab.active{border-color:#2563eb;background:#eff6ff;color:#1d4ed8;font-weight:700}.pay-waterfall-flow{display:flex;align-items:stretch;gap:7px;flex-wrap:wrap}.pay-step{flex:1;min-width:145px;border:1px solid var(--line);border-radius:8px;padding:11px;background:#fff;box-shadow:0 2px 8px rgba(15,23,42,.04)}.pay-step .pay-step-no{font-size:10px;color:#64748b;text-transform:uppercase}.pay-step strong{display:block;font-size:16px;margin:5px 0;color:#0f172a}.pay-step span{display:block;font-size:11px;color:#64748b;line-height:1.55}.pay-step.fee{border-top:3px solid #f59e0b}.pay-step.principal{border-top:3px solid #2563eb}.pay-step.balance{border-top:3px solid #10b981}.pay-step.defer{border-top:3px solid #94a3b8;background:#f8fafc}.pay-step-arrow{align-self:center;color:#94a3b8;font-size:18px}.pay-step-source{display:inline-block;margin-top:7px;color:#2563eb;text-decoration:underline;font-size:11px;cursor:pointer}
     .spark-bars{height:140px}
     .spark-col span{font-size:11px}
     .legend{font-size:13px}
@@ -451,7 +452,11 @@
     @media(max-width:900px){.minister-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.minister-bottom{grid-template-columns:1fr}}
     @media(max-width:600px){.minister-kpis{grid-template-columns:1fr 1fr}.role-switch-btn{padding:7px}.role-switch-btn span{display:none}}
      @media(max-width:760px){.login-card{padding:28px 24px 22px}.login-brand h1{font-size:18px}}
-     .manager-mode #projectContextControls{display:none!important}
+      .manager-mode #projectContextControls{display:none!important}
+      .executive-shell{display:grid;gap:16px;color:#d9e4eb}.executive-hero{position:relative;overflow:hidden;padding:24px 26px;border-radius:10px;background:linear-gradient(118deg,#101f2a 0%,#153b48 58%,#17655e 100%);color:#f3f7f5;border:1px solid #284956;box-shadow:0 14px 36px rgba(16,31,42,.16)}.executive-hero:after{content:'';position:absolute;right:5%;top:-110px;width:280px;height:280px;border:1px solid rgba(212,239,226,.15);border-radius:50%;box-shadow:0 0 0 28px rgba(212,239,226,.035),0 0 0 60px rgba(212,239,226,.025);pointer-events:none}.executive-kicker{font-size:10px;font-weight:700;color:#a9d5c8;letter-spacing:2px}.executive-hero h3{position:relative;z-index:1;margin:8px 0 4px;color:#fff;font-size:23px}.executive-hero p{position:relative;z-index:1;margin:0;color:#bfd0d4;font-size:12px;line-height:1.65}.executive-meta{position:absolute;right:24px;bottom:20px;color:#9db8bd;font-size:10px;z-index:1}.executive-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.executive-kpi{min-width:0;padding:15px 16px;border-radius:8px;background:#172a35;border:1px solid #2b424d;box-shadow:0 5px 15px rgba(14,28,36,.08)}.executive-kpi small{display:block;color:#a6bac2;font-size:10.5px}.executive-kpi strong{display:block;margin-top:9px;color:#f5f8f6;font-size:21px;line-height:1.25;overflow-wrap:anywhere}.executive-kpi span{display:block;margin-top:6px;color:#8da4ad;font-size:10.5px}.executive-kpi.alert strong{color:#ffb39b}.executive-grid{display:grid;grid-template-columns:minmax(0,1.12fr) minmax(300px,.88fr);gap:12px}.executive-panel{min-width:0;padding:17px;border-radius:8px;background:#172a35;border:1px solid #2b424d}.executive-panel-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:13px}.executive-panel h3{margin:0;color:#e8eff0;font-size:14px}.executive-panel-head small{color:#8da4ad;font-size:10px}.executive-ranking{display:grid;gap:10px}.executive-rank-row{display:grid;grid-template-columns:24px minmax(75px,.7fr) minmax(75px,1.4fr) auto;gap:9px;align-items:center}.executive-rank-no{width:22px;height:22px;display:grid;place-items:center;border-radius:6px;background:#263d48;color:#c7d8d8;font-size:10px}.executive-rank-row:first-child .executive-rank-no{background:#d3aa70;color:#1a2b33}.executive-rank-name{min-width:0;color:#e4edef;font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.executive-rank-track{height:6px;background:#253c47;border-radius:99px;overflow:hidden}.executive-rank-track i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#4d9d8c,#b8d9b5)}.executive-rank-value{color:#c9d9dc;font-size:11px;font-variant-numeric:tabular-nums;white-space:nowrap}.executive-risk-list{display:grid;gap:8px}.executive-risk{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;padding:10px 11px;border:1px solid #394a4d;border-left:3px solid #e18b67;border-radius:7px;background:#1d3039}.executive-risk b{color:#f0e8df;font-size:11.5px}.executive-risk small{display:block;margin-top:3px;color:#9aafb5;font-size:10px}.executive-risk strong{color:#ffb297;font-size:12px;white-space:nowrap}.executive-insight{padding:17px 19px;border-radius:8px;background:#e8f0e9;border-left:4px solid #397b68;color:#203d3a}.executive-insight-head{display:flex;align-items:center;gap:8px;color:#326653;font-size:11px;font-weight:700}.executive-insight p{margin:9px 0 0;font-size:13px;line-height:1.8;color:#263f3b}.executive-insight-actions{display:flex;justify-content:flex-end;margin-top:10px}.executive-insight-actions .button{border-color:#bdcec2;color:#315d51;background:#f4f8f3}.executive-error{padding:15px;border:1px solid #714d45;border-radius:8px;background:#352b2a;color:#ffd1c5;font-size:12px;line-height:1.6}.perspective-select{min-width:160px;max-width:190px;padding:8px 28px 8px 10px;appearance:auto}
+      @media(max-width:900px){.executive-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.executive-grid{grid-template-columns:1fr}}
+       @media(max-width:560px){.executive-hero{padding:20px 17px}.executive-hero h3{font-size:19px}.executive-meta{position:relative;right:auto;bottom:auto;display:block;margin-top:10px}.executive-kpi{padding:12px}.executive-kpi strong{font-size:17px}.executive-rank-row{grid-template-columns:24px minmax(58px,.7fr) minmax(45px,1fr) auto;gap:6px}.executive-rank-value{font-size:10px}.perspective-select{min-width:0;width:132px;padding:7px 4px;font-size:11px}}
+       .usage-bars{display:grid;gap:8px}.usage-dept-row{display:grid;grid-template-columns:minmax(92px,1fr) minmax(80px,2fr) auto;gap:10px;align-items:center;font-size:11px;color:#cbd8dc}.usage-dept-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.usage-dept-track{height:7px;border-radius:8px;background:#263d47;overflow:hidden}.usage-dept-track i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#61b59d,#c1d49b)}.usage-dept-count{color:#9fb1b7;white-space:nowrap;font-variant-numeric:tabular-nums}.usage-empty{color:#91a5ac;font-size:11px;padding:10px 0}
   </style>
 </head>
 <body>
@@ -554,6 +559,7 @@
         </button>
       </nav>
       <nav id="managerNav" class="manager-nav" aria-label="经理管理功能">
+        <button data-manager-target="executive" onclick="switchView('executive')"><i data-lucide="layout-dashboard" width="18"></i><span><strong>总经理驾驶舱</strong><small>组合风险与资金占用</small></span></button>
         <button data-manager-target="pulse" onclick="managerJump('pulse')"><i data-lucide="activity" width="18"></i><span><strong>团队经营态势</strong><small>销售、应收与风险脉搏</small></span></button>
         <button data-manager-target="projects" onclick="managerJump('projects')"><i data-lucide="layers-2" width="18"></i><span><strong>项目组合</strong><small>按负责人查看项目健康度</small></span></button>
         <button data-manager-target="alerts" onclick="managerJump('alerts')"><i data-lucide="shield-check" width="18"></i><span><strong>决策事项</strong><small>需要协调、确认和升级的事项</small></span></button>
@@ -571,7 +577,7 @@
             <div class="user-meta"><b id="userName">李经理</b><span id="userRole">业务员</span></div>
             <button class="icon-btn" onclick="doLogout()" aria-label="退出登录" title="退出登录"><i data-lucide="log-out" width="15"></i></button>
           </div>
-          <button id="roleSwitchBtn" class="role-switch-btn" onclick="switchRoleView()"><i data-lucide="layout-dashboard" width="14"></i><span>业务部经理视角</span></button>
+          <select id="perspectiveSelect" class="role-switch-btn perspective-select" aria-label="切换系统视角" onchange="switchPerspective(this.value)"><option value="staff">业务员视角</option><option value="manager">业务部经理视角</option><option value="executive">总经理视角</option></select>
           <span class="tag ok"><i data-lucide="wifi" width="13"></i> 演示模式</span>
           <button class="icon-btn" onclick="refreshWorkspace()" aria-label="重新读取项目文件夹"><i data-lucide="refresh-cw" width="16"></i></button>
           <button class="icon-btn" onclick="cycleView()" aria-label="切换模块"><i data-lucide="arrow-left-right" width="16"></i></button>
@@ -798,6 +804,41 @@
           </div>
         </section>
 
+        <section class="view" data-view="executive">
+          <div class="executive-shell">
+            <section class="executive-hero">
+              <span class="executive-kicker">GROUP BUSINESS · EXECUTIVE COCKPIT</span>
+              <h3>集团经营驾驶舱</h3>
+              <p>从项目组合视角审视经营规模、应收压力与资金占用，聚焦风险集中位置。</p>
+              <span id="executiveUpdatedAt" class="executive-meta">正在读取全项目数据</span>
+            </section>
+            <div id="executiveError" class="executive-error" hidden></div>
+            <section class="executive-kpis" aria-label="组合经营指标">
+              <article class="executive-kpi"><small>组合销售额</small><strong id="executiveSales">—</strong><span id="executiveProjectCount">等待项目数据</span></article>
+              <article class="executive-kpi"><small>组合应收余额</small><strong id="executiveReceivable">—</strong><span id="executiveOverdueSub">其中逾期 —</span></article>
+              <article class="executive-kpi alert"><small>组合逾期金额</small><strong id="executiveOverdue">—</strong><span id="executiveOverdueRate">逾期率 —</span></article>
+              <article class="executive-kpi"><small>组合资金占用费</small><strong id="executiveFee">—</strong><span>占用费即垫资成本</span></article>
+            </section>
+            <div class="executive-grid">
+              <section class="executive-panel"><div class="executive-panel-head"><h3>项目应收排名</h3><small>按应收余额由高到低</small></div><div id="executiveRanking" class="executive-ranking"><div class="empty">正在汇总项目排名…</div></div></section>
+              <section class="executive-panel"><div class="executive-panel-head"><h3>逾期风险 Top 3</h3><small>按逾期金额排序</small></div><div id="executiveRisks" class="executive-risk-list"><div class="empty">正在识别风险集中项目…</div></div></section>
+            </div>
+            <section class="executive-panel" id="usagePanel" style="margin-top:2px">
+              <div class="executive-panel-head"><h3>应用使用情况</h3><small>系统自动记录 · <span id="usageWindowLabel">近 30 天</span></small></div>
+              <div class="executive-kpis" style="margin:0 0 14px">
+                <article class="executive-kpi"><small>统计窗口使用次数</small><strong id="usageTotalActions">—</strong><span>埋点记录汇总</span></article>
+                <article class="executive-kpi"><small>活跃用户数</small><strong id="usageActiveUsers">—</strong><span id="usageAvgPerUser">人均 —</span></article>
+                <article class="executive-kpi"><small>覆盖部门数</small><strong id="usageDeptCount">—</strong><span id="usageDeptNames">—</span></article>
+                <article class="executive-kpi"><small>已署名问答</small><strong id="usageNamedRuns">—</strong><span id="usageUnnamedRuns">历史未署名 — 条</span></article>
+              </div>
+              <div id="usageDeptBars" class="usage-bars"></div>
+              <div id="usageTrendChart" style="height:150px;margin-top:10px"></div>
+              <p id="usageFootnote" style="margin:10px 0 0;color:#9aadb3;font-size:11px;line-height:1.65">数据来自系统内 usage_log 实时统计，未做任何人工填充。埋点上线前的历史问答记录未记录用户身份，已单独标注为“未署名”。</p>
+            </section>
+            <section class="executive-insight"><div class="executive-insight-head"><i data-lucide="scan-eye" width="15"></i>组合研判 · 自动汇总</div><p id="executiveInsight">数据加载后生成组合风险研判。</p><div class="executive-insight-actions"><button class="button ghost" type="button" onclick="copyExecutiveInsight()" aria-label="复制组合研判"><i data-lucide="copy" width="14"></i>复制研判</button></div></section>
+          </div>
+        </section>
+
         <section class="view" data-view="finance">
           <div class="page-head">
             <div><h2>经营数据统计</h2><p>结算、回款、毛利与税费的项目经营总览</p></div>
@@ -872,6 +913,7 @@
             <section class="panel" style="display:none"><h3>周期金额趋势</h3><div id="trendBars"></div><div id="trendRule"></div></section>
           </div>
           <section class="panel repayment-dashboard" style="margin-top:15px"><div class="section-head"><h3>回款统计</h3><button class="button" onclick="refreshWorkspace()"><i data-lucide="refresh-cw" width="15"></i>读取最新回款</button></div><div class="fee-summary"><div class="fee-summary-item"><span>回款总额</span><b id="repaymentGrandTotal">加载中</b></div></div><div id="repaymentAuditList" class="table-wrap"></div><div id="repaymentPagination" class="pagination"></div></section>
+          <section class="panel repayment-dashboard" style="margin-top:15px" id="financeIntakePanel"><div class="section-head"><div><h3>财务上报回款</h3><p style="margin:4px 0 0;color:#64748b;font-size:12px">财务专员提交，财务主管或业务部经理确认后自动进入资金占用费冲抵</p></div><span class="tag neutral">finance_portal · 幂等入账</span></div><div class="two-col" style="margin-top:12px"><form id="financeIntakeForm" class="audit-card" onsubmit="submitFinanceIntake(event)"><div class="filters"><div class="field"><label>回款日期</label><input id="intakePaidDate" type="date" required value="2026-10-20"></div><div class="field"><label>回款金额</label><input id="intakeAmount" type="number" min="0.01" step="0.01" required placeholder="500000.00"></div><div class="field"><label>付款方</label><input id="intakePayer" type="text" placeholder="示例项目方"></div><div class="field"><label>银行流水号</label><input id="intakeBankRef" type="text" required placeholder="BANK-20261020-001"></div><div class="field"><label>回单文件</label><input id="intakeReceipt" type="file" accept=".pdf,image/*"></div><button class="button primary" type="submit"><i data-lucide="upload-cloud" width="15"></i>提交回款</button></div><div id="financeIntakeHint" class="rule" style="margin-top:10px">当前账号：读取中</div></form><div><div class="result-head"><h4 style="margin:0">待确认上报</h4><button class="button ghost" onclick="loadRepaymentIntake()"><i data-lucide="refresh-cw" width="14"></i>刷新</button></div><div id="financeIntakeList" class="table-wrap" style="margin-top:8px"><div class="empty">正在读取财务上报记录…</div></div></div></div></section>
           <section class="panel" style="margin-top:15px">
             <div class="section-head"><h3 id="feeBoardTitle">资金占用费确认单</h3><span class="tag neutral" id="feeBoardSource">动态读取最新月份</span></div>
             <div class="fee-summary">
@@ -922,6 +964,7 @@
           <div class="metrics"><div class="metric primary"><div class="label">累计资金占用费</div><div class="num" id="calcGrandTotal">加载中</div><div class="desc">合同规则+台账+回单OCR三源核算</div></div><div class="metric"><div class="label">应收资金占用费</div><div class="num" id="calcReceivableFee">加载中</div><div class="desc">未抵扣完的欠息</div></div><div class="metric"><div class="label">累计回款</div><div class="num" id="calcRepaymentTotal">加载中</div><div class="desc">已确认回款总额</div></div></div>
           <section class="panel"><div class="section-head"><h3>月度确认单明细</h3><span class="tag neutral">按月份由新到旧 · 每页 1 个月</span></div><div id="calcMonths"></div><div id="calcMonthPagination" class="pagination"></div></section>
           <section class="panel" style="margin-top:15px"><div class="section-head"><h3>回款扫描日志</h3><span class="tag neutral">来源：A项目演示回款回单 · 每页 3 笔</span></div><div id="calcPayLog"></div><div id="calcPayPagination" class="pagination"></div></section>
+          <section class="panel" style="margin-top:15px"><div class="section-head"><h3>回款冲抵流水</h3><span class="tag ok">规则引擎原始步骤 · 可复核</span></div><p style="margin:0 0 12px;color:#64748b;font-size:12px;line-height:1.6">选择一笔回款，查看到账金额如何按“先占用费、再旧本金、本期费用不抢跑”的顺序冲抵。金额直接来自规则引擎，未在前端重新计算。</p><div id="calcPayWaterfall" class="pay-waterfall"><div class="empty">正在读取冲抵流水…</div></div></section>
           <div class="rule">核算规则：结算周期为上月21日至当月20日；计息起始日为周期结束后次月月末+8天；费用=本金×0.0002×天数，含首尾日期。回款按前期已结算欠息、旧本金、本期费用顺序处理；回款日不计被冲抵本金利息，部分回款按回款前后两段拆分。本期未冲抵费用结转下期。</div>
         </section>
 
@@ -1385,17 +1428,65 @@
       localStorage.removeItem('tower_token');
       localStorage.removeItem('tower_logged_out');
       applyUser(demoUser);
+      ensureSessionToken();
       return false;
     }
     function directMinisterDemoLogin() {
       const demoUser = {name:'业务部经理', username:'buzhang', role:'业务部经理'};
-      localStorage.setItem('tower_session', JSON.stringify(demoUser));
-      localStorage.removeItem('tower_logged_out');
-      // 经理工作台的数据接口仍会优先尝试真实登录；网络不可用时保留本地演示视角。
-      fetch('/api/login', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:'buzhang', password:'88888888'})})
-        .then(r => r.json()).then(r => { if (r.ok) { localStorage.setItem('tower_session', JSON.stringify(r.user)); localStorage.setItem('tower_token', r.token || ''); } applyUser(r.ok ? r.user : demoUser); })
-        .catch(() => applyUser(demoUser));
-      return false;
+      return fetch('/api/login', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:'buzhang', password:'88888888'})})
+        .then(async response => {
+          const result = await response.json();
+          if (!response.ok || !result.ok || !result.token) throw new Error('经理登录失败');
+          localStorage.setItem(SESSION_KEY, JSON.stringify(result.user));
+          localStorage.setItem('tower_token', result.token);
+          localStorage.removeItem('tower_logged_out');
+          applyUser(result.user, {stayView:true});
+          return result.user;
+        })
+        .catch(() => {
+          // 保留部长页原有离线演示入口；总经理页会自行显示无授权数据提示。
+          localStorage.setItem(SESSION_KEY, JSON.stringify(demoUser));
+          localStorage.removeItem('tower_token');
+          localStorage.removeItem('tower_logged_out');
+          applyUser(demoUser, {stayView:true});
+          throw new Error('经理登录服务不可用');
+        });
+    }
+
+    const DEMO_ACCOUNTS = {
+      lijuanyan: '88888888',
+      buzhang: '88888888',
+      caiwu: '88888888',
+      caiwuzhuguan: '88888888'
+    };
+    let _tokenPromise = null;
+    function ensureSessionToken() {
+      const existing = localStorage.getItem('tower_token');
+      if (existing) return Promise.resolve(existing);
+      if (_tokenPromise) return _tokenPromise;
+      const username = activeUser?.username || '';
+      const password = DEMO_ACCOUNTS[username];
+      if (!password) return Promise.resolve('');
+      _tokenPromise = fetch('/api/login', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({username, password})
+      }).then(r => r.json()).then(result => {
+        if (result?.ok && result.token) {
+          const storedUser = JSON.parse(localStorage.getItem('tower_session') || '{}');
+          if (activeUser?.username !== username || storedUser.username !== username) return '';
+          localStorage.setItem('tower_token', result.token);
+          return result.token;
+        }
+        return '';
+      }).catch(() => '').finally(() => { _tokenPromise = null; });
+      return _tokenPromise;
+    }
+    async function trackedHeaders(extra) {
+      const token = await ensureSessionToken();
+      const headers = Object.assign({'Content-Type': 'application/json'}, extra || {});
+      if (token) headers['X-Session-Token'] = token;
+      return headers;
     }
 
     const currentData = [
@@ -1448,14 +1539,17 @@
     function closeValueCard(){document.getElementById('valueModal').hidden=true;}
     setTimeout(()=>installValueCard('knowledge'),0);
      function switchView(view) {
-       if (view === 'minister' && activeUser?.role !== '业务部经理') view = 'knowledge';
+       if ((view === 'minister' || view === 'executive') && activeUser?.role !== '业务部经理') view = 'knowledge';
        if (view !== 'minister') installValueCard(view);
       currentView = view;
       document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.dataset.view === view));
       document.querySelectorAll('.nav button').forEach(b => b.classList.toggle('active', b.dataset.viewTarget === view));
-      document.getElementById('crumbText').textContent = view === 'knowledge' ? '项目资料 Agent' : view === 'minister' ? '业务部经理工作台' : view === 'finance' ? '经营数据统计' : view === 'fee-calc' ? '资金占用费核算' : view === 'documents' ? '单据完整性核查' : view === 'overdue' ? '逾期提醒' : '业务台账';
+       document.querySelectorAll('#managerNav button').forEach(b => b.classList.toggle('active', view === 'executive' && b.dataset.managerTarget === 'executive'));
+       document.getElementById('crumbText').textContent = view === 'knowledge' ? '项目资料 Agent' : view === 'minister' ? '业务部经理工作台' : view === 'executive' ? '集团经营驾驶舱' : view === 'finance' ? '经营数据统计' : view === 'fee-calc' ? '资金占用费核算' : view === 'documents' ? '单据完整性核查' : view === 'overdue' ? '逾期提醒' : '业务台账';
+       refreshPerspectiveSelect();
       if (view === 'overdue') loadOverdue();
       if (view === 'minister') loadMinisterDashboard();
+       if (view === 'executive') { loadExecutiveDashboard(); loadUsageStats(); }
       if (view === 'knowledge') setTimeout(drawLangGraph, 80);
       if (view === 'finance' || view === 'ledger') loadBusinessData();
       if (view === 'fee-calc') loadFeeCalc();
@@ -1539,7 +1633,7 @@
     }
     function toggleHistory() { fullHistory = !fullHistory; renderHistory(); }
     function cycleView() {
-      const views = activeUser && activeUser.role === '业务部经理' ? ['minister'] : ['knowledge','finance','documents','ledger','overdue'];
+      const views = activeUser && activeUser.role === '业务部经理' ? ['minister','executive'] : ['knowledge','finance','documents','ledger','overdue'];
       switchView(views[(views.indexOf(currentView) + 1) % views.length]);
     }
     function managerJump(target) {
@@ -2128,7 +2222,7 @@
       const nowInput = document.getElementById('odSimDate');
       const simDate = (nowInput && nowInput.value) || new Date().toISOString().slice(0,10);
       Promise.all([
-        fetch(overdueStatusUrl(simDate)).then(r => r.json()),
+        trackedHeaders().then(headers => fetch(overdueStatusUrl(simDate), {headers})).then(r => r.json()),
         fetch('/api/overdue/reminders').then(r => r.json()),
       ]).then(([st, rm]) => {
         if (nowInput) nowInput.value = simDate;
@@ -2606,8 +2700,8 @@
     // ========== 登录 / 登出 ==========
      const SESSION_KEY = 'tower_session';
      let activeUser = null;
-     function applyUser(u) {
-       if (!u || !['业务员', '业务部经理'].includes(u.role)) u = {name:'李经理', username:'lijuanyan', role:'业务员'};
+     function applyUser(u, opts = {}) {
+       if (!u || !['业务员', '业务部经理', '财务专员', '财务主管'].includes(u.role)) u = {name:'李经理', username:'lijuanyan', role:'业务员'};
        activeUser = u || {name:'李经理', username:'lijuanyan', role:'业务员'};
        u = activeUser;
        localStorage.removeItem('tower_logged_out');
@@ -2616,7 +2710,7 @@
       document.getElementById('userAvatar').textContent = (u.name || u.username || '用').charAt(0);
       document.getElementById('loginScreen').classList.add('hidden');
       const ministerNav = document.getElementById('ministerNav');
-      const roleBtn = document.getElementById('roleSwitchBtn');
+       const perspectiveSelect = document.getElementById('perspectiveSelect');
         const isMinister = u.role === '业务部经理';
         const projectInfo = (PROJECT_LIST || []).find(p => p.id === currentProject);
         const brandSubtitle = document.getElementById('brandSubtitle');
@@ -2629,17 +2723,17 @@
           if (crumbProject) crumbProject.textContent = projectInfo?.name || 'A项目演示';
         }
        document.body.classList.toggle('manager-mode', isMinister);
+       const intakePanel = document.getElementById('financeIntakePanel');
+       if (intakePanel) intakePanel.style.display = ['财务专员', '财务主管', '业务部经理'].includes(u.role) ? '' : 'none';
       if (ministerNav) ministerNav.style.display = isMinister ? 'flex' : 'none';
-      if (roleBtn) {
-        roleBtn.style.display = 'inline-flex';
-         roleBtn.querySelector('span').textContent = isMinister ? '业务员视角' : '业务部经理视角';
-         roleBtn.setAttribute('aria-label', isMinister ? '返回业务员视角' : '进入业务部经理工作台');
-      }
+       if (perspectiveSelect) perspectiveSelect.style.display = 'inline-flex';
+       refreshPerspectiveSelect();
       lucide.createIcons();
       // 经营小结后台预热:模型生成较慢,先静默生成并缓存,进入经营数据统计秒开
       if (!isMinister) fetch('/api/health-report', { method: 'POST' }).catch(() => {});
-       if (isMinister) setTimeout(() => switchView('minister'), 0);
-       else if (currentView === 'minister') switchView('knowledge');
+        if (isMinister) {
+          if (!opts.stayView) setTimeout(() => switchView('minister'), 0);
+        } else if (currentView === 'minister' || currentView === 'executive') switchView('knowledge');
     }
      function checkLogin() {
        // 没有会话时停在登录页，让评委先看到角色入口。
@@ -2678,7 +2772,7 @@
        const userRole = document.getElementById('userRole'); if (userRole) userRole.textContent = '';
        const userAvatar = document.getElementById('userAvatar'); if (userAvatar) userAvatar.textContent = '';
        const ministerNav = document.getElementById('ministerNav'); if (ministerNav) ministerNav.style.display = 'none';
-       const roleSwitch = document.getElementById('roleSwitchBtn'); if (roleSwitch) roleSwitch.style.display = 'none';
+       const perspectiveSelect = document.getElementById('perspectiveSelect'); if (perspectiveSelect) perspectiveSelect.style.display = 'none';
        var ls = document.getElementById('loginScreen');
        if (ls) { ls.classList.remove('hidden'); document.getElementById('loginUser').value = 'lijuanyan'; document.getElementById('loginPass').value = ''; document.getElementById('loginError').textContent = ''; }
     }
@@ -2699,10 +2793,41 @@
            localStorage.setItem(SESSION_KEY, JSON.stringify(r.user)); localStorage.setItem('tower_token', r.token || ''); closeMinisterLogin(); applyUser(r.user); err.textContent = '';
         }).catch(() => { err.textContent = '登录服务不可用，请稍后重试'; });
     }
-     function switchRoleView() {
-       if (activeUser && activeUser.role === '业务部经理') {
+     function refreshPerspectiveSelect() {
+       const select = document.getElementById('perspectiveSelect');
+       if (!select) return;
+       select.value = activeUser?.role === '业务部经理'
+         ? (currentView === 'executive' ? 'executive' : 'manager')
+         : 'staff';
+     }
+     function switchPerspective(value) {
+       const select = document.getElementById('perspectiveSelect');
+       if (value === 'staff') {
          directDemoLogin();
-       } else openMinisterLogin();
+         switchView('knowledge');
+         refreshPerspectiveSelect();
+         return;
+       }
+       if (value === 'manager') {
+         directMinisterDemoLogin().then(() => switchView('minister')).catch(() => {
+           switchView('minister');
+           showToast('已打开部长演示视角；当前无法连接管理数据服务');
+         });
+         return;
+       }
+       if (value === 'executive') {
+         const go = () => switchView('executive');
+         if (activeUser?.role === '业务部经理') { go(); return; }
+         directMinisterDemoLogin().then(go).catch(() => {
+           go();
+           const error = document.getElementById('executiveError');
+           if (error) { error.hidden = false; error.textContent = '数据加载失败：无法取得业务部经理会话。总经理视角只读展示已启用，请恢复服务后重试。'; }
+           showToast('总经理驾驶舱数据加载失败');
+         });
+       }
+     }
+     function switchRoleView() {
+       switchPerspective(activeUser?.role === '业务部经理' ? 'staff' : 'manager');
      }
     let ministerOverviewCache = null;
     function ministerMoney(v) { return Number(v || 0).toLocaleString('zh-CN', {minimumFractionDigits:2, maximumFractionDigits:2}); }
@@ -2830,6 +2955,137 @@
          lucide.createIcons();
       }).catch(e => { box.innerHTML = `<div class="empty">管理摘要加载失败：${e.message}</div>`; });
     }
+     async function loadExecutiveDashboard() {
+       const errorBox = document.getElementById('executiveError');
+       const setError = message => { if (errorBox) { errorBox.hidden = false; errorBox.textContent = message; } };
+       if (errorBox) errorBox.hidden = true;
+       const rankingBox = document.getElementById('executiveRanking');
+       const riskBox = document.getElementById('executiveRisks');
+       try {
+         const response = await fetch('/api/minister/overview', {headers:{'X-Session-Token':localStorage.getItem('tower_token') || ''}});
+         const data = await response.json();
+         if (!response.ok || !data.ok) throw new Error(response.status === 401 ? '管理会话无效，请从视角菜单重新进入。' : (data.error || '全项目经营数据读取失败。'));
+         const projects = Array.isArray(data.projects) ? data.projects : [];
+         if (!projects.length) throw new Error('接口没有返回可汇总的项目数据。');
+         const fields = ['sales_total','receivable_total','overdue_total','fee_total'];
+         for (const project of projects) {
+           for (const field of fields) {
+             const value = Number(project[field]);
+             if (!Number.isFinite(value)) throw new Error(`项目 ${project.name || ''} 的 ${field} 不是有效数字。`);
+           }
+         }
+         const sum = key => projects.reduce((total, project) => total + Number(project[key]), 0);
+         const sales = sum('sales_total');
+         const receivable = sum('receivable_total');
+         const overdue = sum('overdue_total');
+         const fee = sum('fee_total');
+         const rate = receivable > 0 ? overdue / receivable * 100 : 0;
+         document.getElementById('executiveSales').textContent = `¥ ${money(sales)}`;
+         document.getElementById('executiveProjectCount').textContent = `${projects.length} 个项目纳入组合汇总`;
+         document.getElementById('executiveReceivable').textContent = `¥ ${money(receivable)}`;
+         document.getElementById('executiveOverdueSub').textContent = `其中逾期 ¥ ${money(overdue)}`;
+         document.getElementById('executiveOverdue').textContent = `¥ ${money(overdue)}`;
+         document.getElementById('executiveOverdueRate').textContent = `组合逾期率 ${rate.toFixed(1)}%`;
+         document.getElementById('executiveFee').textContent = `¥ ${money(fee)}`;
+         const ranking = projects.slice().sort((a,b) => Number(b.receivable_total) - Number(a.receivable_total)).slice(0,5);
+         const maxReceivable = Math.max(...ranking.map(p => Number(p.receivable_total)), 0);
+         rankingBox.innerHTML = ranking.map((p,index) => {
+           const width = maxReceivable > 0 ? Math.max(2, Number(p.receivable_total) / maxReceivable * 100) : 0;
+           return `<div class="executive-rank-row"><span class="executive-rank-no">${index+1}</span><span class="executive-rank-name" title="${escapeAskHtml(p.name || '未命名项目')}">${escapeAskHtml(p.name || '未命名项目')}</span><span class="executive-rank-track"><i style="width:${width.toFixed(1)}%"></i></span><span class="executive-rank-value">¥ ${money(p.receivable_total)}</span></div>`;
+         }).join('');
+         const risks = projects.slice().sort((a,b) => Number(b.overdue_total) - Number(a.overdue_total)).filter(p => Number(p.overdue_total) > 0).slice(0,3);
+         riskBox.innerHTML = risks.length ? risks.map((p,index) => `<article class="executive-risk"><div><b>${index+1}. ${escapeAskHtml(p.name || '未命名项目')}</b><small>负责人：${escapeAskHtml(p.owner || '待分配')}</small></div><strong>¥ ${money(p.overdue_total)}</strong></article>`).join('') : '<div class="empty">当前组合没有逾期余额。</div>';
+         const first = risks[0] || null;
+         const second = risks[1] || null;
+         const share = first && overdue > 0 ? (Number(first.overdue_total) / overdue * 100).toFixed(1) : '0.0';
+          const riskLead = first ? `${first.name || '未命名项目'}（¥${money(first.overdue_total)}）` : '暂无逾期项目';
+          const riskNext = second ? `${second.name || '未命名项目'}（¥${money(second.overdue_total)}）` : '暂无第二个逾期项目';
+          const conclusion = `组合应收 ¥${money(receivable)}，其中逾期 ¥${money(overdue)}（占比 ${rate.toFixed(1)}%），逾期金额前两位为 ${riskLead} 与 ${riskNext}；资金占用费累计 ¥${money(fee)}。建议优先跟进 ${first ? first.name || '该项目' : '逾期项目'}，其逾期占组合逾期的 ${share}%。`;
+         document.getElementById('executiveInsight').textContent = conclusion;
+         document.getElementById('executiveUpdatedAt').textContent = `数据生成于 ${data.generated_at ? new Date(data.generated_at).toLocaleString('zh-CN') : '当前'} · 来源：项目组合快照`;
+         lucide.createIcons();
+       } catch (error) {
+         setError(`数据加载失败：${error.message || '请检查经理会话和管理数据接口。'}`);
+          ['executiveSales','executiveReceivable','executiveOverdue','executiveFee'].forEach(id => {
+            const metric = document.getElementById(id);
+            if (metric) metric.textContent = '—';
+          });
+          document.getElementById('executiveProjectCount').textContent = '组合数据暂不可用';
+          document.getElementById('executiveOverdueSub').textContent = '其中逾期 —';
+          document.getElementById('executiveOverdueRate').textContent = '逾期率 —';
+         if (rankingBox) rankingBox.innerHTML = '<div class="empty">无法读取项目组合排名</div>';
+         if (riskBox) riskBox.innerHTML = '<div class="empty">无法读取逾期风险</div>';
+         document.getElementById('executiveInsight').textContent = '当前未生成组合研判，请恢复经理会话并刷新。';
+         document.getElementById('executiveUpdatedAt').textContent = '全项目数据暂不可用';
+       }
+     }
+    let usageTrendChartInstance = null;
+    function renderUsageStats(data) {
+      const days = Math.max(1, Number(data?.window_days || 30));
+      document.getElementById('usageWindowLabel').textContent = `近 ${days} 天`;
+      document.getElementById('usageTotalActions').textContent = Number(data?.total_actions || 0).toLocaleString('zh-CN');
+      document.getElementById('usageActiveUsers').textContent = Number(data?.active_users || 0).toLocaleString('zh-CN');
+      document.getElementById('usageAvgPerUser').textContent = `人均 ${Number(data?.avg_actions_per_user || 0).toFixed(1)} 次`;
+      const departments = Array.isArray(data?.dept_dist) ? data.dept_dist : [];
+      document.getElementById('usageDeptCount').textContent = Number(data?.dept_count || 0).toLocaleString('zh-CN');
+      document.getElementById('usageDeptNames').textContent = departments.map(row => row.dept).filter(Boolean).join(' / ') || '暂无部门记录';
+      document.getElementById('usageNamedRuns').textContent = Number(data?.named_runs || 0).toLocaleString('zh-CN');
+      document.getElementById('usageUnnamedRuns').textContent = `历史未署名 ${Number(data?.history_unnamed_runs || 0).toLocaleString('zh-CN')} 条`;
+      const bars = document.getElementById('usageDeptBars');
+      if (bars) {
+        const maxActions = Math.max(1, ...departments.map(row => Number(row.actions || 0)));
+        bars.innerHTML = departments.length ? departments.map(row => {
+          const width = Math.max(1, Number(row.actions || 0) / maxActions * 100);
+          return `<div class="usage-dept-row"><span class="usage-dept-name">${escapeAskHtml(row.dept || '未归属')}</span><span class="usage-dept-track"><i style="width:${width.toFixed(1)}%"></i></span><span class="usage-dept-count">${Number(row.users || 0)} 人 · ${Number(row.actions || 0)} 次</span></div>`;
+        }).join('') : '<div class="usage-empty">当前统计窗口暂无已署名使用记录。</div>';
+      }
+      const trend = Array.isArray(data?.active_users_trend) ? data.active_users_trend : [];
+      const chartEl = document.getElementById('usageTrendChart');
+      if (!chartEl) return;
+      if (typeof echarts !== 'undefined') {
+        if (!usageTrendChartInstance) usageTrendChartInstance = echarts.init(chartEl);
+        usageTrendChartInstance.setOption({
+          animation: false,
+          tooltip: {trigger: 'axis'},
+          grid: {left: 30, right: 12, top: 16, bottom: 25},
+          xAxis: {type: 'category', data: trend.map(row => row.date), axisLabel: {color: '#9aadb3', interval: Math.max(0, Math.floor(trend.length / 6))}, axisLine: {lineStyle: {color: '#40535b'}}},
+          yAxis: {type: 'value', min: 0, minInterval: 1, axisLabel: {color: '#9aadb3'}, splitLine: {lineStyle: {color: '#2d424a'}}},
+          series: [{name: '活跃用户', type: 'line', smooth: true, showSymbol: false, data: trend.map(row => Number(row.n || 0)), lineStyle: {color: '#77c8aa', width: 2}, areaStyle: {color: 'rgba(119,200,170,.12)'}}]
+        }, true);
+        setTimeout(() => { try { usageTrendChartInstance?.resize(); } catch (e) {} }, 50);
+      } else {
+        const max = Math.max(1, ...trend.map(row => Number(row.n || 0)));
+        chartEl.innerHTML = `<div class="usage-bars" style="height:100%;grid-template-columns:repeat(${Math.max(1,trend.length)},minmax(2px,1fr));align-items:end;gap:2px">${trend.map(row => `<span title="${escapeAskHtml(row.date)} · ${Number(row.n || 0)} 人" style="height:${Math.max(2,Number(row.n || 0)/max*100)}%;background:#77c8aa;border-radius:2px 2px 0 0"></span>`).join('')}</div>`;
+      }
+    }
+    async function loadUsageStats() {
+      const ids = ['usageTotalActions','usageActiveUsers','usageDeptCount','usageNamedRuns'];
+      try {
+        const headers = await trackedHeaders();
+        const response = await fetch('/api/usage/stats?days=30', {headers});
+        const data = await response.json();
+        if (!response.ok || !data.ok) throw new Error(data.error || '使用统计暂不可用');
+        renderUsageStats(data);
+      } catch (error) {
+        ids.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = '—'; });
+        document.getElementById('usageAvgPerUser').textContent = '人均 —';
+        document.getElementById('usageDeptNames').textContent = '暂不可用';
+        document.getElementById('usageUnnamedRuns').textContent = '历史未署名 — 条';
+        document.getElementById('usageDeptBars').innerHTML = '<div class="usage-empty">使用统计暂不可用，其他驾驶舱数据不受影响。</div>';
+        document.getElementById('usageTrendChart').innerHTML = '';
+      }
+    }
+     function copyExecutiveInsight() {
+       const text = document.getElementById('executiveInsight')?.textContent || '';
+       if (!text) { showToast('暂无研判内容可复制'); return; }
+       const fallback = () => {
+         const input = document.createElement('textarea'); input.value = text; input.style.position = 'fixed'; input.style.opacity = '0';
+         document.body.appendChild(input); input.select();
+         try { document.execCommand('copy'); showToast('组合研判已复制'); } catch (e) { showToast('复制失败，请手动选择文字'); }
+         input.remove();
+       };
+       if (navigator.clipboard?.writeText) navigator.clipboard.writeText(text).then(() => showToast('组合研判已复制')).catch(fallback); else fallback();
+     }
     function buildMinisterReport(data) {
       const projects = (data && data.projects) || [];
       const sales = projects.reduce((n,p) => n + Number(p.sales_total || 0), 0);
@@ -3208,6 +3464,28 @@
       }
       document.getElementById('repaymentPagination').innerHTML=`<span class="pagination-info">第 ${repaymentPage}/${totalPages} 页 · 共 ${sorted.length} 笔</span><span class="pagination-actions"><button class="page-btn" ${repaymentPage<=1?'disabled':''} onclick="repaymentPage--;renderRepaymentDashboard(dashboardData)">上一页</button><span>第 ${repaymentPage}/${totalPages} 页</span><button class="page-btn" ${repaymentPage>=totalPages?'disabled':''} onclick="repaymentPage++;renderRepaymentDashboard(dashboardData)">下一页</button></span>`;
     }
+     function financeHeaders(json=false){ const h={}; if(json) h['Content-Type']='application/json'; const token=localStorage.getItem('tower_token')||''; if(token) h['X-Session-Token']=token; return h; }
+     async function loadRepaymentIntake(){
+       const list=document.getElementById('financeIntakeList'); if(!list)return;
+       const hint=document.getElementById('financeIntakeHint'); if(hint) hint.textContent=`当前账号：${activeUser?.name||'未登录'} · ${activeUser?.role||''}`;
+       try {
+         const r=await fetch('/api/finance/repayment-intake',{headers:financeHeaders()}); const d=await r.json();
+         if(!r.ok){ list.innerHTML=`<div class="empty">${d.error||'暂无权限读取上报记录'}</div>`; return; }
+         const rows=d.records||[]; const manager=['财务主管','业务部经理'].includes(activeUser?.role);
+         if(!rows.length){ list.innerHTML='<div class="empty">暂无财务上报记录</div>'; return; }
+         list.innerHTML=`<table style="min-width:680px"><thead><tr><th>日期</th><th>金额</th><th>付款方/流水号</th><th>状态</th><th>操作</th></tr></thead><tbody>${rows.map(x=>{const st=x.status==='confirmed'?'已确认':x.status==='rejected'?'已驳回':'待确认'; const acts=x.status==='pending'&&manager?`<button class="button primary" style="padding:4px 8px;font-size:11px" onclick="confirmFinanceIntake(${x.id})">确认</button> <button class="button ghost" style="padding:4px 8px;font-size:11px" onclick="rejectFinanceIntake(${x.id})">驳回</button>`:'—'; return `<tr><td>${x.paid_date||'-'}</td><td>¥ ${money(x.amount||0)}</td><td>${x.payer||'-'}<br><small style="color:#64748b">${x.bank_ref||'无流水号'}</small></td><td><span class="tag ${x.status==='confirmed'?'ok':x.status==='rejected'?'bad':'warn'}">${st}</span></td><td>${acts}</td></tr>`;}).join('')}</tbody></table>`;
+       } catch(e){ list.innerHTML='<div class="empty">财务上报服务暂不可用</div>'; }
+     }
+     async function submitFinanceIntake(ev){
+       ev.preventDefault();
+       const receipt=document.getElementById('intakeReceipt')?.files?.[0];
+       const body={paid_date:document.getElementById('intakePaidDate').value, amount:document.getElementById('intakeAmount').value, payer:document.getElementById('intakePayer').value, bank_ref:document.getElementById('intakeBankRef').value, receipt_path:receipt?.name||'', note:'财务门户手工上报'};
+       try { const r=await fetch('/api/finance/repayment-intake',{method:'POST',headers:financeHeaders(true),body:JSON.stringify(body)}); const d=await r.json(); if(!r.ok) throw new Error(d.error||'提交失败'); showToast(d.duplicated?'该银行流水号已存在，系统已复用原上报记录':'回款已提交，等待主管确认'); document.getElementById('financeIntakeForm').reset(); loadRepaymentIntake(); } catch(e){ showToast(e.message||'提交失败'); }
+     }
+     async function confirmFinanceIntake(id){
+       try { const r=await fetch('/api/finance/repayment-intake/confirm',{method:'POST',headers:financeHeaders(true),body:JSON.stringify({id})}); const d=await r.json(); if(!r.ok) throw new Error(d.error||'确认失败'); showToast(`已入账，${d.allocation_note||'已按规则冲抵'} · 当前累计占用费 ¥ ${money(d.new_grand_total||0)}`); await loadRepaymentIntake(); await loadBusinessData(); await loadFeeCalc(); } catch(e){ showToast(e.message||'确认失败'); }
+     }
+     async function rejectFinanceIntake(id){ const reason=window.prompt('请输入驳回原因','回单信息需补充'); if(reason===null)return; try { const r=await fetch('/api/finance/repayment-intake/reject',{method:'POST',headers:financeHeaders(true),body:JSON.stringify({id,reason})}); const d=await r.json(); if(!r.ok) throw new Error(d.error||'驳回失败'); showToast('已驳回该笔回款上报'); loadRepaymentIntake(); } catch(e){ showToast(e.message||'驳回失败'); } }
     async function confirmReceipt(id,amount,cycle_hint=''){ await fetch('/api/repayments/confirm',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({receipt_id:id,amount,cycle_hint})}); await loadBusinessData(); }
     function openCyclesLabel(snapshot) {
       const count = (snapshot?.cycles || []).filter(x => Number(x.outstanding || 0) > 0).length;
@@ -3215,9 +3493,10 @@
     }
     async function loadBusinessData() {
       try {
+        const headers = await trackedHeaders();
         const [dash, ledger] = await Promise.all([
-          fetch(withPid('/api/dashboard')).then(r => r.json()),
-          fetch(withPid('/api/ledger')).then(r => r.json())
+          fetch(withPid('/api/dashboard'), {headers}).then(r => r.json()),
+          fetch(withPid('/api/ledger'), {headers}).then(r => r.json())
         ]);
         dashboardData = dash.snapshot || dash;
         ledgerData = ledger.rows || [];
@@ -3226,26 +3505,48 @@
         renderHistory();
         renderTrend();
         renderLedger();
+         loadRepaymentIntake();
       } catch (e) {
         renderHistory();
         renderLedger();
       }
     }
-    let calcPayPage=1; const calcPayPageSize=3; let calcPayList=[];
+    let calcPayPage=1; const calcPayPageSize=3; let calcPayList=[]; let calcPaySteps=[]; let calcPayStepIndex=0;
     async function loadFeeCalc(){
-      const [r, rr] = await Promise.all([fetch(withPid('/api/fee-calc')), fetch(withPid('/api/repayments'))]);
+      const headers = await trackedHeaders();
+      const [r, rr] = await Promise.all([fetch(withPid('/api/fee-calc'), {headers}), fetch(withPid('/api/repayments'))]);
       const d = await r.json(); const rd = await rr.json();
       const grand = Number(d.grand_total||0);
       document.getElementById('calcGrandTotal').textContent=`¥ ${money(grand)}`;
       const financeFee=document.getElementById('feeTotalMetric'); if(financeFee) financeFee.innerHTML=`${money(grand)}<span class="unit">元</span>`;
       const receivable = (d.months||[]).reduce((sum,m)=>sum+Number(m.unpaid_fee||0),0);
       const elR=document.getElementById('calcReceivableFee'); if(elR) elR.textContent=`¥ ${money(receivable)}`;
-      calcPayList=(rd.repayments||[]).slice().sort((a,b)=>String(b.paid_date||'').localeCompare(String(a.paid_date||'')));
+       calcPayList=(rd.repayments||[]).slice().sort((a,b)=>String(b.paid_date||'').localeCompare(String(a.paid_date||'')));
+       calcPaySteps=(d.pay_steps||[]).slice().sort((a,b)=>String(b.paid_date||'').localeCompare(String(a.paid_date||'')));
       const repTotal=calcPayList.reduce((sum,x)=>sum+Number(x.amount||0),0);
       const elP=document.getElementById('calcRepaymentTotal'); if(elP) elP.textContent=`¥ ${money(repTotal)}`;
       const months=(d.months||[]).slice().sort((a,b)=>String(b.month).localeCompare(String(a.month))); const mp=Math.max(1,Math.min(calcMonthPage||1,months.length)); calcMonthPage=mp; const m=months[mp-1]; document.getElementById('calcMonths').innerHTML=m?`<div class="panel" style="margin-top:10px"><div class="section-head"><h4>${m.month} 月确认单</h4><b>¥ ${money(m.total_fee)}</b></div><div class="table-wrap"><table><thead><tr><th>周期</th><th>E计息本金</th><th>F起始日</th><th>G截止日</th><th>H天数</th><th>J占用费含税</th></tr></thead><tbody>${(m.segments||[]).map(sg=>`<tr><td>${sg.period||'-'}</td><td>¥ ${money(sg.amount)}</td><td>${sg.start||'-'}</td><td>${sg.end||'-'}</td><td>${sg.days||0}</td><td>¥ ${money(sg.fee)}</td></tr>`).join('')||'<tr><td colspan="6" class="empty">本月无分段明细</td></tr>'}</tbody></table></div><div class="rule">本月合计 ¥ ${money(m.total_fee)}；未冲抵 ¥ ${money(m.unpaid_fee)}</div></div>`: '<div class="panel" style="margin-top:10px"><div class="empty" style="padding:26px 18px;text-align:center;line-height:1.7"><p style="font-size:15px;font-weight:600">该演示项目暂未生成月度确认单</p><p style="font-size:12px;color:#6b7280;margin-top:8px">资金占用费引擎需要该项目的合同起息日、结算周期本金与回款回单等原始单据；当前演示项目未接入这些单据，完整核算请在已接入项目中查看。</p></div></div>'; document.getElementById('calcMonthPagination').innerHTML=`<span class="pagination-info">${months.length===0?'暂无确认单':'第 '+mp+'/'+months.length+' 个月'}</span><span class="pagination-actions"><button class="page-btn" ${mp<=1?'disabled':''} onclick="calcMonthPage--;loadFeeCalc()">上一页</button><button class="page-btn" ${mp>=months.length?'disabled':''} onclick="calcMonthPage++;loadFeeCalc()">下一页</button></span>`;
       renderCalcPayLog();
+       renderPayWaterfall();
     }
+     function renderPayWaterfall(){
+       const box=document.getElementById('calcPayWaterfall'); if(!box)return;
+       const list=calcPaySteps||[];
+       if(!list.length){ box.innerHTML='<div class="empty">当前没有可展示的回款冲抵流水</div>'; return; }
+       calcPayStepIndex=Math.min(Math.max(calcPayStepIndex,0),list.length-1);
+       const current=list[calcPayStepIndex];
+       const tabs=list.map((x,i)=>`<button class="pay-waterfall-tab ${i===calcPayStepIndex?'active':''}" onclick="calcPayStepIndex=${i};renderPayWaterfall()">${x.paid_date||'-'} · ¥ ${money(x.amount||0)}</button>`).join('');
+       const steps=[]; (current.steps||[]).forEach(s=>{
+         const kind=s.kind==='fee'?'fee':s.kind==='principal'?'principal':'balance';
+         const label=s.kind==='fee'?`① 抵占用费 · ${s.period||''}`:s.kind==='principal'?`② 冲本金 · ${s.period||''}`:'结果 · 回款结余';
+         const value=s.kind==='balance' && Number(s.amount||0)===0 ? '已全部抵扣' : `¥ ${money(s.amount||0)}`;
+         const ref=s.ref||{}; const source=ref.source||'';
+         const link=source?`<span class="pay-step-source" onclick="window.open(withPid('/api/ledger/voucher?source='+encodeURIComponent('${source}')),'_blank')">查看来源 · ${ref.location||'原件'}</span>`:'';
+         steps.push(`<article class="pay-step ${kind}"><span class="pay-step-no">${label}</span><strong>${value}</strong><span>${s.kind==='principal'?'冲抵后剩余 '+money(s.remaining||0)+' 元':s.kind==='fee'?'已结算占用费优先抵扣':'本笔回款处理结果'}</span>${link}</article>`);
+       });
+       steps.splice(steps.length,0,`<article class="pay-step defer"><span class="pay-step-no">③ 本期费用</span><strong>不参与本笔抵扣</strong><span>${current.deferred_fee_note||'本期占用费未到期，不参与本笔抵扣（留到后续）'}</span></article>`);
+       box.innerHTML=`<div class="pay-waterfall-tabs">${tabs}</div><div class="pay-waterfall-flow">${steps.join('<span class="pay-step-arrow">→</span>')}</div>`;
+     }
     function renderCalcPayLog(){
       const box=document.getElementById('calcPayLog'); if(!box)return;
       const list=calcPayList||[]; const totalPages=Math.max(1,Math.ceil(list.length/calcPayPageSize));
@@ -3274,7 +3575,8 @@
       try {
         const refreshed = await fetch('/api/refresh', {method:'POST'}).then(r => r.json());
         dashboardData = refreshed;
-        const ledger = await fetch(withPid('/api/ledger')).then(r => r.json());
+        const headers = await trackedHeaders();
+        const ledger = await fetch(withPid('/api/ledger'), {headers}).then(r => r.json());
         ledgerData = ledger.rows || [];
         renderBusinessMetrics(refreshed);
         renderFinanceMetrics();
@@ -3394,7 +3696,7 @@
       const box = document.getElementById('answerBox');
       box.innerHTML = '<b>Agent 回答</b><br>正在意图识别并检索…';
       try {
-        const resp = await fetch('/api/ask', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({question: text, project_id: currentProject, history: askHistory.slice(-8)})});
+        const resp = await fetch('/api/ask', {method:'POST', headers:await trackedHeaders(), body: JSON.stringify({question: text, project_id: currentProject, history: askHistory.slice(-8)})});
         const data = await resp.json();
         if (!resp.ok) throw new Error(data.error || '服务异常');
         askHistory.push({question: text, answer: data.answer || ''});
@@ -3428,7 +3730,8 @@
         const elapsed = Math.max(0, Math.floor((performance.now() - auditStartedAt) / 1000));
         statusEl.textContent = auditPhase + ' 已用 ' + elapsed + ' 秒';
       }, 1000);
-      const auditPromise = fetch('/api/audit-ocr', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ range: rangeText, project_id: currentProject }) })
+      const auditHeaders = await trackedHeaders();
+      const auditPromise = fetch('/api/audit-ocr', { method: 'POST', headers: auditHeaders, body: JSON.stringify({ range: rangeText, project_id: currentProject }) })
         .then(async r => { const data = await r.json().catch(() => ({})); if (!r.ok) throw new Error(data.error || `接口失败（HTTP ${r.status}）`); return data; })
         .catch(err => ({ ok:false, error: err?.message || '审核接口失败', details:[], results:[], passed:0, failed:0, audit_trace:{degraded:true} }));
       // 阶段动画（单按钮自动跑完两层，无单独OCR按钮/面板）
@@ -3545,6 +3848,8 @@
         const trace = auditData?.audit_trace || {};
         const traceHtml = `<div class="audit-trace" style="margin:10px 0;padding:10px 12px;border:1px solid #dbeafe;background:#f8fbff;border-radius:10px"><div style="font-weight:700;margin-bottom:8px">审核 Agent 取证轨迹 <span class="tag ${trace.degraded ? 'warn' : 'ok'}">${trace.degraded ? '本地规则引擎已接管' : '大模型已参与'}</span></div>${(trace.nodes || []).map(n => `<div style="display:flex;gap:8px;align-items:center;padding:4px 0;font-size:12px"><span class="tag neutral">${n.label || n.id}</span><span style="color:#64748b">${n.duration_ms ?? 0} ms</span><span>${n.detail || ''}</span></div>`).join('')}<div style="margin-top:6px;color:#64748b;font-size:11px">总耗时 ${trace.total_ms ?? '-'} ms</div></div>`;
         const verdictHtml = verdicts.length ? `<div class="audit-verdicts" style="margin:10px 0"><div style="font-weight:700;margin-bottom:7px">Agent 定性与证据链</div>${verdicts.map(v => `<article class="audit-issue-card ${v.verified ? 'conflict' : 'missing'}"><span class="audit-issue-card-label">${v.verdict || '待复核'}</span><div><div class="audit-issue-card-date">${v.date || '未标日期'} · ${v.decided_by === 'llm' ? '模型定性' : '规则接管'}</div><div class="audit-issue-card-detail">${v.conclusion || '证据不足，建议人工复核'}${(v.evidence || []).map(e => `<div style="font-size:11px;color:#64748b;margin-top:3px">证据：${e.doc || e.source || ''} · ${e.location || ''}</div>`).join('')}</div></div>${v.file ? `<button class="button ghost" onclick="window.open('/api/ledger/voucher?source=${encodeURIComponent(v.file)}','_blank')">查看原件</button>` : ''}</article>`).join('')}</div>` : '';
+        const historyRows = Array.isArray(auditData?.history) ? auditData.history : [];
+        const historyHtml = historyRows.length ? `<div class="audit-trace" style="margin:10px 0;padding:10px 12px;border:1px solid #dbeafe;background:#fbfdff;border-radius:10px"><div style="font-weight:700;margin-bottom:7px">历史对比 · 本次 vs 上次</div>${historyRows.map(h => `<div style="display:flex;gap:8px;align-items:center;padding:4px 0;font-size:12px"><span class="tag neutral">${escapeAskHtml(h.issue_type || 'audit')}</span><span>${escapeAskHtml(h.comparison || '已记录')}</span>${h.current ? `<span style="color:#64748b">本次 #${h.current.run_id}</span>` : ''}${h.previous ? `<span style="color:#64748b">上次 #${h.previous.run_id}</span>` : ''}</div>`).join('')}</div>` : '';
         const degradedHtml = trace.degraded ? `<div style="margin:8px 0;padding:9px 12px;border-radius:8px;background:#fff7ed;color:#9a3412;border:1px solid #fed7aa">本地规则引擎已接管 · 大模型暂不可用：${trace.llm?.reason || '取证循环未完成'}</div>` : '';
         const conclusionHtml = hasIssues
           ? `<div class="audit-conclusion" role="alert"><div class="audit-conclusion-head"><div class="audit-conclusion-title"><span class="audit-conclusion-icon">!</span><span>核查发现 ${realMissing.length + conflictItems.length} 项待处理问题</span></div><span class="audit-conclusion-status">待处理</span></div><div class="audit-conclusion-summary">系统已按业务日期完成配套资料与金额一致性核验。请优先处理下列异常，处理后重新核查并归档。</div><div class="audit-issue-list">${missingIssueHtml}${conflictIssueHtml}</div></div>`
@@ -3570,7 +3875,7 @@
           <span class="tag ok">完成</span>
         </div>
            ${layer1Html}
-           ${degradedHtml}${traceHtml}${verdictHtml}
+           ${degradedHtml}${traceHtml}${verdictHtml}${historyHtml}
          <div class="result-row" style="background:#eff6ff"><span class="date">日期索引</span><span>范围内共 ${auditDates.length} 个业务日期：${auditDates.join('、')}</span><span class="tag ok">全量扫描</span></div>
          ${dateSummaryHtml || '<div class="empty">当前范围内没有可识别日期的业务单据</div>'}
          <div class="result-row" style="background:#f0fdf4">
@@ -3921,7 +4226,7 @@
       const sel = document.getElementById('projectSelector');
       if (!sel) return;
       try {
-        const res = await fetch('/api/projects');
+        const res = await fetch('/api/projects', {headers: await trackedHeaders()});
         const data = await res.json();
         const allProjects = data.projects || [];
         PROJECT_LIST = activeUser && activeUser.role === '业务部经理'

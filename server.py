@@ -1,4 +1,5 @@
 import calendar
+from contextvars import ContextVar
 from concurrent.futures import ThreadPoolExecutor
 import hashlib
 import io
@@ -22,7 +23,19 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlparse, quote, unquote, parse_qs
 from urllib.request import Request, urlopen
 
-from openpyxl import load_workbook
+try:
+    from openpyxl import load_workbook
+except Exception:  # pragma: no cover
+    load_workbook = None
+
+
+def _load_workbook_checked(path, **kwargs):
+    """Give a readable message when the optional Excel reader is unavailable."""
+    if load_workbook is None:
+        raise RuntimeError(
+            "缺少 openpyxl 组件，无法读取 Excel 台账。请执行：pip install openpyxl"
+        )
+    return load_workbook(path, **kwargs)
 
 try:
     from pypdf import PdfReader
@@ -56,8 +69,6 @@ for _env_file in (ROOT / ".env", BASE_DIR / ".env"):
         except OSError:
             pass
 # Dataset is configurable and portable. When packaged for judging, place
-# ``A项目-演示资料`` beside this file or beside the project folder. The old
-# absolute path is retained only as a last-resort compatibility fallback.
 _configured_dataset = os.getenv("DATASET_ROOT")
 
 
@@ -68,14 +79,13 @@ def _pick_demo_dataset() -> Path:
     资料在 ``<包根>\\A项目-演示资料``（第 2 条命中）。
     开发时：``ROOT`` 是 wo 目录，资料在
     ``wo\\供应链控制塔演示版_交付\\A项目-演示资料``（第 1 条命中）。
-    末尾的 ``D:\\A项目演示\\...``（旧资料，回单 20260920/20260930）仅作最后兜底。
+    只在交付包内的候选目录中查找，避免误读开发机上的旧资料。
     """
     candidates = [
         ROOT / "供应链控制塔演示版_交付" / "A项目-演示资料",   # 开发目录布局
         ROOT / "A项目-演示资料",                              # 打包后布局（包根）
         BASE_DIR / "A项目-演示资料",                          # 资料与 work_review 同级
         ROOT / "供应链控制塔演示版_交付" / "供应链控制塔演示版_交付" / "A项目-演示资料",  # 历史双层嵌套
-        Path(r"D:\A项目演示\A项目-演示资料"),                  # 最后兜底（旧资料）
     ]
     for _cand in candidates:
         if _cand.is_dir():
@@ -288,7 +298,7 @@ def parse_collection_stats() -> dict[str, Any]:
     if not STAT_BOOK.exists():
         return empty
     try:
-        wb = load_workbook(STAT_BOOK, data_only=True)
+        wb = _load_workbook_checked(STAT_BOOK, data_only=True)
         ws = wb.worksheets[0]
         periods: list[dict[str, Any]] = []
         total_row: dict[str, Any] | None = None
@@ -614,19 +624,24 @@ def confirmed_fee_engine(periods=None, repayments=None) -> dict[str, Any]:
                    "label": row.get("period"), "amount": Decimal(str(amt)),
                    "start": ods, "remaining": Decimal(str(amt)), "open_start": None})
     if not ps:
-        return {"months": [], "grand_total": 0.0, "pay_log": [], "self_check": {"passed": True, "actual": {}, "expected": FEE_CALC_EXPECTED, "grand_total": 0.0},
+        return {"months": [], "grand_total": 0.0, "pay_log": [], "pay_steps": [], "self_check": {"passed": True, "actual": {}, "expected": FEE_CALC_EXPECTED, "grand_total": 0.0},
                 "rule": "本金×0.0002×天数,回款日不计息;回款按前期欠息→旧本金→本期费用顺序处理。"}
 
     pay_map: dict[date, Decimal] = {}
+    pay_source_map: dict[date, str] = {}
     for r in (repayments or []):
         pd = dt_to_date(r.get("paid_date"))
         amt = to_float(r.get("amount"))
         if pd and amt and amt > 0:
             pay_map[pd] = pay_map.get(pd, Decimal("0")) + Decimal(str(amt))
+            pay_source_map[pd] = str(r.get("source") or r.get("source_file") or "")
 
     month_segments: dict[tuple, list[tuple]] = {}
     unpaid_fee: dict[tuple, Decimal] = {}
     pay_log: list[str] = []
+    # 与 pay_log 同一计算分支同步产出结构化步骤；只记录实际 take/money，
+    # 不参与任何核算，前端据此展示可复算的冲抵瀑布。
+    pay_steps: list[dict[str, Any]] = []
 
     def close_segments(until: date) -> None:
         for p in ps:
@@ -646,6 +661,7 @@ def confirmed_fee_engine(periods=None, repayments=None) -> dict[str, Any]:
 
     def apply_payment(amount: Decimal, pay_date: date) -> None:
         log = [f"收到回款 {pay_date} 金额 {r2(amount)}"]
+        steps: list[dict[str, Any]] = []
         money = amount
         for key in sorted(unpaid_fee.keys()):
             if money <= 0:
@@ -659,6 +675,8 @@ def confirmed_fee_engine(periods=None, repayments=None) -> dict[str, Any]:
             unpaid_fee[key] = owed - take
             money -= take
             log.append(f"  ① 抵扣 {key[0]}年{key[1]}期占用费 {r2(take)} 元")
+            steps.append({"step": 1, "kind": "fee", "period": f"{key[0]}年{key[1]}期", "amount": r2(take),
+                          "ref": {"source": f"{dataset_label()}-回款与逾期核算表.pdf", "doc": f"{dataset_label()}回款与逾期核算表.pdf", "location": f"{key[0]}年{key[1]}期占用费"}})
         for p in ps:
             if money <= 0:
                 break
@@ -668,7 +686,15 @@ def confirmed_fee_engine(periods=None, repayments=None) -> dict[str, Any]:
             p["remaining"] -= take
             money -= take
             log.append(f"  ② 冲抵周期[{p['label']}]本金 {r2(take)} 元,剩 {r2(p['remaining'])} 元")
-        log.append(f"  回款结余 {r2(money)} 元" if money > 0 else "  回款全部抵扣完毕")
+            steps.append({"step": 2, "kind": "principal", "period": p["label"], "amount": r2(take),
+                          "remaining": r2(p["remaining"]),
+                          "ref": {"source": f"{dataset_label()}-回款与逾期核算表.pdf", "doc": f"{dataset_label()}回款与逾期核算表.pdf", "location": f"周期本金 {p['label']}"}})
+        balance = r2(money)
+        log.append(f"  回款结余 {balance} 元" if money > 0 else "  回款全部抵扣完毕")
+        steps.append({"step": 4, "kind": "balance", "period": "回款结果", "amount": balance,
+                      "ref": {"source": pay_source_map.get(pay_date, ""), "doc": f"{dataset_label()}回款回单", "location": str(pay_date)}})
+        pay_steps.append({"paid_date": pay_date.isoformat(), "amount": r2(amount), "steps": steps,
+                          "deferred_fee_note": "本期占用费未到期，不参与本笔抵扣（留到后续）"})
         pay_log.append("；".join(log))
 
     events: set[date] = set()
@@ -721,7 +747,7 @@ def confirmed_fee_engine(periods=None, repayments=None) -> dict[str, Any]:
     ]
     passed = all(
         abs(actual.get(k, -1) - v) < 0.005 for k, v in FEE_CALC_EXPECTED.items())
-    return {"months": months_out, "grand_total": grand, "pay_log": pay_log,
+    return {"months": months_out, "grand_total": grand, "pay_log": pay_log, "pay_steps": pay_steps,
             "period_balances": period_balances,
             "self_check": {"passed": passed, "actual": actual, "expected": FEE_CALC_EXPECTED, "grand_total": grand},
             "rule": "本金×0.0002×天数,回款日不计息;回款按前期欠息→旧本金→本期费用顺序处理。"}
@@ -738,12 +764,14 @@ def fee_calc_payload() -> dict[str, Any]:
                         "settlement_amount": cycle.get("receivable", cycle.get("sales_amount", 0)),
                         "overdue_start": cycle.get("overdue_date")} for cycle in snap.get("cycles", [])]
         # 回款回单是文件型事实来源，不能因为快照只保留了部分已解析记录而丢笔次。
-        result = confirmed_fee_engine(periods, parse_repayment_receipts())
+        # 合同/核算表是周期事实来源，回款则合并文件回单与已确认的财务上报；
+        # 这样财务主管确认后会沿用同一条冲抵引擎流水，而不会停留在 intake 表。
+        result = confirmed_fee_engine(periods, merge_repayments(load_repayments(), parse_repayment_receipts()))
         result["self_check"] = {"passed": True, "actual": result.get("self_check", {}).get("actual", {}),
                                  "expected": f"{dataset_demo_label()}核算表动态计算", "grand_total": result.get("grand_total", 0.0)}
         return result
     stats = parse_collection_stats()
-    return confirmed_fee_engine(stats.get("periods"), parse_repayment_receipts())
+    return confirmed_fee_engine(stats.get("periods"), merge_repayments(load_repayments(), parse_repayment_receipts()))
 
 
 def fee_calc_self_check() -> dict[str, Any]:
@@ -754,7 +782,7 @@ def parse_stat_repayments() -> list[dict[str, Any]]:
     if not STAT_BOOK.exists():
         return []
     try:
-        wb = load_workbook(STAT_BOOK, data_only=True)
+        wb = _load_workbook_checked(STAT_BOOK, data_only=True)
         ws = wb[wb.sheetnames[0]] if wb.sheetnames else None
         if ws is None:
             return []
@@ -858,7 +886,7 @@ def period_key(value: Any) -> str:
 def parse_fee_book() -> list[dict[str, Any]]:
     if not FEE_BOOK.exists():
         return []
-    wb = load_workbook(FEE_BOOK, data_only=True)
+    wb = _load_workbook_checked(FEE_BOOK, data_only=True)
     out: list[dict[str, Any]] = []
     for sheet in wb.worksheets:
         if not sheet.title[:4].isdigit():
@@ -1138,6 +1166,12 @@ def file_fingerprint() -> str:
     return digest.hexdigest()
 
 
+def _ensure_column(conn: sqlite3.Connection, table: str, column: str, ddl: str) -> None:
+    cols = {row[1] for row in conn.execute(f"PRAGMA table_info({table})")}
+    if column not in cols:
+        conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {ddl}")
+
+
 def db() -> sqlite3.Connection:
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
@@ -1154,6 +1188,27 @@ def db() -> sqlite3.Connection:
         )
         """
     )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS repayment_intake(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            paid_date TEXT NOT NULL,
+            amount REAL NOT NULL,
+            payer TEXT DEFAULT '',
+            bank_ref TEXT,
+            receipt_path TEXT DEFAULT '',
+            source TEXT NOT NULL,
+            submitted_by TEXT DEFAULT '',
+            confirmed_by TEXT DEFAULT '',
+            status TEXT NOT NULL DEFAULT 'pending',
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            confirmed_at TEXT,
+            repayment_id INTEGER,
+            note TEXT DEFAULT ''
+        )
+        """
+    )
+    conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS ux_repayment_intake_bank_ref ON repayment_intake(bank_ref)")
     conn.execute(
         """
         CREATE TABLE IF NOT EXISTS knowledge_chunks(
@@ -1181,6 +1236,24 @@ def db() -> sqlite3.Connection:
         )
         """
     )
+    _ensure_column(conn, "chat_runs", "username", "TEXT NOT NULL DEFAULT ''")
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS usage_log(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL DEFAULT '',
+            role TEXT NOT NULL DEFAULT '',
+            dept TEXT NOT NULL DEFAULT '',
+            action TEXT NOT NULL,
+            project_id TEXT NOT NULL DEFAULT '',
+            cost_ms INTEGER DEFAULT 0,
+            ok INTEGER DEFAULT 1,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )
+        """
+    )
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_usage_user ON usage_log(username)")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_usage_time ON usage_log(created_at)")
     conn.execute(
         """
         CREATE TABLE IF NOT EXISTS overdue_reminders(
@@ -1226,6 +1299,21 @@ def db() -> sqlite3.Connection:
         )
         """
     )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS audit_runs(
+            run_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            run_time TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            doc_batch TEXT NOT NULL,
+            issue_type TEXT NOT NULL,
+            verdict TEXT NOT NULL DEFAULT '',
+            severity TEXT NOT NULL DEFAULT '黄',
+            evidence TEXT NOT NULL DEFAULT '[]',
+            detail TEXT NOT NULL DEFAULT '{}'
+        )
+        """
+    )
+    conn.commit()
     return conn
 
 
@@ -1348,7 +1436,7 @@ def _reindex_worker() -> None:
 def parse_payment_workbook() -> list[dict[str, Any]]:
     if not ORDER_BOOK.exists():
         return []
-    wb = load_workbook(ORDER_BOOK, data_only=True)
+    wb = _load_workbook_checked(ORDER_BOOK, data_only=True)
     rows: list[dict[str, Any]] = []
     for sheet in wb.worksheets:
         if not re.fullmatch(r"\d{8}", sheet.title):
@@ -1502,7 +1590,7 @@ def parse_ledger_workbook() -> list[dict[str, Any]]:
             return rows
     if not DATA_LEDGER.exists():
         return []
-    wb = load_workbook(DATA_LEDGER, data_only=True)
+    wb = _load_workbook_checked(DATA_LEDGER, data_only=True)
     rows: list[dict[str, Any]] = []
     for sheet in wb.worksheets:
         for r in range(5, sheet.max_row + 1):
@@ -1937,12 +2025,34 @@ def _extract_spec(question: str) -> str | None:
 def _keyword_route(question: str, today: date) -> dict[str, Any]:
     """Ollama 不可用时的降级规则匹配（保留原关键词逻辑作为 fallback）。"""
     q = question
+    explicit_contract_rule = any(k in q for k in ("合同", "协议", "条款", "怎么约定", "如何约定"))
+    operational_status = any(k in q for k in (
+        "当前", "目前", "现在", "金额", "余额", "天数", "状态", "明细", "哪些", "多少", "每个周期",
+    ))
     if any(k in q for k in ("你好", "您好", "你是谁", "介绍一下", "谢谢", "感谢",
                             "写诗", "作诗", "诗", "笑话", "天气", "唱歌", "讲个故事")):
         intent = "chitchat"
         tool = "无需查询"
-    elif any(k in q for k in ("合同", "协议", "条款", "结算周期", "账期", "付款期限", "付款方式", "宽限期",
-                              "利率", "费率", "怎么约定", "如何约定", "逾期规则", "起息日", "付款条件")):
+    elif (not explicit_contract_rule and "宽限期" not in q and (
+        any(k in q for k in ("逾期", "逾期未付", "逾期金额", "逾期天数", "逾期状态", "逾期明细"))
+        or ("起息日" in q and "周期" in q)
+    )):
+        intent = "business"
+        tool = "查询逾期状态"
+    elif not explicit_contract_rule and any(k in q for k in (
+        "资金占用费", "占用费", "起息日", "资金成本", "利息", "费率", "利率", "资金",
+    )):
+        intent = "business"
+        tool = "计算资金占用费"
+    elif not explicit_contract_rule and any(k in q for k in (
+        "付款计划", "回款计划", "承诺付款", "预计回款",
+    )):
+        intent = "business"
+        tool = "查询逾期状态"
+    elif any(k in q for k in (
+        "合同", "协议", "条款", "结算周期", "账期", "付款期限", "付款方式", "宽限期", "付款条件",
+        "税率", "送货要求", "送货和验收", "送货及验收", "验收要求",
+    )):
         intent = "contract"
         tool = "查询合同条款"
     elif any(k in q for k in ("本金", "欠款本金", "逾期余额", "欠多少本金")):
@@ -1959,9 +2069,9 @@ def _keyword_route(question: str, today: date) -> dict[str, Any]:
             tool = "查询台账明细"
     else:
         intent = "business"
-        if any(k in q for k in ("资金占用费", "占用费", "欠息", "利息")):
+        if any(k in q for k in ("资金占用费", "占用费", "欠息", "利息", "费率", "利率", "起息日", "资金成本", "资金")):
             tool = "计算资金占用费"
-        elif any(k in q for k in ("逾期", "起息")):
+        elif any(k in q for k in ("逾期", "起息日", "付款计划", "回款计划", "承诺付款", "预计回款")):
             tool = "查询逾期状态"
         elif any(k in q for k in ("回款", "回单", "已付款", "收回来", "收回", "到账", "已收")):
             tool = "查询回款记录"
@@ -2063,8 +2173,8 @@ def router(question: str) -> dict[str, Any]:
     strong_contract_kw = ("结算周期", "账期", "逾期规则", "宽限期", "费率",
                           "利率", "付款期限", "怎么约定", "如何约定", "规则是什么",
                           "合同里", "合同中", "条款")
-    data_query_kw = ("送了多少", "送货量", "多少吨", "吨", "品牌统计", "品名", "各有多少",
-                     "各多少", "送了几", "累计多少吨")
+    data_query_kw = ("送了多少", "送货量", "多少吨", "吨", "品牌统计", "哪些品牌", "品牌最多",
+                     "品名", "各有多少", "各多少", "送了几", "累计多少吨")
     is_contract_q = any(k in question for k in strong_contract_kw)
     is_data_q = any(k in question for k in data_query_kw)
     if is_contract_q and not is_data_q:
@@ -2079,6 +2189,14 @@ def router(question: str) -> dict[str, Any]:
         k in question for k in ("占用费", "资金占用费", "利息")
     ) and not is_contract_q:
         intent = "business"
+
+    # Critical financial/risk domains are rule-routed after model classification.
+    # The model may enrich entities, but cannot redirect these questions to contract
+    # retrieval or a ledger tool with a different monetary meaning.
+    if fallback.get("tool") in {"计算资金占用费", "查询逾期状态"}:
+        intent = "business"
+    elif fallback.get("tool") == "查询合同条款":
+        intent = "contract"
 
     return {
         "intent": intent,
@@ -2614,6 +2732,132 @@ def save_repayment(paid_date: str, amount: float, source: str, note: str = "", c
     return dict(row)
 
 
+class RepaymentIntakeAdapter:
+    """回款来源适配器；未来可替换为用友、金蝶或银企直连实现。"""
+
+    source = "external_api"
+
+    def fetch(self, payload: dict[str, Any]) -> dict[str, Any]:
+        return self.normalize(payload)
+
+    def normalize(self, payload: dict[str, Any]) -> dict[str, Any]:
+        paid_date = normalize_text(payload.get("paid_date"))
+        if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", paid_date):
+            raise ValueError("paid_date 必须为 YYYY-MM-DD")
+        amount = to_float(payload.get("amount"))
+        if amount is None or not math.isfinite(float(amount)) or float(amount) <= 0:
+            raise ValueError("amount 必须为大于零的有限数值")
+        return {
+            "paid_date": paid_date,
+            "amount": round(float(amount), 2),
+            "payer": normalize_text(payload.get("payer")),
+            "bank_ref": normalize_text(payload.get("bank_ref")) or None,
+            "receipt_path": normalize_text(payload.get("receipt_path")),
+            "source": "finance_portal",
+            "note": normalize_text(payload.get("note")),
+        }
+
+
+class DemoRepaymentIntakeAdapter(RepaymentIntakeAdapter):
+    """本地演示/手工录入适配器。TODO:生产环境替换为财务系统适配器。"""
+
+    source = "finance_portal"
+
+
+repayment_intake_adapter = DemoRepaymentIntakeAdapter()
+
+
+def repayment_intake_rows(status: str | None = None) -> list[dict[str, Any]]:
+    conn = db()
+    if status:
+        rows = conn.execute(
+            "SELECT * FROM repayment_intake WHERE status=? ORDER BY id DESC", (status,)
+        ).fetchall()
+    else:
+        rows = conn.execute("SELECT * FROM repayment_intake ORDER BY id DESC").fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
+
+def _intake_session(handler: BaseHTTPRequestHandler, roles: set[str]) -> dict[str, Any] | None:
+    session = _resolve_session(handler)
+    if not session:
+        json_response(handler, {"ok": False, "error": "请先登录"}, 401)
+        return None
+    if session.get("role") not in roles:
+        json_response(handler, {"ok": False, "error": "当前账号无此操作权限"}, 403)
+        return None
+    return session
+
+
+def create_repayment_intake(payload: dict[str, Any], session: dict[str, Any]) -> tuple[dict[str, Any], int]:
+    record = repayment_intake_adapter.fetch(payload)
+    conn = db()
+    bank_ref = record.get("bank_ref")
+    existing = None
+    if bank_ref:
+        existing = conn.execute("SELECT * FROM repayment_intake WHERE bank_ref=?", (bank_ref,)).fetchone()
+    if existing:
+        conn.close()
+        return {"ok": True, "id": existing["id"], "status": existing["status"], "duplicated": True, "record": dict(existing)}, 200
+    cur = conn.execute(
+        """INSERT INTO repayment_intake
+        (paid_date,amount,payer,bank_ref,receipt_path,source,submitted_by,status,note)
+        VALUES(?,?,?,?,?,?,?,?,?)""",
+        (record["paid_date"], record["amount"], record["payer"], record["bank_ref"],
+         record["receipt_path"], "finance_portal", session.get("name", ""), "pending", record["note"]),
+    )
+    conn.commit()
+    row = conn.execute("SELECT * FROM repayment_intake WHERE id=?", (cur.lastrowid,)).fetchone()
+    conn.close()
+    return {"ok": True, "id": int(cur.lastrowid), "status": "pending", "duplicated": False, "record": dict(row)}, 201
+
+
+def confirm_repayment_intake(intake_id: int, session: dict[str, Any]) -> tuple[dict[str, Any], int]:
+    conn = db()
+    row = conn.execute("SELECT * FROM repayment_intake WHERE id=?", (intake_id,)).fetchone()
+    if not row:
+        conn.close()
+        return {"ok": False, "error": "回款上报记录不存在"}, 404
+    if row["status"] != "pending":
+        conn.close()
+        return {"ok": False, "error": "只有 pending 状态可以确认", "status": row["status"]}, 409
+    # 说明在入账前计算，避免把同一笔候选回款重复计入引擎。
+    allocation = repayment_allocation_note(row["paid_date"], float(row["amount"]), "")
+    repayment = save_repayment(row["paid_date"], float(row["amount"]), "财务上报回款", allocation, "")
+    confirmed_at = datetime.now().isoformat(timespec="seconds")
+    conn.execute(
+        "UPDATE repayment_intake SET status='confirmed', confirmed_by=?, confirmed_at=?, repayment_id=?, note=? WHERE id=?",
+        (session.get("name", ""), confirmed_at, repayment["id"], allocation, intake_id),
+    )
+    conn.commit()
+    conn.close()
+    try:
+        # 对外返回与现有费用确认单完全相同的最终口径；不要把底层候选流水的
+        # 中间累计值直接暴露给前端，避免确认提示与 /api/fee-calc 不一致。
+        grand_total = round(float(fee_calc_payload().get("grand_total", 0)), 2)
+    except Exception:
+        grand_total = None
+    return {"ok": True, "id": intake_id, "status": "confirmed", "repayment_id": repayment["id"],
+            "allocation_note": allocation, "new_grand_total": grand_total}, 200
+
+
+def reject_repayment_intake(intake_id: int, reason: str, session: dict[str, Any]) -> tuple[dict[str, Any], int]:
+    conn = db()
+    row = conn.execute("SELECT status FROM repayment_intake WHERE id=?", (intake_id,)).fetchone()
+    if not row:
+        conn.close()
+        return {"ok": False, "error": "回款上报记录不存在"}, 404
+    if row["status"] != "pending":
+        conn.close()
+        return {"ok": False, "error": "只有 pending 状态可以驳回", "status": row["status"]}, 409
+    note = normalize_text(reason) or "主管驳回"
+    conn.execute("UPDATE repayment_intake SET status='rejected', confirmed_by=?, confirmed_at=?, note=? WHERE id=?",
+                 (session.get("name", ""), datetime.now().isoformat(timespec="seconds"), note, intake_id))
+    conn.commit(); conn.close()
+    return {"ok": True, "id": intake_id, "status": "rejected", "reason": note}, 200
+
+
 def _fee_engine_periods_for_dataset() -> list[dict[str, Any]]:
     """Return the same period input used by the fee and dashboard engines."""
     if has_confirmed_fee_source():
@@ -2832,16 +3076,60 @@ def execute_local_tool(plan: dict[str, Any], question: str) -> dict[str, Any]:
             st = overdue_status_demo(project_id)
         else:
             st = overdue_status_payload()
-        periods = st.get("periods", []) or []
         summary = st.get("summary", {}) or {}
-        principal_due = round(sum(float(p.get("unpaid") or p.get("uncollected_amount") or 0) for p in periods), 2)
-        compact = {"principal_due": principal_due, "current_overdue": summary.get("current_overdue", 0), "period_count": summary.get("period_count", len(periods)), "overdue_period_count": summary.get("overdue_period_count", 0), "periods": periods[:5]}
+        periods = st.get("periods", []) or []
+        overdue_items = []
+        for period in periods:
+            unpaid = float(period.get("unpaid") or period.get("uncollected_amount") or 0)
+            is_overdue = bool(period.get("is_overdue"))
+            overdue_items.append({
+                "period": period.get("period") or period.get("period_key"),
+                "overdue_amount": round(unpaid if is_overdue else 0, 2),
+                "days_overdue": int(period.get("overdue_days") or period.get("days_overdue") or 0),
+                "status": "逾期未付" if is_overdue and unpaid > 0 else "待起息" if unpaid > 0 else "已结清",
+                "overdue_start": period.get("overdue_start"),
+            })
+        overdue_balance = round(float(summary.get("current_overdue") or summary.get("overdue_balance") or 0), 2)
+        compact = {
+            "overdue_balance": overdue_balance,
+            "overdue_amount": overdue_balance,
+            "days_overdue": max((item["days_overdue"] for item in overdue_items), default=0),
+            "status": summary.get("status") or ("逾期未付" if overdue_items else "暂无逾期"),
+            "items": overdue_items[:20],
+        }
         return {"tool":name,"result":compact,"sources":[{"doc":f"{dataset_label()}合同","location":"付款期限与宽限期条款"},{"doc":f"{dataset_label()}回款与逾期核算表.pdf","location":"结算周期与未收本金"}]}
     if name == "计算资金占用费":
         fee = fee_calc_payload()
-        return {"tool":name,"result":{"total":fee.get("grand_total",k.get("fee_total",0)),"receivable":k.get("fee_receivable_total",0),"periods":(fee.get("months") or fee.get("periods") or [])[:5]},"formula":"按合同日费率分段计息并按回款顺序抵扣","sources":[{"doc":f"{dataset_label()}合同","location":"资金占用费条款"},{"doc":f"{dataset_label()}回款回单","location":"回款记录"}]}
+        months = fee.get("months") or fee.get("periods") or []
+        grand_total = round(float(fee.get("grand_total", k.get("fee_total", 0)) or 0), 2)
+        segments = []
+        for month in months:
+            for segment in (month.get("segments") or []):
+                if isinstance(segment, dict):
+                    segments.append({key: segment.get(key) for key in ("start", "end", "days", "fee") if segment.get(key) is not None})
+        latest_total = round(float((months[-1].get("total_fee") if months else grand_total) or 0), 2)
+        return {"tool":name,"result":{"grand_total":grand_total,"total_fee":grand_total,
+                "current_fee":latest_total,"segments":segments[:30]},
+                "formula":"按合同日费率分段计息并按回款顺序抵扣",
+                "sources":[{"doc":f"{dataset_label()}合同","location":"资金占用费条款"},{"doc":f"{dataset_label()}回款回单","location":"回款记录"}]}
     if name == "核验发票与对账单": return {"tool":name,"result":"已完成演示资料日期、金额和文件配套核验","sources":[{"doc":"演示发票与对账单","location":"日期/金额交叉核验"}]}
     return {"tool":name,"result":"演示资料来源可追溯","sources":[{"doc":f"{dataset_label()}资料","location":"文件、页码及表格行号"}]}
+
+
+def _whitelist_domain_tool_result(tool_name: str, tool_result: dict[str, Any]) -> dict[str, Any]:
+    """Limit financial/risk answers to fields from their dedicated local tools."""
+    raw = tool_result.get("result") if isinstance(tool_result, dict) else None
+    raw = raw if isinstance(raw, dict) else {}
+    if tool_name == "计算资金占用费":
+        allowed = {key: raw.get(key) for key in ("grand_total", "total_fee", "current_fee", "segments", "pay_steps", "pay_log", "period_balances") if key in raw}
+        return {"tool": tool_name, "result": allowed,
+                "formula": str(tool_result.get("formula") or ""),
+                "sources": tool_result.get("sources") or []}
+    if tool_name == "查询逾期状态":
+        allowed = {key: raw.get(key) for key in ("overdue_balance", "overdue_amount", "days_overdue", "status", "items") if key in raw}
+        return {"tool": tool_name, "result": allowed,
+                "sources": tool_result.get("sources") or []}
+    return tool_result
 
 
 def build_query_plan(question: str, intent: dict[str, Any]) -> dict[str, Any]:
@@ -3060,8 +3348,9 @@ def answer_question(question: str) -> dict[str, Any]:
 
     c = db()
     c.execute(
-        "INSERT INTO chat_runs(question,answer,trace_json,citations_json) VALUES(?,?,?,?)",
-        (question, answer, json.dumps(trace, ensure_ascii=False), json.dumps(sources, ensure_ascii=False)),
+        "INSERT INTO chat_runs(question,answer,trace_json,citations_json,username) VALUES(?,?,?,?,?)",
+        (question, answer, json.dumps(trace, ensure_ascii=False), json.dumps(sources, ensure_ascii=False),
+         str((_CURRENT_USAGE_SESSION.get() or {}).get("username") or "")),
     )
     c.commit()
     c.close()
@@ -3280,7 +3569,16 @@ FEE_RATE_PER_DAY = 0.0002  # 与资金占用费引擎一致
 USER_ACCOUNTS = {
     "lijuanyan": {"password": os.getenv("DEMO_PWD_USER", "88888888"), "role": "业务员", "name": "李经理"},
     "buzhang": {"password": os.getenv("DEMO_PWD_MINISTER", "88888888"), "role": "业务部经理", "name": "业务部经理"},
+    "caiwu": {"password": os.getenv("DEMO_PWD_FINANCE", "88888888"), "role": "财务专员", "name": "财务专员"},
+    "caiwuzhuguan": {"password": os.getenv("DEMO_PWD_FINANCE_MANAGER", "88888888"), "role": "财务主管", "name": "财务主管"},
 }
+ROLE_DEPT = {
+    "业务员": "采购业务部",
+    "业务部经理": "采购业务部",
+    "财务专员": "财务部",
+    "财务主管": "财务部",
+}
+_CURRENT_USAGE_SESSION: ContextVar[dict[str, Any] | None] = ContextVar("usage_session", default=None)
 
 # 演示环境会话：权限必须由服务端令牌决定，不能只信任浏览器 localStorage。
 _SESSIONS: dict[str, dict[str, Any]] = {}
@@ -3307,6 +3605,74 @@ def _resolve_session(handler: BaseHTTPRequestHandler) -> dict[str, Any] | None:
         _SESSIONS.pop(token, None)
         return None
     return session
+
+
+def log_usage(session: dict[str, Any] | None, action: str, project_id: str = "",
+              cost_ms: int = 0, ok: bool = True) -> None:
+    """旁路使用埋点；统计故障不能影响业务响应。"""
+    conn = None
+    try:
+        current = session or {}
+        role = str(current.get("role") or "")
+        conn = db()
+        conn.execute(
+            "INSERT INTO usage_log(username, role, dept, action, project_id, cost_ms, ok) VALUES(?,?,?,?,?,?,?)",
+            (str(current.get("username") or ""), role, ROLE_DEPT.get(role, ""),
+             str(action), str(project_id or ""), max(0, int(cost_ms or 0)), 1 if ok else 0),
+        )
+        conn.commit()
+    except Exception as exc:  # noqa: BLE001
+        LOGGER.info("usage log skipped: %s", exc)
+    finally:
+        if conn is not None:
+            try:
+                conn.close()
+            except Exception:
+                pass
+
+
+def usage_stats_payload(days: int = 30) -> dict[str, Any]:
+    days = max(1, min(365, int(days)))
+    today = date.today()
+    start_day = today - timedelta(days=days - 1)
+    since = f"{start_day.isoformat()} 00:00:00"
+    conn = db()
+    try:
+        total_actions = int(conn.execute("SELECT COUNT(*) FROM usage_log WHERE created_at >= ?", (since,)).fetchone()[0] or 0)
+        active_users = int(conn.execute("SELECT COUNT(DISTINCT username) FROM usage_log WHERE created_at >= ? AND username <> ''", (since,)).fetchone()[0] or 0)
+        dept_count = int(conn.execute("SELECT COUNT(DISTINCT dept) FROM usage_log WHERE created_at >= ? AND dept <> ''", (since,)).fetchone()[0] or 0)
+        dept_dist = [dict(row) for row in conn.execute(
+            "SELECT dept, COUNT(DISTINCT username) AS users, COUNT(*) AS actions FROM usage_log "
+            "WHERE created_at >= ? AND dept <> '' GROUP BY dept ORDER BY actions DESC, dept", (since,)
+        )]
+        action_dist = [dict(row) for row in conn.execute(
+            "SELECT action, COUNT(*) AS n FROM usage_log WHERE created_at >= ? GROUP BY action ORDER BY n DESC, action", (since,)
+        )]
+        trend_rows = {row[0]: int(row[1] or 0) for row in conn.execute(
+            "SELECT date(created_at), COUNT(DISTINCT username) FROM usage_log "
+            "WHERE created_at >= ? AND username <> '' GROUP BY date(created_at)", (since,)
+        ) if row[0]}
+        history_unnamed = int(conn.execute("SELECT COUNT(*) FROM chat_runs WHERE username = ''").fetchone()[0] or 0)
+        named_runs = int(conn.execute("SELECT COUNT(*) FROM chat_runs WHERE username <> ''").fetchone()[0] or 0)
+        last_login = {row[0]: str(row[1] or "") for row in conn.execute(
+            "SELECT username, MAX(created_at) FROM usage_log WHERE action='login' AND username <> '' GROUP BY username"
+        )}
+        accounts = [
+            {"username": username, "name": account.get("name", username), "role": account.get("role", ""),
+             "dept": ROLE_DEPT.get(account.get("role", ""), ""), "last_login_at": last_login.get(username, "")}
+            for username, account in USER_ACCOUNTS.items()
+        ]
+        trend = [{"date": (start_day + timedelta(days=offset)).isoformat(),
+                  "n": trend_rows.get((start_day + timedelta(days=offset)).isoformat(), 0)} for offset in range(days)]
+        return {
+            "ok": True, "window_days": days, "generated_at": datetime.now().isoformat(timespec="seconds"),
+            "total_actions": total_actions, "active_users": active_users, "dept_count": dept_count,
+            "dept_dist": dept_dist, "action_dist": action_dist, "active_users_trend": trend,
+            "avg_actions_per_user": round(total_actions / active_users, 2) if active_users else 0.0,
+            "history_unnamed_runs": history_unnamed, "named_runs": named_runs, "accounts": accounts,
+        }
+    finally:
+        conn.close()
 
 
 def _require_minister(handler: BaseHTTPRequestHandler) -> dict[str, Any] | None:
@@ -5110,7 +5476,7 @@ def faq_direct_answer(question, snapshot):
 
 '''
 
-def _query_product(rows, month, brand, product):
+def _query_product(rows, month, brand, product, question=""):
     filtered = rows
     if month:
         filtered = [r for r in filtered if (r.get("date") or "").startswith(month)]
@@ -5119,7 +5485,8 @@ def _query_product(rows, month, brand, product):
     if product:
         filtered = [r for r in filtered if (r.get("product") or "") == product]
     total_weight = round(sum(float(r.get("weight") or 0) for r in filtered), 3)
-    total_amount = round(sum(float(r.get("purchase_total") or r.get("sales_total") or 0) for r in filtered), 2)
+    amount_key = "sales_total" if any(k in question for k in ("销售", "销额", "销售金额")) else "purchase_total"
+    total_amount = round(sum(float(r.get(amount_key) or 0) for r in filtered), 2)
     return len(filtered), total_weight, total_amount
 
 
@@ -5130,6 +5497,43 @@ def business_data_answer(question, intent, snapshot, tool_result=None):
     rows = snapshot.get("ledger_rows", [])
     tool_data = (tool_result or {}).get("result") if isinstance(tool_result, dict) else None
     tool_data = tool_data if isinstance(tool_data, dict) else {}
+
+    # A risk-tool result owns the meaning of 起息日/逾期 questions. Handle it
+    # before the fee narrative so a shared keyword such as 起息日 cannot steal
+    # an overdue-status answer.
+    if ((tool_result or {}).get("tool") == "查询逾期状态" and
+            any(k in question for k in ("逾期", "起息日", "付款计划", "回款计划", "承诺付款", "预计回款"))):
+        overdue_balance = float(tool_data.get("overdue_balance", tool_data.get("overdue_amount", 0)) or 0)
+        items = tool_data.get("items") or []
+        if "起息日" in question:
+            starts = [f"{item.get('period')}: {item.get('overdue_start')}" for item in items
+                      if isinstance(item, dict) and item.get("overdue_start")]
+            return {"answer": ("各周期起息日：" + "；".join(starts)) if starts else "当前逾期状态资料未提供结算周期起息日期。",
+                    "sources": tool_result.get("sources", []), "data_range": "逾期状态专用接口",
+                    "retrieval": "overdue-status"}
+
+    # 回款类问法必须按回单日期聚合；不能把月份问题落到台账或项目累计口径。
+    if ((tool_result or {}).get("tool") == "查询回款记录" and
+            any(k in question for k in ("回款", "回单", "收回", "到账"))):
+        repayments = snapshot.get("repayments", []) or []
+        scoped = [item for item in repayments if not month or str(item.get("paid_date") or "").startswith(month)]
+        if month:
+            amount = round(sum(float(item.get("amount") or 0) for item in scoped), 2)
+            label = f"{int(month[5:7])}月"
+            if any(k in question for k in ("几笔", "多少笔", "几张", "多少张")):
+                return {"answer": f"{label}共有 {len(scoped)} 笔已确认回款，合计 {amount:,.2f} 元。",
+                        "sources": tool_result.get("sources", []), "data_range": f"{month}回款记录",
+                        "retrieval": "repayment-record"}
+            return {"answer": f"{label}已回款 {amount:,.2f} 元。",
+                    "sources": tool_result.get("sources", []), "data_range": f"{month}回款记录",
+                    "retrieval": "repayment-record"}
+
+    if ((tool_result or {}).get("tool") == "查询逾期状态" and
+            any(k in question for k in ("金额", "余额", "多少钱"))):
+        overdue_balance = float(tool_data.get("overdue_balance", tool_data.get("overdue_amount", 0)) or 0)
+        return {"answer": f"当前逾期金额为 {overdue_balance:,.2f} 元。",
+                "sources": tool_result.get("sources", []), "data_range": "逾期状态专用接口",
+                "retrieval": "overdue-status"}
 
     # 利润/毛利问题必须读取结构化台账结果，不能退化为“资料不足”或只返回销售额。
     if any(word in question for word in ("利润", "毛利", "赚了多少", "赚多少钱")):
@@ -5148,28 +5552,26 @@ def business_data_answer(question, intent, snapshot, tool_result=None):
             "retrieval": "ledger-aggregate",
         }
 
-    if "资金占用费" in question or "占用费" in question or "欠息" in question or "利息" in question:
+    if ((tool_result or {}).get("tool") != "查询逾期状态" and
+            any(k in question for k in ("资金占用费", "占用费", "欠息", "利息", "资金成本", "费率", "利率", "起息日", "资金"))):
         kpis = snapshot.get("kpis", {})
-        fee = float(tool_data.get("total", kpis.get("fee_total", 0)) or 0)
+        fee = float(tool_data.get("grand_total", tool_data.get("total_fee", kpis.get("fee_total", 0))) or 0)
         receivable = float(kpis.get("fee_receivable_total", 0) or 0)
         explanation = "按合同日费率 0.02% 分段计息；回款先冲前期欠息，再冲旧本金，本期占用费最后处理。"
+        if "起息日" in question:
+            starts = [str(item.get("start")) for item in (tool_data.get("segments") or [])
+                      if isinstance(item, dict) and item.get("start")]
+            if starts:
+                return {"answer": "资金占用费分段起算日期为：" + "、".join(dict.fromkeys(starts)) + "。",
+                        "sources": tool_result.get("sources", []), "data_range": "资金占用费分段明细",
+                        "retrieval": "fee-calc"}
         if any(k in question for k in ("为什么", "怎么这么多", "这笔")):
-            periods = tool_data.get("periods") or []
             segments = []
-            for item in periods[:3]:
+            for item in (tool_data.get("segments") or [])[:8]:
                 if not isinstance(item, dict):
                     continue
-                nested = item.get("segments") or []
-                if nested:
-                    for segment in nested[:5 - len(segments)]:
-                        if isinstance(segment, dict) and segment.get("start") and segment.get("end"):
-                            segments.append(f"{segment['start']}~{segment['end']} {float(segment.get('fee') or 0):,.2f}元")
-                    if len(segments) >= 5:
-                        break
-                label = item.get("period") or item.get("date_range") or item.get("period_key")
-                amount = item.get("fee") or item.get("amount") or item.get("value")
-                if label and amount is not None:
-                    segments.append(f"{label} {float(amount):,.2f}元")
+                if item.get("start") and item.get("end"):
+                    segments.append(f"{item['start']}~{item['end']} {float(item.get('fee') or 0):,.2f}元")
             if segments:
                 explanation += " 分段结果：" + "、".join(segments) + "。"
         answer = f"当前累计资金占用费 {fee:,.2f} 元，仍应收欠息 {receivable:,.2f} 元；{explanation}"
@@ -5177,6 +5579,28 @@ def business_data_answer(question, intent, snapshot, tool_result=None):
                 "sources": [{"doc": "演示合同.pdf", "location": "资金占用费条款"},
                             {"doc": "演示回款回单.pdf", "location": "回款记录"}],
                 "data_range": "演示台账与回款记录", "retrieval": "fee-calc", "formula": explanation}
+
+    if any(k in question for k in ("逾期", "每个周期的起息日", "付款计划", "回款计划", "承诺付款", "预计回款")):
+        overdue_balance = float(tool_data.get("overdue_balance", tool_data.get("overdue_amount", 0)) or 0)
+        items = tool_data.get("items") or []
+        if any(k in question for k in ("金额", "余额", "多少钱")):
+            return {"answer": f"当前逾期金额为 {overdue_balance:,.2f} 元。",
+                    "sources": tool_result.get("sources", []), "data_range": "逾期状态专用接口",
+                    "retrieval": "overdue-status"}
+        if "起息日" in question:
+            starts = [f"{item.get('period')}: {item.get('overdue_start')}" for item in items
+                      if isinstance(item, dict) and item.get("overdue_start")]
+            text = "；".join(starts) if starts else "当前逾期状态资料未提供结算周期起息日期。"
+            return {"answer": text, "sources": tool_result.get("sources", []),
+                    "data_range": "逾期状态专用接口", "retrieval": "overdue-status"}
+        active = [item for item in items if isinstance(item, dict) and item.get("status") == "逾期未付"]
+        if active:
+            detail = "；".join(f"{x.get('period')}：{float(x.get('overdue_amount') or 0):,.2f} 元，逾期 {int(x.get('days_overdue') or 0)} 天" for x in active[:8])
+            answer = f"当前有 {len(active)} 个逾期周期，逾期金额合计 {overdue_balance:,.2f} 元。{detail}。"
+        else:
+            answer = f"当前没有逾期未付周期，逾期金额为 {overdue_balance:,.2f} 元。"
+        return {"answer": answer, "sources": tool_result.get("sources", []),
+                "data_range": "逾期状态专用接口", "retrieval": "overdue-status"}
 
     # “最近/最新一笔回款”必须读取回款记录，不得落到台账最新订单。
     if any(k in question for k in ("最近一笔回款", "最新一笔回款", "最近回款", "最新回款")):
@@ -5249,7 +5673,7 @@ def business_data_answer(question, intent, snapshot, tool_result=None):
     if len(mentioned) >= 2:
         parts = []
         for p in mentioned:
-            cnt, tw, ta = _query_product(rows, month, brand, p)
+            cnt, tw, ta = _query_product(rows, month, brand, p, question)
             if cnt > 0:
                 parts.append(f"{p}：{cnt} 笔，{tw:,.3f} 吨，金额 {ta:,.2f} 元")
             else:
@@ -5272,7 +5696,8 @@ def business_data_answer(question, intent, snapshot, tool_result=None):
         answer = f"未找到匹配的台账记录。品名是「螺纹钢/盘螺」，型号是「HRB400EΦxx规格」，二者不同。"
         return {"answer": answer, "sources": [], "data_range": "项目累计", "retrieval": "aggregate"}
     total_weight = round(sum(float(r.get("weight") or 0) for r in filtered), 3)
-    total_amount = round(sum(float(r.get("purchase_total") or r.get("sales_total") or 0) for r in filtered), 2)
+    amount_key = "sales_total" if any(k in question for k in ("销售", "销额", "销售金额")) else "purchase_total"
+    total_amount = round(sum(float(r.get(amount_key) or 0) for r in filtered), 2)
     specs = {}
     brands = {}
     for r in filtered:
@@ -5311,13 +5736,14 @@ def business_data_answer(question, intent, snapshot, tool_result=None):
     if want_count:
         parts.append(f"共 {n} 笔")
     if want_weight:
-        parts.append(f"共送货 {total_weight:,.3f} 吨" + ("" if want_count else f"（{n} 笔）"))
+        parts.append(f"共供货 {total_weight:,.3f} 吨" + ("" if want_count else f"（{n} 笔）"))
     if want_amount:
-        parts.append(f"供货金额 {total_amount:,.2f} 元")
+        parts.append(f"{'销售金额' if amount_key == 'sales_total' else '采购金额'} {total_amount:,.2f} 元")
     if not parts:
         parts = [f"共 {n} 笔，送货 {total_weight:,.3f} 吨，金额 {total_amount:,.2f} 元"]
     fallback_text = "；".join(parts) + "。"
-    fact_lines = [f"共 {n} 笔台账记录", f"总重量 {total_weight:,.3f} 吨", f"总金额 {total_amount:,.2f} 元"]
+    amount_label = "销售金额" if amount_key == "sales_total" else "采购金额"
+    fact_lines = [f"共 {n} 笔台账记录", f"总重量 {total_weight:,.3f} 吨", f"{amount_label} {total_amount:,.2f} 元"]
     if want_spec:
         fact_lines.append(f"规格分布：{spec_str}")
     if want_weight:
@@ -5326,7 +5752,12 @@ def business_data_answer(question, intent, snapshot, tool_result=None):
         _core = [total_amount]
     else:
         _core = sorted(_extract_numbers(fallback_text), reverse=True)[:1]
-    answer = natural_paraphrase(question, fact_lines, fallback_text, key_numbers=_core)
+    # 维度/数量查询直接返回本地结构化结果。表达模型可能超时或把“供货量”改写
+    # 成“送货量”，从而丢失验收所需的业务语义；金额类仍可使用表达层润色。
+    if want_brand or want_spec or want_weight:
+        answer = fallback_text
+    else:
+        answer = natural_paraphrase(question, fact_lines, fallback_text, key_numbers=_core)
     return {"answer": answer, "sources": [], "data_range": data_range, "retrieval": "aggregate"}
 
 CONTRACT_DOC_NAME = CONTRACT_PDF.name
@@ -5338,19 +5769,25 @@ CORE_RULE_ANSWERS = [
      "answer": "在最晚回款日基础上有7天免息宽限期；自超过宽限期的次日起，对逾期未付货款（计息基数仅为货款）按月息0.6%计资金占用费（实际按日计息、每月按30天），每月确认、次月结算支付，直至付清；利息不计息，且占用费总额不超过结算总额的5%，此外不再计违约金或利息。（第12页）"},
     {"key": "overdue", "pages": ["11", "12"],
      "weighted": {"逾期": 3, "宽限期": 3, "超期": 2, "过期": 2, "晚付": 1, "违约": 1, "延期": 1},
-     "answer": "甲方应在供应月次月最后一日（最晚回款日）前付清当期100%货款，此后给予7天免息宽限期；自超过宽限期的次日起按月息0.6%（按日计息、每月30天）计资金占用费，每月确认、次月支付，利息不计息且总额不超结算总额5%。超期30天以上经协商仍未付的，乙方有权停止供货。（第11、12页）"},
+     "answer": "甲方应在供应月次月最后一日（最晚回款日）前付清当期100%货款；逾期未付时给予7天免息宽限期，自超过宽限期的次日起按月息0.6%（按日计息、每月30天）计资金占用费，每月确认、次月支付，利息不计息且总额不超结算总额5%。逾期30天以上经协商仍未付的，乙方有权停止供货。（第11、12页）"},
     {"key": "settlement_cycle", "pages": ["10"],
      "weighted": {"结算周期": 3, "结算方式": 2, "结算时间": 2, "怎么结算": 2, "月度结算": 2, "结算规则": 2, "如何结算": 2, "对账": 1},
      "answer": "按月度结算：每月28日对上月21日至本月20日所供货物的数量、单价等办理结算；逾期提交结算资料的，该周期结算与付款推迟到下一周期。全部供货完毕后30日内上报最终结算资料，甲方在收到完整资料后90日内审核。（第10页）"},
     {"key": "payment_term", "pages": ["11"],
      "weighted": {"最晚回款": 3, "回款日": 3, "付款时间": 3, "付款期限": 3, "最晚付款": 3, "账期": 2, "什么时候付款": 2, "何时付款": 2, "付款比例": 2, "什么时候付": 2, "次月最后": 2, "多久付款": 2},
-     "answer": "货物到现场验收合格、甲方收到等额有效增值税专用发票（税率13%）并办理过程结算后，在供应月的次月最后一日（最晚回款日）前以银行转账支付当期结算款的100%。例如1月21日至2月20日所供货款于3月31日前付清。付款须同时满足结算凭证、扣款后仍有应付未付、发票合规并认证三项条件。（第11页）"},
+     "answer": "货物到现场验收合格、甲方收到等额有效增值税专用发票（税率13%）并办理过程结算后，在供应月的次月最后一日（最晚回款日）前以银行转账支付当期结算款的100%。例如1月21日至2月20日所供货款于3月31日前付清；逾期未付时，合同另行给予7天免息宽限期，超过宽限期才进入资金占用费计收。（第11、12页）"},
     {"key": "payment_method", "pages": ["12"],
      "weighted": {"支付方式": 3, "付款方式": 3, "收款账户": 3, "开户行": 3, "账号": 3, "承兑": 3, "银行转账": 2, "信用证": 2, "保理": 2, "转账支票": 2, "怎么支付": 2, "怎么付款": 2, "用什么付": 2, "账户": 2},
      "answer": "可选择银行转账支票、网银转账、银行承兑汇票、商业承兑汇票、国内信用证、银行保理等方式支付，付款产生的贴息及手续费由甲方承担；以房抵债需另行签订协议。收款账户：示例供应链管理有限公司，示例银行示例分行，账号6222021234567890；变更账户需提前15天书面通知。（第12页）"},
     {"key": "invoice", "pages": ["11", "14"],
      "weighted": {"发票": 3, "开票": 2, "增值税": 2},
      "answer": "付款前乙方必须提供合法有效的增值税专用发票（税率13%），提供发票是主合同义务，未提供的甲方有权暂停付款；发票应在开票之日起7天内送达甲方指定人员，甲方完成发票认证后付款，收取尾款还需出具尾款承诺书。（第11、14页）"},
+    {"key": "tax", "pages": ["11"],
+     "weighted": {"税率": 4, "增值税率": 4, "增值税": 3, "税": 2},
+     "answer": "合同约定使用税率13%的增值税专用发票；发票需合法有效并完成认证，作为付款条件之一。（第11页）"},
+    {"key": "delivery_acceptance", "pages": ["10", "11"],
+     "weighted": {"送货": 3, "验收": 3, "到现场": 2, "交货": 2},
+     "answer": "货物按合同约定送达现场后，由甲方现场验收；验收合格、结算资料齐全并提供等额有效发票后，进入过程结算和付款流程。送货及验收资料应与结算凭证配套留存。（第10、11页）"},
 ]
 
 
@@ -5652,6 +6089,10 @@ def enhanced_answer_question(question, project_id=None, history=None):
         snapshot_future = pool.submit(get_project_snapshot, project_id)
         intent = intent_future.result() or {"intent": "business", "tool": "查询台账明细", "question": context_question}
         snapshot = snapshot_future.result() or get_snapshot()
+    deterministic_route = _keyword_route(context_question, date.today())
+    if deterministic_route.get("tool") in {"计算资金占用费", "查询逾期状态"}:
+        intent["intent"] = "business"
+        intent["tool"] = deterministic_route["tool"]
     route_ms = round((time.perf_counter() - route_started) * 1000, 1)
     intent["project_id"] = project_id
     intent["question"] = context_question
@@ -5661,6 +6102,13 @@ def enhanced_answer_question(question, project_id=None, history=None):
     tool_result = ({"tool": "无需查询", "result": [], "sources": []}
                    if intent.get("intent") == "chitchat"
                    else execute_local_tool(plan, context_question))
+    domain_tool = intent.get("tool") if intent.get("tool") in {"计算资金占用费", "查询逾期状态"} else None
+    if domain_tool:
+        if tool_result.get("tool") != domain_tool:
+            plan = {"tool": domain_tool, "arguments": {"project_id": project_id,
+                    "as_of_date": date.today().isoformat()}}
+            tool_result = execute_local_tool(plan, context_question)
+        tool_result = _whitelist_domain_tool_result(domain_tool, tool_result)
     tool_ms = round((time.perf_counter() - tool_started) * 1000, 1)
     query_plan = build_query_plan(context_question, intent) or {"source":"ledger","filters":{},"operation":"aggregate","group_by":[],"metrics":[]}
     if intent.get("intent") == "faq":
@@ -5722,8 +6170,9 @@ def enhanced_answer_question(question, project_id=None, history=None):
         trace = json.dumps({"intent": intent, "retrieval": result.get("retrieval"), "nodes": execution_trace["nodes"],
                             "edges": execution_trace["edges"], "total_ms": total_ms}, ensure_ascii=False)
         citations = json.dumps(result.get("sources", []), ensure_ascii=False)
-        c.execute("INSERT INTO chat_runs(question,answer,trace_json,citations_json) VALUES(?,?,?,?)",
-                  (question, result["answer"], trace, citations))
+        c.execute("INSERT INTO chat_runs(question,answer,trace_json,citations_json,username) VALUES(?,?,?,?,?)",
+                  (question, result["answer"], trace, citations,
+                   str((_CURRENT_USAGE_SESSION.get() or {}).get("username") or "")))
         c.commit()
         c.close()
     except Exception as exc:
@@ -6275,12 +6724,18 @@ def audit_evidence_loop(conflict: dict[str, Any], deadline: float | None = None)
                  "value": conflict.get("reason"), "rule_id": conflict.get("rule_id")}]
     trace = []
     degraded = False
+    used_tools: set[str] = set()
     for round_no in range(1, 4):
         if time.perf_counter() >= deadline:
             degraded = True
             break
+        available_tools = [item for item in AUDIT_TOOL_DESCRIPTIONS
+                           if str(item.get("name") or "") not in used_tools]
+        if not available_tools:
+            degraded = True
+            break
         user = json.dumps({"conflict": conflict, "evidence": evidence, "round": round_no,
-                           "tools": AUDIT_TOOL_DESCRIPTIONS}, ensure_ascii=False)
+                           "tools": available_tools}, ensure_ascii=False)
         raw = ollama_chat([{"role": "system", "content": AUDIT_PLANNER_PROMPT}, {"role": "user", "content": user}], temperature=0.0)
         plan = _audit_parse_plan(raw)
         if not plan:
@@ -6296,6 +6751,7 @@ def audit_evidence_loop(conflict: dict[str, Any], deadline: float | None = None)
                 trace.append({"id": f"agent_round_{round_no}", "label": f"取证第 {round_no} 轮", "duration_ms": 0, "detail": "工具不在白名单，规则引擎接管"})
                 break
             evidence.append({"tool": tool, **result})
+            used_tools.add(str(tool or ""))
             trace.append({"id": f"agent_round_{round_no}", "label": f"取证第 {round_no} 轮", "duration_ms": round((time.perf_counter() - started) * 1000, 1), "detail": f"→ {tool}"})
             continue
         if action == "conclude":
@@ -6323,25 +6779,104 @@ def audit_evidence_loop(conflict: dict[str, Any], deadline: float | None = None)
     return fallback
 
 
-def enrich_document_audit(audit: dict[str, Any]) -> dict[str, Any]:
+def _audit_issue_type(item: dict[str, Any]) -> str:
+    if item.get("issue_type"):
+        return str(item["issue_type"])
+    if item.get("rule_id"):
+        return str(item["rule_id"])
+    return "document_audit"
+
+
+def _audit_history_rows(issue_type: str | None = None, limit: int = 20) -> list[dict[str, Any]]:
+    conn = db()
+    try:
+        if issue_type:
+            rows = conn.execute("SELECT * FROM audit_runs WHERE issue_type=? ORDER BY run_id DESC LIMIT ?", (issue_type, max(1, min(int(limit), 100)))).fetchall()
+        else:
+            rows = conn.execute("SELECT * FROM audit_runs ORDER BY run_id DESC LIMIT ?", (max(1, min(int(limit), 100)),)).fetchall()
+        out = []
+        for row in rows:
+            item = dict(row)
+            for key in ("evidence", "detail"):
+                try:
+                    item[key] = json.loads(item[key] or ("[]" if key == "evidence" else "{}"))
+                except (TypeError, ValueError, json.JSONDecodeError):
+                    item[key] = [] if key == "evidence" else {}
+            out.append(item)
+        return out
+    finally:
+        conn.close()
+
+
+def _persist_audit_run(audit: dict[str, Any], range_text: str | None = None) -> dict[str, Any]:
+    """保存每条疑点，兼容原审计返回结构并补充历史对比。"""
+    summary = audit.get("summary") or {}
+    conflicts = summary.get("conflicts") or summary.get("mismatched") or []
+    missing = summary.get("missing") or []
+    verdicts = audit.get("agent_verdicts") or []
+    by_source = {str(v.get("file") or ""): v for v in verdicts if isinstance(v, dict)}
+    batch = f"{DATASET_ID}:{_audit_source_fingerprint()}:{str(range_text or '')}"
+    entries: list[tuple[str, str, str, list[Any], dict[str, Any]]] = []
+    for item in conflicts:
+        source = str(item.get("source") or item.get("file") or "")
+        verdict = by_source.get(source) or {}
+        entries.append((_audit_issue_type(item), str(verdict.get("verdict") or item.get("rule_id") or "待复核"),
+                        "红", verdict.get("evidence") or [{"doc": source, "location": "规则校验", "value": item.get("reason")}], item))
+    for item in missing:
+        entries.append(("missing_document", "missing", "红", [], {"missing": item}))
+    if not entries:
+        entries.append(("clear", "pass", "绿", [], {"conclusion": summary.get("conclusion", "") or "通过"}))
+    conn = db()
+    run_ids = []
+    try:
+        for issue_type, verdict, severity, evidence, detail in entries:
+            cur = conn.execute("INSERT INTO audit_runs(run_time,doc_batch,issue_type,verdict,severity,evidence,detail) VALUES(?,?,?,?,?,?,?)",
+                               (datetime.now().isoformat(timespec="seconds"), batch, issue_type, verdict, severity,
+                                json.dumps(evidence, ensure_ascii=False), json.dumps(detail, ensure_ascii=False)))
+            run_ids.append(int(cur.lastrowid))
+        conn.commit()
+    finally:
+        conn.close()
+    audit["run_id"] = run_ids[0] if run_ids else None
+    audit["run_ids"] = run_ids
+    history = []
+    for issue_type, *_ in entries:
+        rows = _audit_history_rows(issue_type, 10)
+        current = rows[0] if rows else None
+        previous = rows[1] if len(rows) > 1 else None
+        history.append({"issue_type": issue_type, "current": current, "previous": previous,
+                        "comparison": "首次记录" if previous is None else ("问题持续存在" if current.get("verdict") == previous.get("verdict") else "结论发生变化")})
+    audit["history"] = history
+    return audit
+
+
+def enrich_document_audit(audit: dict[str, Any], range_text: str | None = None) -> dict[str, Any]:
     conflicts = (audit.get("summary") or {}).get("conflicts", []) or []
     started = time.perf_counter()
     deadline = started + 25.0
     trace_nodes = [{"id": "scan", "label": "扫描资料", "duration_ms": 0, "detail": f"共 {len(audit.get('results', []))} 个可识别文件"},
                    {"id": "rules", "label": "规则校验", "duration_ms": 0, "detail": f"配套缺件 {len((audit.get('summary') or {}).get('missing', []))}，候选冲突 {len(conflicts)}"}]
+    targets = conflicts[:3]
+    with ThreadPoolExecutor(max_workers=3, thread_name_prefix="audit-evidence") as executor:
+        raw_verdicts = list(executor.map(lambda conflict: audit_evidence_loop(conflict, deadline=deadline), targets))
     verdicts, degraded = [], False
-    for conflict in conflicts[:3]:
-        verdict = audit_evidence_loop(conflict, deadline=deadline)
+    trace_groups = []
+    for verdict in raw_verdicts:
         degraded = degraded or bool(verdict.pop("_degraded", False))
-        trace_nodes.extend(verdict.pop("_trace", []))
+        trace_groups.append(verdict.pop("_trace", []))
         verdicts.append(verdict)
+    for issue_index, group in enumerate(trace_groups):
+        for node in group:
+            if isinstance(node, dict):
+                node.setdefault("issue_index", issue_index)
+        trace_nodes.extend(group)
     trace_nodes.append({"id": "verdict", "label": "生成结论", "duration_ms": round((time.perf_counter() - started) * 1000, 1),
                         "detail": f"{sum(1 for x in verdicts if x.get('verified'))} 条定性，{sum(1 for x in verdicts if not x.get('verified'))} 条待复核"})
     audit["agent_verdicts"] = verdicts
     audit["audit_trace"] = {"nodes": trace_nodes, "edges": [[trace_nodes[i]["id"], trace_nodes[i + 1]["id"]] for i in range(len(trace_nodes) - 1)],
                              "total_ms": round((time.perf_counter() - started) * 1000, 1), "degraded": degraded,
                              "llm": {"provider": MODEL_PROVIDER, **_llm_error_snapshot()} if degraded else {"provider": MODEL_PROVIDER, "degraded": False}}
-    return audit
+    return _persist_audit_run(audit, range_text)
 
 
 # ==================== 第七块：逾期提醒增强 ====================
@@ -6353,7 +6888,7 @@ def overdue_status_demo(project_id="dongliu"):
         return _registered_call(project_id, lambda: overdue_status_demo("__active_dataset__"))
     if project_id == "__active_dataset__":
         snap = get_snapshot()
-    elif project_id == "demo_a" or (has_confirmed_fee_source() and project_id != "dongliu"):
+    elif project_id == "demo_a":
         snap = get_project_snapshot("demo_a")
         cycles = snap.get("cycles", [])
         # A complete confirmation statement may be dated later than the server's
@@ -7042,6 +7577,7 @@ def _save_import_task(project_name: str, items: list[Any]) -> dict[str, Any]:
 
 def json_response(handler: BaseHTTPRequestHandler, payload: dict[str, Any], status: int = 200) -> None:
     data = json.dumps(payload, ensure_ascii=False, indent=2).encode("utf-8")
+    handler._last_json_status = status
     handler.send_response(status)
     handler.send_header("Content-Type", "application/json; charset=utf-8")
     handler.send_header("Content-Length", str(len(data)))
@@ -7057,7 +7593,19 @@ class Handler(BaseHTTPRequestHandler):
         # All request paths can read dataset globals. Serialize the outer
         # request so a dataset switch cannot overlap another project's read.
         with DATASET_CONTEXT_LOCK:
-            return self._do_GET_locked()
+            started = time.perf_counter()
+            parsed = urlparse(self.path)
+            actions = {"/api/projects": "projects", "/api/dashboard": "dashboard", "/api/ledger": "ledger",
+                       "/api/fee-calc": "fee_calc", "/api/overdue/status": "overdue"}
+            action = actions.get(parsed.path)
+            session = _resolve_session(self)
+            self._last_json_status = 500
+            try:
+                return self._do_GET_locked()
+            finally:
+                if action:
+                    pid = parse_project_id(parsed.query) if action in {"ledger", "fee_calc", "overdue"} else ""
+                    log_usage(session, action, pid, round((time.perf_counter() - started) * 1000), 200 <= self._last_json_status < 400)
 
     def _do_GET_locked(self) -> None:
         parsed = urlparse(self.path)
@@ -7074,6 +7622,15 @@ class Handler(BaseHTTPRequestHandler):
                     json_response(self, {"ok": False, "error": "导入任务不存在"}, 404)
                 else:
                     json_response(self, {"ok": True, **task})
+            elif path == "/api/usage/stats":
+                if not _require_minister(self):
+                    return
+                raw_days = (parse_qs(query).get("days") or ["30"])[0]
+                try:
+                    days = int(raw_days)
+                except (TypeError, ValueError):
+                    days = 30
+                json_response(self, usage_stats_payload(max(1, min(365, days))))
             elif path == "/api/projects":
                 json_response(self, {"projects": [p for p in PROJECTS if p.get("visible", True)]})
             elif path == "/api/dashboard":
@@ -7203,8 +7760,28 @@ class Handler(BaseHTTPRequestHandler):
             elif path == "/api/repayments":
                 snap = get_project_snapshot(project_id)
                 json_response(self, {"repayments": snap.get("repayments", [])})
+            elif path == "/api/finance/repayment-intake":
+                status_filter = normalize_text((parse_qs(query).get("status") or [""])[0])
+                session = _intake_session(self, {"财务专员", "财务主管", "业务部经理"})
+                if not session:
+                    return
+                json_response(self, {"ok": True, "records": repayment_intake_rows(status_filter or None)})
             elif path == "/api/chat":
                 json_response(self, {"runs": latest_chat_runs(10)})
+            elif path == "/api/audit/history":
+                issue_type = (parse_qs(query).get("issue_type") or [""])[0].strip() or None
+                limit_raw = (parse_qs(query).get("limit") or ["20"])[0]
+                try:
+                    limit = int(limit_raw)
+                except ValueError:
+                    limit = 20
+                rows = _audit_history_rows(issue_type, limit)
+                comparisons = []
+                for idx, row in enumerate(rows):
+                    previous = rows[idx + 1] if idx + 1 < len(rows) else None
+                    comparisons.append({"current": row, "previous": previous,
+                                        "comparison": "首次记录" if previous is None else ("问题持续存在" if row.get("verdict") == previous.get("verdict") else "结论发生变化")})
+                json_response(self, {"ok": True, "issue_type": issue_type, "runs": rows, "comparisons": comparisons})
             elif path == "/api/reindex":
                 started = start_reindex()
                 json_response(self, {"started": started, "reindex_status": STATE.get("reindex_status")}, 202)
@@ -7268,7 +7845,21 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self) -> None:  # noqa: N802
         with DATASET_CONTEXT_LOCK:
-            return self._do_POST_locked()
+            started = time.perf_counter()
+            path = urlparse(self.path).path
+            actions = {"/api/ask": "ask", "/api/audit-ocr": "audit"}
+            action = actions.get(path)
+            session = _resolve_session(self)
+            session_token = _CURRENT_USAGE_SESSION.set(session)
+            self._last_json_status = 500
+            try:
+                return self._do_POST_locked()
+            finally:
+                _CURRENT_USAGE_SESSION.reset(session_token)
+                if action:
+                    body = getattr(self, "_usage_body", {}) or {}
+                    log_usage(session, action, body.get("project_id") or "",
+                              round((time.perf_counter() - started) * 1000), 200 <= self._last_json_status < 400)
 
     def _do_POST_locked(self) -> None:
         path = urlparse(self.path).path
@@ -7276,6 +7867,7 @@ class Handler(BaseHTTPRequestHandler):
         raw = self.rfile.read(int(self.headers.get("Content-Length", 0)) or 0)
         multipart = content_type.lower().startswith("multipart/form-data")
         body = {} if multipart else (json.loads(raw.decode("utf-8") or "{}") if raw else {})
+        self._usage_body = body
         try:
             if path == "/api/datasets/import":
                 if not multipart:
@@ -7457,16 +8049,52 @@ class Handler(BaseHTTPRequestHandler):
                 acct = USER_ACCOUNTS.get(username)
                 if not acct or acct.get("password") != password:
                     json_response(self, {"ok": False, "error": "账号或密码错误"}, 401)
+                    log_usage(None, "login", "", 0, False)
                     return
+                token = _issue_session(acct, username)
                 json_response(self, {
                     "ok": True,
-                    "token": _issue_session(acct, username),
+                    "token": token,
                     "user": {
                         "username": username,
                         "name": acct.get("name", username),
                         "role": acct.get("role", "业务员"),
                     },
                 })
+                log_usage({"username": username, "role": acct.get("role", "")}, "login", "", 0, True)
+                return
+            if path == "/api/finance/repayment-intake":
+                session = _intake_session(self, {"财务专员", "财务主管", "业务部经理"})
+                if not session:
+                    return
+                try:
+                    payload, status = create_repayment_intake(body, session)
+                except (ValueError, TypeError) as exc:
+                    json_response(self, {"ok": False, "error": str(exc)}, 400)
+                    return
+                json_response(self, payload, status)
+                return
+            if path == "/api/finance/repayment-intake/confirm":
+                session = _intake_session(self, {"财务主管", "业务部经理"})
+                if not session:
+                    return
+                try:
+                    intake_id = int(body.get("id") or 0)
+                except (TypeError, ValueError):
+                    intake_id = 0
+                payload, status = confirm_repayment_intake(intake_id, session)
+                json_response(self, payload, status)
+                return
+            if path == "/api/finance/repayment-intake/reject":
+                session = _intake_session(self, {"财务主管", "业务部经理"})
+                if not session:
+                    return
+                try:
+                    intake_id = int(body.get("id") or 0)
+                except (TypeError, ValueError):
+                    intake_id = 0
+                payload, status = reject_repayment_intake(intake_id, body.get("reason") or "", session)
+                json_response(self, payload, status)
                 return
             if path == "/api/fee-calc":
                 post_project_id = parse_qs(urlparse(self.path).query).get("project_id", ["demo_a"])[0]
@@ -7509,7 +8137,7 @@ class Handler(BaseHTTPRequestHandler):
                                 return cached
                         except (OSError, ValueError, json.JSONDecodeError):
                             pass
-                    result = enrich_document_audit(quick_document_audit(audit_range, force=force_audit))
+                    result = enrich_document_audit(quick_document_audit(audit_range, force=force_audit), audit_range)
                     try:
                         AUDIT_CACHE_DIR.mkdir(parents=True, exist_ok=True)
                         cache_path.write_text(json.dumps(result, ensure_ascii=False), encoding="utf-8")
@@ -7531,6 +8159,9 @@ class Handler(BaseHTTPRequestHandler):
                                       "summary": summary,
                                       "agent_verdicts": audit.get("agent_verdicts", []),
                                       "audit_trace": audit.get("audit_trace", {}),
+                                     "run_id": audit.get("run_id"),
+                                     "run_ids": audit.get("run_ids", []),
+                                     "history": audit.get("history", []),
                                       "audit_cache": {
                                           "hit": audit_cache_hit,
                                           "elapsed_ms": round((time.perf_counter() - audit_started) * 1000, 1),
