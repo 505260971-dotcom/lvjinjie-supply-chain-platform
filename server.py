@@ -1345,7 +1345,17 @@ def seed_knowledge() -> None:
                 for para in paras:
                     idx=len(chunks); title=f"{path.name} 第{page_no}页"
                     h=sha256_bytes(f"{path}|{page_no}|{para}".encode("utf-8"))
-                    chunks.append((str(path),title,idx,para,h,category)); count+=1; chars+=len(para)
+                    # ★ source_path 落库只存「相对资料根」的路径（如 合同\xxx.pdf），
+                    #   不存绝对路径。原因有二：
+                    #   ① 绝对路径会把开发机的用户名 / 目录结构写进交付包与问答出处；
+                    #   ② 交付包换到评委机器后绝对路径必然失效，界面上显示一条
+                    #      打不开的本机路径比显示相对路径更糟。
+                    #   取 basename 的地方（os.path.basename）对相对路径同样有效。
+                    try:
+                        rel_path = path.relative_to(RAG_PDF_DIR.parent).as_posix()
+                    except ValueError:
+                        rel_path = path.name
+                    chunks.append((rel_path,title,idx,para,h,category)); count+=1; chars+=len(para)
         except Exception as exc: failed=str(exc)
         report.append({"file":path.name,"chunks":count,"chars":chars,"category":category,"error":failed})
         with STATE_LOCK:
@@ -1644,6 +1654,20 @@ def parse_ledger_workbook() -> list[dict[str, Any]]:
     return rows
 
 
+def _rel_to_dataset(path: Path) -> str:
+    """把资料目录内的文件转成「相对资料根」的 POSIX 路径，用于对外输出。
+
+    为什么不再对外给绝对路径：
+      ① 泄露本机用户名与目录结构（交付包是要发给评委的）；
+      ② 交付包换到别的机器后绝对路径必然打不开，界面显示一条死路径更糟。
+    取不到相对关系时（理论上不该发生）退回文件名，保证不把绝对路径放出去。
+    """
+    try:
+        return path.resolve().relative_to(PROJECT_DIR.resolve()).as_posix()
+    except (ValueError, OSError):
+        return path.name
+
+
 def scan_documents() -> list[dict[str, Any]]:
     if not PROJECT_DIR.exists():
         return []
@@ -1664,7 +1688,10 @@ def scan_documents() -> list[dict[str, Any]]:
             cycle_dates = (file_dates[0], file_dates[1])
         items.append(
             {
-                "path": str(path),
+                # ★ 对外只给相对资料根（如 上游-发票/xxx.pdf）：
+                #   绝对路径既会把本机用户名写进接口响应，换台机器也必然失效。
+                #   界面上需要文件名的位置用的是 name 字段，不受影响。
+                "path": _rel_to_dataset(path),
                 "name": path.name,
                 "size": st.st_size,
                 "kind": doc_kind_from_path(path),
@@ -3567,7 +3594,7 @@ FEE_RATE_PER_DAY = 0.0002  # 与资金占用费引擎一致
 
 # 登录账号(演示用:明文仅为本地演示,生产环境必须使用密码哈希存储)
 USER_ACCOUNTS = {
-    "lijuanyan": {"password": os.getenv("DEMO_PWD_USER", "88888888"), "role": "业务员", "name": "李经理"},
+    "lijuanyan": {"password": os.getenv("DEMO_PWD_USER", "88888888"), "role": "业务员", "name": "李鹃妍"},
     "buzhang": {"password": os.getenv("DEMO_PWD_MINISTER", "88888888"), "role": "业务部经理", "name": "业务部经理"},
     "caiwu": {"password": os.getenv("DEMO_PWD_FINANCE", "88888888"), "role": "财务专员", "name": "财务专员"},
     "caiwuzhuguan": {"password": os.getenv("DEMO_PWD_FINANCE_MANAGER", "88888888"), "role": "财务主管", "name": "财务主管"},
@@ -3638,7 +3665,15 @@ def usage_stats_payload(days: int = 30) -> dict[str, Any]:
     since = f"{start_day.isoformat()} 00:00:00"
     conn = db()
     try:
-        total_actions = int(conn.execute("SELECT COUNT(*) FROM usage_log WHERE created_at >= ?", (since,)).fetchone()[0] or 0)
+        # ★ 口径统一（2026-10-20 修）：total_actions / action_dist 也必须只看「已署名」记录，
+        #   与 dept_dist 的 WHERE dept <> '' 保持一致。
+        #   原 total_actions 用 COUNT(*) 不排除匿名行，而 dept_dist 排除了匿名行，
+        #   导致页面大字「累计使用次数」恒大于部门柱子之和。
+        #   匿名行来自 server.py do_GET 的自动埋点：页面首次加载（尚未登录）会请求
+        #   /api/projects、/api/dashboard、/api/ledger、/api/fee-calc 共 4 个接口，
+        #   _resolve_session 取不到会话 → username='' dept=''，每次加载写入 4 条。
+        #   统计口径既已声明「历史未署名记录单独标注」，这里就不该把它们算进「累计使用次数」。
+        total_actions = int(conn.execute("SELECT COUNT(*) FROM usage_log WHERE created_at >= ? AND dept <> ''", (since,)).fetchone()[0] or 0)
         active_users = int(conn.execute("SELECT COUNT(DISTINCT username) FROM usage_log WHERE created_at >= ? AND username <> ''", (since,)).fetchone()[0] or 0)
         dept_count = int(conn.execute("SELECT COUNT(DISTINCT dept) FROM usage_log WHERE created_at >= ? AND dept <> ''", (since,)).fetchone()[0] or 0)
         dept_dist = [dict(row) for row in conn.execute(
@@ -3646,7 +3681,7 @@ def usage_stats_payload(days: int = 30) -> dict[str, Any]:
             "WHERE created_at >= ? AND dept <> '' GROUP BY dept ORDER BY actions DESC, dept", (since,)
         )]
         action_dist = [dict(row) for row in conn.execute(
-            "SELECT action, COUNT(*) AS n FROM usage_log WHERE created_at >= ? GROUP BY action ORDER BY n DESC, action", (since,)
+            "SELECT action, COUNT(*) AS n FROM usage_log WHERE created_at >= ? AND dept <> '' GROUP BY action ORDER BY n DESC, action", (since,)
         )]
         trend_rows = {row[0]: int(row[1] or 0) for row in conn.execute(
             "SELECT date(created_at), COUNT(DISTINCT username) FROM usage_log "
@@ -4048,8 +4083,8 @@ try:
         _letter_para(doc, "2、在未收到上述全额欠款之前，我司有权根据原合同约定的或者有关法律允许的所有必要的法律措施追究贵司的法律责任，维护我司的合法权益。", indent_pt=32)
         _letter_para(doc, "3、本催款函并不构成对原合同的任何修改，贵司在原合同项下的义务也不因本催款函而发生任何减免或免除。", indent_pt=32)
         # 6. 落款右对齐
-        _letter_para(doc, "示例供应链管理有限公司", align=_WD_ALIGN.RIGHT)
-        _letter_para(doc, " 联系人：李经理", align=_WD_ALIGN.RIGHT)
+        _letter_para(doc, "广州绿色金融街投资管理有限公司", align=_WD_ALIGN.RIGHT)
+        _letter_para(doc, " 联系人：李鹃妍", align=_WD_ALIGN.RIGHT)
         _letter_para(doc, f"{letter_date.year}年{letter_date.month}月{letter_date.day}日", align=_WD_ALIGN.RIGHT)
         # 7. 页码:页脚外侧,宋体 4 号
         _add_page_footer(doc)
@@ -4094,8 +4129,8 @@ def _letter_preview_html(contract: dict, asof: date, weight: float, settlement: 
     lines.append('<p style="'+indent+'">1、请贵司积极筹措资金向我司全额支付上述欠款。</p>')
     lines.append('<p style="'+indent+'">2、在未收到上述全额欠款之前，我司有权根据原合同约定的或者有关法律允许的所有必要的法律措施追究贵司的法律责任，维护我司的合法权益。</p>')
     lines.append('<p style="'+indent+'">3、本催款函并不构成对原合同的任何修改，贵司在原合同项下的义务也不因本催款函而发生任何减免或免除。</p>')
-    lines.append('<div style="text-align:right;margin-top:28px;">示例供应链管理有限公司</div>')
-    lines.append('<div style="text-align:right;">联系人：李经理</div>')
+    lines.append('<div style="text-align:right;margin-top:28px;">广州绿色金融街投资管理有限公司</div>')
+    lines.append('<div style="text-align:right;">联系人：李鹃妍</div>')
     lines.append(f'<div style="text-align:right;">{letter_date.year}年{letter_date.month}月{letter_date.day}日</div>')
     lines.append('</div>')
     return "".join(lines)
@@ -4194,13 +4229,13 @@ def send_letter(reminder_id: int, body: dict | None = None) -> dict[str, Any]:
         if body.get("demo"):
             # 演示模式:模拟发送至经办人飞书,状态置待确认(不真实外发)
             conn.execute(
-                "UPDATE overdue_reminders SET status='待确认', note=note || '；演示模式:已模拟发送飞书至经办人李经理,待确认后转发' WHERE id=?",
+                "UPDATE overdue_reminders SET status='待确认', note=note || '；演示模式:已模拟发送飞书至经办人李鹃妍,待确认后转发' WHERE id=?",
                 (reminder_id,),
             )
             conn.commit()
             conn.close()
             return {"ok": True, "status": "待确认", "demo": True,
-                    "message": "演示模式:已发送至李经理飞书(模拟),待确认后转发甲方"}
+                    "message": "演示模式:已发送至李鹃妍飞书(模拟),待确认后转发甲方"}
         conn.close()
         return {"ok": False, "status": "未发送",
                 "error": "未配置 FEISHU_WEBHOOK_URL（演示可点“模拟已发送”完成闭环）"}
@@ -4215,7 +4250,7 @@ def send_letter(reminder_id: int, body: dict | None = None) -> dict[str, Any]:
         conn.execute("UPDATE overdue_reminders SET status='待确认', note=note || '；已发送飞书待经办人确认' WHERE id=?", (reminder_id,))
         conn.commit()
         conn.close()
-        return {"ok": True, "status": "待确认", "message": "已发送至经办人飞书（李经理），待确认后转发"}
+        return {"ok": True, "status": "待确认", "message": "已发送至经办人飞书（李鹃妍），待确认后转发"}
     except Exception as exc:
         conn.close()
         return {"ok": False, "status": "未发送", "error": f"飞书发送失败：{exc}"}
@@ -4555,7 +4590,10 @@ def fee_demo_script_payload() -> dict[str, Any]:
             "payer": "示例项目方有限公司",
             "payee": "示例供应链管理有限公司",
             "source": "回款回单/2026年8月12日建行…1,720,868.50元.png",
-            "image": "/static/demo/repayment_receipt.png",
+            # ★ 这里曾指向 static/demo/repayment_receipt.png（一张真实工行回单的截图，
+            #   带真实账号与真实付款方）。2026-10-20 已把该图移出交付包，统一改用
+            #   脱敏合成的 a_project_repayment_receipt.png（示例银行/示例主体/演示水印）。
+            "image": "/static/demo/a_project_repayment_receipt.png",
             "fields": [
                 {"key": "date", "label": "回款日期", "value": "2026-08-12",
                  "box": {"left": 55, "top": 9, "w": 27, "h": 3.5}},
@@ -4916,8 +4954,8 @@ def _build_minister_report_docx(text: str) -> tuple[str, str]:
 #   不能作为常驻演示项目出现在下拉框里（用户 2026-10-10 明确：C项目是试用新增用的，不应显示）。
 #   它的取数配置仍保留在下方 VIRTUAL_CONFIG["demo_c"]，供向导注册后临时使用。
 PROJECTS = [
-    {"id": "demo_a", "name": "A项目", "is_real": True, "owner": "李经理", "data_mode": "live", "sync_scope": "项目文件夹实时监听"},
-    {"id": "demo_b", "name": "B项目", "is_real": False, "owner": "李经理", "data_mode": "linked_demo", "sync_scope": "项目数据已接入（演示快照）"},
+    {"id": "demo_a", "name": "A项目", "is_real": True, "owner": "李鹃妍", "data_mode": "live", "sync_scope": "项目文件夹实时监听"},
+    {"id": "demo_b", "name": "B项目", "is_real": False, "owner": "李鹃妍", "data_mode": "linked_demo", "sync_scope": "项目数据已接入（演示快照）"},
     {"id": "demo_d", "name": "D项目", "is_real": False, "owner": "业务员1", "data_mode": "demo", "sync_scope": "演示数据快照"},
     {"id": "demo_e", "name": "E项目", "is_real": False, "owner": "业务员2", "data_mode": "demo", "sync_scope": "演示数据快照"},
     {"id": "demo_f", "name": "F项目", "is_real": False, "owner": "业务员3", "data_mode": "demo", "sync_scope": "演示数据快照"},
@@ -5785,7 +5823,7 @@ CORE_RULE_ANSWERS = [
      "answer": "货物到现场验收合格、甲方收到等额有效增值税专用发票（税率13%）并办理过程结算后，在供应月的次月最后一日（最晚回款日）前以银行转账支付当期结算款的100%。例如1月21日至2月20日所供货款于3月31日前付清；逾期未付时，合同另行给予7天免息宽限期，超过宽限期才进入资金占用费计收。（第11、12页）"},
     {"key": "payment_method", "pages": ["12"],
      "weighted": {"支付方式": 3, "付款方式": 3, "收款账户": 3, "开户行": 3, "账号": 3, "承兑": 3, "银行转账": 2, "信用证": 2, "保理": 2, "转账支票": 2, "怎么支付": 2, "怎么付款": 2, "用什么付": 2, "账户": 2},
-     "answer": "可选择银行转账支票、网银转账、银行承兑汇票、商业承兑汇票、国内信用证、银行保理等方式支付，付款产生的贴息及手续费由甲方承担；以房抵债需另行签订协议。收款账户：示例供应链管理有限公司，示例银行示例分行，账号6222021234567890；变更账户需提前15天书面通知。（第12页）"},
+     "answer": "可选择银行转账支票、网银转账、银行承兑汇票、商业承兑汇票、国内信用证、银行保理等方式支付，付款产生的贴息及手续费由甲方承担；以房抵债需另行签订协议。收款账户：A项目投资管理有限公司，中国工商银行股份有限公司示例市示例区分行，账号3602026819200000000；变更账户需提前15天书面通知。（第12页）"},
     {"key": "invoice", "pages": ["11", "14"],
      "weighted": {"发票": 3, "开票": 2, "增值税": 2},
      "answer": "付款前乙方必须提供合法有效的增值税专用发票（税率13%），提供发票是主合同义务，未提供的甲方有权暂停付款；发票应在开票之日起7天内送达甲方指定人员，甲方完成发票认证后付款，收取尾款还需出具尾款承诺书。（第11、14页）"},
@@ -8023,7 +8061,7 @@ class Handler(BaseHTTPRequestHandler):
                         PROJECTS[:] = [p for p in PROJECTS if p.get("id") != old_id]
                 meta = {
                     "id": project_id, "name": project_name, "is_real": True,
-                    "owner": normalize_text(body.get("owner") or "李经理"),
+                    "owner": normalize_text(body.get("owner") or "李鹃妍"),
                     "data_mode": "live", "sync_scope": "项目文件夹实时监听",
                     "dataset_root": task["root"], "visible": True,
                 }
