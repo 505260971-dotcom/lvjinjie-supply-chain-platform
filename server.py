@@ -3892,7 +3892,7 @@ def _record_overdue_meta(action: str, scan_date: str | None = None, note: str = 
     conn.close()
 
 
-def overdue_state_payload(reminders: list[dict[str, Any]] | None = None) -> dict[str, Any]:
+def overdue_state_payload(reminders: list[dict[str, Any]] | None = None, project_id: str = "demo_a") -> dict[str, Any]:
     """Return the lifecycle state behind the reminder timeline."""
     reminders = reminders if reminders is not None else overdue_reminders_payload()
     conn = db()
@@ -3902,9 +3902,11 @@ def overdue_state_payload(reminders: list[dict[str, Any]] | None = None) -> dict
     conn.close()
     live_summary: dict[str, Any] = {}
     try:
-        live_summary = (overdue_status_demo("demo_a") or {}).get("summary", {}) or {}
+        # 2026-10-19：原先写死 demo_a，切到 B/E 时横幅的逾期状态跟着串台。
+        live_summary = (overdue_status_demo(project_id) or {}).get("summary", {}) or {}
     except Exception:
         live_summary = {}
+    live_overdue = round(float(live_summary.get("current_overdue") or 0), 2)
     active = [x for x in reminders if x.get("status") not in {"已关闭", "已确认", "已重算"}]
     action = meta["action"] if meta else None
     if action == "reset":
@@ -3915,6 +3917,11 @@ def overdue_state_payload(reminders: list[dict[str, Any]] | None = None) -> dict
         state, label = "demo_ready", f"演示场景已重建，共 {len(reminders)} 条可追溯事件"
     elif active:
         state, label = "has_events", f"已扫描，当前有 {len(active)} 条待处理提醒"
+    elif live_overdue > 0:
+        # 有逾期但该项目的催办时间线还是空的（虚拟演示项目本身没有催办历史）。
+        # 不能说「当前无逾期提醒」——那会和同页的逾期总额直接打架。
+        state, label = "overdue_no_events", (
+            f"当前逾期 {live_overdue:,.2f} 元，本项目尚无催办记录，点击开始扫描生成")
     else:
         state, label = "scanned_no_overdue", "已完成扫描，当前无逾期提醒"
     return {
@@ -6968,8 +6975,38 @@ def overdue_status_demo(project_id="dongliu"):
         snap = get_project_snapshot(project_id)
         kpis = snap.get("kpis", {})
         overdue = kpis.get("overdue_total", 0)
+        # 字段归一：虚拟快照的 cycles 只写 outstanding / overdue_outstanding /
+        # overdue_date / sales_amount，而逾期引擎与前端表格读的是 unpaid /
+        # overdue_start / settlement / period。不归一化会得出一整排 0 和空单元格
+        # （2026-10-19 实测：B/E 看板 150 万/62 万，逾期面板却是 0；B/D/F 周期表
+        # 全部显示「已结清」，但已回款只占结算的 40%，算术不闭合）。
+        #
+        # 口径对齐 A 项目真实快照：
+        #   ① 有逾期余额的周期 —— 未收 = 逾期余额，结算 = 已收 + 逾期余额，
+        #      这样「逾期 150 万」与表格行自洽（B 第三期原结算 62 万小于逾期额）。
+        #   ② 未逾期周期 —— 未收 = 待收 outstanding，起息日置空（尚未进入逾期
+        #      流程，逾期引擎也不会把它判成逾期），结算 = 已收 + 待收。
+        # 只改展示口径，不动 ledger 聚合出的 receivable_total，集团汇总不受影响。
+        periods = []
+        for c in snap.get("cycles", [])[-3:]:
+            row = dict(c)
+            row["period"] = row.get("period") or row.get("cycle_label")
+            row["period_key"] = row.get("period_key") or row.get("cycle_key")
+            overdue_out = round(float(row.get("overdue_outstanding") or 0), 2)
+            paid = round(float(row.get("paid") or 0), 2)
+            if overdue_out > 0:
+                row["unpaid"] = overdue_out
+                row["settlement"] = round(paid + overdue_out, 2)
+                if not row.get("overdue_start"):
+                    row["overdue_start"] = row.get("overdue_date")
+            else:
+                outstanding = round(float(row.get("outstanding") or 0), 2)
+                row["unpaid"] = outstanding
+                row["settlement"] = round(paid + outstanding, 2)
+                row["overdue_start"] = None
+            periods.append(row)
         return {
-            "periods": snap.get("cycles", [])[-3:],
+            "periods": periods,
             "summary": {
                 "current_overdue": overdue, "period_count": kpis.get("cycle_count", 0),
                 "overdue_period_count": sum(1 for c in snap.get("cycles", []) if c.get("overdue_outstanding", 0) > 0),
@@ -7314,14 +7351,23 @@ def send_letter_mock(reminder_id, body=None):
     return {"ok": True, "message": "飞书推送成功（演示模式）", "simulated": True, "status": "待确认", "id": reminder_id}
 
 
-def overdue_reminders_enhanced():
+def overdue_reminders_enhanced(project_id: str = "demo_a"):
     """Return the reminder timeline reconciled with the current data snapshot.
 
     Reminder rows are an audit trail and can outlive a later repayment-file
     correction.  Showing their original amounts as if they were still active
     makes the overdue page contradict the live cycle status.  Keep the rows,
     but derive their displayed state from the latest repayment allocation.
+
+    2026-10-19：overdue_reminders 表没有 project_id 列，里面是 A 项目真实运行
+    留下的审计轨迹。原先不带参数整表返回，导致 B/E 项目逾期 150 万/62 万，
+    页面右下角提醒记录却写着 A 项目的 ¥135,906.45——跨项目串台，评委现场
+    一点就穿帮。虚拟演示项目（B/D/E/F）没有自己的催办历史，返回空，由前端
+    显示「暂无提醒记录」，而不是拿别的项目的记录来充数。
     """
+    _vproj = next((p for p in PROJECTS if p.get("id") == project_id), {})
+    if _vproj and _vproj.get("data_mode") in {"demo", "linked_demo"}:
+        return []
     conn = db()
     rows = conn.execute(
         "SELECT id, period_key, event_type, overdue_amount, fee_added, occurred_at, status, docx_path, note, created_at "
@@ -7814,8 +7860,8 @@ class Handler(BaseHTTPRequestHandler):
                 json_response(self, status_payload)
             elif path == "/api/overdue/reminders":
                 reminder_project = parse_project_id(query)
-                reminders = _registered_call(reminder_project, overdue_reminders_enhanced) if reminder_project in DATASET_REGISTRY else overdue_reminders_enhanced()
-                json_response(self, {"reminders": reminders, **overdue_state_payload(reminders)})
+                reminders = _registered_call(reminder_project, overdue_reminders_enhanced) if reminder_project in DATASET_REGISTRY else overdue_reminders_enhanced(reminder_project)
+                json_response(self, {"reminders": reminders, **overdue_state_payload(reminders, reminder_project)})
             elif path.startswith("/api/overdue/letter/") and path.endswith("/preview"):
                 parts = path.strip("/").split("/")
                 if len(parts) == 5 and parts[3].isdigit():
@@ -8021,9 +8067,33 @@ class Handler(BaseHTTPRequestHandler):
                 PROJECTS[:] = [p for p in PROJECTS if p.get("id") != project_id]
                 PROJECT_NAMES.pop(project_id, None)
                 _persist_dataset_registry()
+                # ★ runtime 清理必须容错（2026-10-20 修）。
+                #   Windows 上 control_tower.db 常被 sqlite 连接或杀毒软件短暂占用，
+                #   rmtree 会抛 PermissionError；一旦抛出去，接口返回 500，可此时
+                #   注册表 / PROJECTS 已经改完并落盘了 —— 前端把 500 当成"注销失败"，
+                #   用户再点一次拿到 404，状态彻底说不清。
+                #   清理失败不该影响注销结果：注销是主操作，删目录是附带的卫生动作，
+                #   失败就记一条 cleanup_warning 返回给前端，让残留可被察觉。
+                cleanup_warning = ""
                 runtime_root = (BASE_DIR / "runtime" / project_id).resolve()
                 if runtime_root.parent == (BASE_DIR / "runtime").resolve() and runtime_root.is_dir():
-                    shutil.rmtree(runtime_root)
+                    last_error = ""
+                    for _attempt in range(3):
+                        try:
+                            shutil.rmtree(runtime_root)
+                            last_error = ""
+                            break
+                        except FileNotFoundError:
+                            last_error = ""
+                            break
+                        except OSError as exc:
+                            last_error = f"{type(exc).__name__}: {exc}"
+                            time.sleep(0.3)
+                    if last_error or runtime_root.is_dir():
+                        cleanup_warning = (
+                            f"项目已注销，但运行时目录未能自动清理（{last_error or '目录仍存在'}），"
+                            f"可稍后手动删除：{runtime_root}"
+                        )
                 for task in IMPORT_TASKS.values():
                     if task.get("project_id") == project_id:
                         task["status"] = "unregistered"
@@ -8031,7 +8101,11 @@ class Handler(BaseHTTPRequestHandler):
                         _cleanup_import_root(task, "项目已注销")
                         task["updated_at"] = datetime.now().isoformat(timespec="seconds")
                 _persist_import_tasks()
-                json_response(self, {"ok": True, "project_id": project_id, "message": "项目已注销并清理导入产物"})
+                payload = {"ok": True, "project_id": project_id, "message": "项目已注销并清理导入产物"}
+                if cleanup_warning:
+                    payload["message"] = "项目已注销"
+                    payload["cleanup_warning"] = cleanup_warning
+                json_response(self, payload)
                 return
             if path == '/api/health-report':
                 try:
