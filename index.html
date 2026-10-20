@@ -2144,6 +2144,11 @@
       } else if (state === 'has_events' || state === 'demo_ready') {
         banner.style.background = '#fef2f2'; banner.style.borderColor = '#fecaca'; banner.style.color = '#991b1b';
         action.textContent = '重建演示'; action.onclick = rebuildOverdueDemo;
+      } else if (state === 'overdue_no_events') {
+        // 有逾期金额但本项目还没生成催办记录（虚拟演示项目即此情形）。
+        // 用红色提示与「已有逾期」一致，动作是扫描生成，而不是「再次扫描」。
+        banner.style.background = '#fef2f2'; banner.style.borderColor = '#fecaca'; banner.style.color = '#991b1b';
+        action.textContent = '开始扫描'; action.onclick = scanOverdue;
       } else if (state === 'scanned_no_overdue') {
         banner.style.background = '#f0fdf4'; banner.style.borderColor = '#bbf7d0'; banner.style.color = '#166534';
         action.textContent = '再次扫描'; action.onclick = scanOverdue;
@@ -2223,7 +2228,7 @@
       const simDate = (nowInput && nowInput.value) || new Date().toISOString().slice(0,10);
       Promise.all([
         trackedHeaders().then(headers => fetch(overdueStatusUrl(simDate), {headers})).then(r => r.json()),
-        fetch('/api/overdue/reminders').then(r => r.json()),
+        fetch(withPid('/api/overdue/reminders')).then(r => r.json()),
       ]).then(([st, rm]) => {
         if (nowInput) nowInput.value = simDate;
         const _odSum = st.summary || {};
@@ -2357,7 +2362,7 @@
     }
     function sendOverdueLetter(id) {
       // 读取该记录信息并打开飞书演示窗
-      fetch('/api/overdue/reminders').then(r => r.json()).then(({ reminders }) => {
+      fetch(withPid('/api/overdue/reminders')).then(r => r.json()).then(({ reminders }) => {
         const x = (reminders || []).find(r => r.id === id);
         if (!x) { showToast('记录不存在'); return; }
         openFeishuDemo(x.id, x.period_key, x.overdue_amount, x.docx_path);
@@ -2371,7 +2376,7 @@
     }
     function clearDemoOverdue() {
       const d = document.getElementById('odSimDate').value || '2026-10-08';
-      fetch('/api/overdue/reminders').then(r => r.json()).then(({ reminders }) => {
+      fetch(withPid('/api/overdue/reminders')).then(r => r.json()).then(({ reminders }) => {
         const keys = [...new Set((reminders || []).filter(x => x.status !== '已关闭' && x.status !== '已确认').map(x => x.period_key))];
         if (!keys.length) { showToast('当前没有未关闭的逾期事件'); return; }
         return fetch('/api/overdue/scan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ simulate_date: d, clear_periods: keys }) });
@@ -4118,7 +4123,7 @@
     }
     // 时间线「预览」按钮：从后端取真实 preview_html 弹出模态框
     function previewLetter() {
-      fetch('/api/overdue/reminders').then(r => r.json()).then(({ reminders }) => {
+      fetch(withPid('/api/overdue/reminders')).then(r => r.json()).then(({ reminders }) => {
         const list = reminders || [];
         const letter = list.find(x => x.event_type === '催款函' && x.docx_path) || list.find(x => x.event_type === '催款函');
         if (!letter) { activeLetterId = null; showLetterPreview(_fallbackLetterHtml(), '催款函.docx'); return; }
@@ -4148,7 +4153,7 @@
       setOverdueButtonBusy('odGenerateBtn', true, '处理中…');
       const d = (document.getElementById('odSimDate') || {}).value || '2026-10-08';
       let generatedLetterId = null;
-      fetch('/api/overdue/reminders').then(r => r.json()).then(({ reminders }) => {
+      fetch(withPid('/api/overdue/reminders')).then(r => r.json()).then(({ reminders }) => {
         const list = reminders || [];
         let target = list.find(x => (x.event_type === '新增逾期' || x.event_type === '逾期金额更新') && x.status !== '已关闭' && x.status !== '已确认') || list[0] || { id: 38 };
         generatedLetterId = target.id;
