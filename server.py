@@ -6214,7 +6214,13 @@ def enhanced_answer_question(question, project_id=None, history=None):
         q = context_question
         k = snapshot.get("kpis", {}) or {}
         ls = snapshot.get("ledger_summary", {}) or {}
-        if any(word in q for word in ("回款", "回单", "收回来", "收回", "到账", "已收")):
+        document_count_q = any(word in q for word in ("多少张", "几张", "多少份", "几份", "有多少", "几笔", "多少笔"))
+        sales_amount_q = "销售" in q and any(word in q for word in ("金额", "总额", "销售额", "多少钱", "多少"))
+        if ("发票" in q and document_count_q) or sales_amount_q:
+            # A model may label numeric business questions as FAQ. Preserve their
+            # specific metric by sending them through the structured ledger path.
+            result = business_data_answer(context_question, intent, snapshot, tool_result=tool_result)
+        elif any(word in q for word in ("回款", "回单", "收回来", "收回", "到账", "已收")):
             result = {
                 "answer": (f"项目累计已回款 {float(k.get('paid_total', 0) or 0):,.2f} 元，"
                            f"尚未收回 {float(k.get('unpaid_total', 0) or 0):,.2f} 元。"),
