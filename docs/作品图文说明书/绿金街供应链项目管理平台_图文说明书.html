@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>绿金街供应链项目管理平台 · 图文说明书</title>
+<style>
+  :root{--ink:#12232f;--ink2:#2c4453;--muted:#5d7283;--line:#e2eaf0;--line2:#cdd9e3;--blue:#2e7bc3;--blue-l:#eef5fc;--teal:#18866f;--teal-l:#eaf7f3;--amber:#b3701d;--amber-l:#fdf5e8;--red:#b8433c;--red-l:#fdeeed;--bg:#f5f8fb;--surface:#fff}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:"Microsoft YaHei","PingFang SC","Hiragino Sans GB",system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.8;font-size:15px}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 26px 90px}
+  header.cover{background:linear-gradient(140deg,#12303f,#2b6285 62%,#2e7bc3);color:#fff;padding:54px 0 44px;margin-bottom:30px}
+  header.cover .wrap{padding-bottom:0}
+  .kicker{font-size:12.5px;letter-spacing:.28em;color:#a9d2f0;font-weight:700;margin-bottom:14px}
+  header.cover h1{font-size:33px;margin:0 0 12px;letter-spacing:.01em;line-height:1.35}
+  header.cover p{margin:0;color:#d3e6f5;font-size:15.5px;max-width:780px;line-height:1.8}
+  .cover-meta{margin-top:24px;display:flex;flex-wrap:wrap;gap:10px}
+  .cover-meta span{background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.24);border-radius:999px;padding:6px 14px;font-size:12.5px;color:#e8f3fb}
+  h2{font-size:22px;margin:48px 0 6px;padding-bottom:12px;border-bottom:2px solid var(--line2);letter-spacing:.01em}
+  h2 .no{display:inline-block;background:var(--blue);color:#fff;font-size:14px;padding:2px 11px;border-radius:7px;margin-right:11px;vertical-align:3px;font-weight:700}
+  h2 .dim{float:right;font-size:12.5px;font-weight:600;color:var(--amber);background:var(--amber-l);border:1px solid #f0dcb6;border-radius:7px;padding:3px 10px;margin-top:4px;letter-spacing:0}
+  h3{font-size:18px;margin:34px 0 4px;color:var(--ink)}
+  h3 .no{color:var(--blue);font-weight:800;margin-right:8px}
+  p{margin:10px 0}
+  .lead{color:var(--muted);font-size:14.3px;margin:2px 0 16px}
+  figure{margin:20px 0 24px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;box-shadow:0 1px 3px rgba(20,50,70,.05)}
+  figure img{display:block;width:100%;height:auto;border-radius:7px;border:1px solid var(--line)}
+  figcaption{font-size:12.5px;color:var(--muted);margin-top:9px;text-align:center;line-height:1.65}
+  figcaption b{color:var(--ink2)}
+  .box{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--blue);border-radius:10px;padding:14px 18px;margin:16px 0}
+  .box.teal{border-left-color:var(--teal);background:var(--teal-l);border-color:#cbe9e0}
+  .box.amber{border-left-color:var(--amber);background:var(--amber-l);border-color:#f0e0c4}
+  .box.red{border-left-color:var(--red);background:var(--red-l);border-color:#f4d5d2}
+  .box .t{font-weight:700;margin:0 0 5px;font-size:14.5px}
+  .box p:first-of-type{margin-top:0}.box p:last-child{margin-bottom:0}
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:13.6px;background:var(--surface)}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top;line-height:1.65}
+  th{background:#f0f5fa;color:var(--ink2);font-weight:700;font-size:13px}
+  tbody tr:nth-child(even){background:#fafcfe}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  code{background:#eff3f7;border:1px solid #dde5ec;border-radius:5px;padding:1px 6px;font-size:12.6px;font-family:Consolas,"Courier New",monospace;color:#2a4a5e}
+  .chip{display:inline-block;background:var(--blue-l);border:1px solid #cfe2f4;color:#1f5f9d;border-radius:6px;padding:1px 8px;font-size:12px;margin:2px 4px 2px 0;font-weight:600}
+  .chip.ok{background:var(--teal-l);border-color:#bfe6db;color:#12695a}
+  .chip.warn{background:var(--amber-l);border-color:#f0dcb6;color:#8a5514}
+  .chip.bad{background:var(--red-l);border-color:#f2cfcb;color:#9c332c}
+  ul,ol{margin:9px 0;padding-left:22px}
+  li{margin:5px 0}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:16px 0}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin:16px 0}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:15px 17px}
+  .card h5{margin:0 0 6px;font-size:14.3px;color:var(--ink)}
+  .card p{margin:0;font-size:13.3px;color:var(--muted);line-height:1.7}
+  .kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin:16px 0}
+  .kpi{background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:14px 16px}
+  .kpi b{display:block;font-size:23px;color:var(--teal);font-variant-numeric:tabular-nums;line-height:1.25}
+  .kpi small{display:block;color:var(--muted);font-size:12.4px;margin-top:3px;line-height:1.55}
+  .flow{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin:15px 0;font-size:13px}
+  .flow .n{background:var(--surface);border:1px solid var(--line2);border-radius:8px;padding:7px 12px;font-weight:600;color:var(--ink2)}
+  .flow .n.hi{background:#e8f1fb;border-color:#b9d6f2;color:#1c5e9c}
+  .flow i{color:#b4c4d0;font-style:normal;font-weight:700}
+  .toc{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 22px;margin:24px 0}
+  .toc h4{margin:0 0 10px;font-size:15px}
+  .toc ol{columns:2;column-gap:32px;margin:0;padding-left:20px;font-size:13.8px}
+  .toc li{margin:5px 0}
+  .toc a{color:#1f5f9d;text-decoration:none}
+  .toc a:hover{text-decoration:underline}
+  .note{font-size:12.8px;color:var(--muted);border-top:1px dashed var(--line2);margin-top:20px;padding-top:12px;line-height:1.75}
+  .tagline{background:linear-gradient(120deg,#12303f,#2e7bc3);color:#fff;border-radius:13px;padding:22px 24px;margin:30px 0;font-size:16px;line-height:1.75}
+  .tagline b{color:#8fe6c8}
+  .hero-claim{background:#fff8ef;border:1px solid #f0dcb6;border-left:5px solid var(--amber);border-radius:12px;padding:17px 21px;margin:22px 0}
+  .hero-claim .hc-t{font-weight:800;color:#8a5514;font-size:15px;margin:0 0 8px}
+  .hero-claim .hc-q{font-size:15.2px;color:var(--ink);line-height:1.8;margin:0 0 10px}
+  .hero-claim .hc-q b{color:#9c332c}
+  .hero-claim ul{margin:6px 0 0;padding-left:22px;font-size:13.6px;color:var(--ink2)}
+  .hero-claim li{margin:4px 0}
+  .win{display:inline-block;background:#fff4e5;border:1px solid #f0c98a;color:#8a5514;border-radius:999px;padding:1px 10px 2px;font-size:12px;font-weight:700;vertical-align:2px;margin-right:6px;white-space:nowrap}
+  .win::before{content:"★ ";color:#d97706}
+  .win.hot{background:#fdeeed;border-color:#f2cfcb;color:#9c332c}
+  .win.hot::before{color:#b8433c}
+  .h2win{font-size:13px;color:var(--amber);background:var(--amber-l);border:1px solid #f0dcb6;border-radius:8px;padding:8px 14px;margin:10px 0 0;line-height:1.7}
+  .lineage{margin:18px 0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface)}
+  .ltier{padding:12px 15px 14px;border-bottom:1px solid var(--line)}
+  .ltier:last-child{border-bottom:0}
+  .ltier .lh{display:flex;flex-wrap:wrap;align-items:baseline;gap:9px;margin-bottom:8px}
+  .ltier .lh b{font-size:13.4px}
+  .ltier .lh small{color:var(--muted);font-size:12.2px}
+  .ltier.t1{background:#f7fafd}.ltier.t2{background:#eff6fd}.ltier.t3{background:#eaf7f3}.ltier.t4{background:#fdf5e8}
+  .lchips{display:flex;flex-wrap:wrap;gap:6px}
+  .lc{background:#fff;border:1px solid var(--line2);border-radius:7px;padding:4px 9px;font-size:12.4px;color:var(--ink2);line-height:1.5}
+  .lc b{color:#12303f}
+  .lc.calc{border-color:#b9d6f2;color:#1c5e9c}
+  .lc.rule{border-color:#bfe6db;color:#12695a}
+  .lc.out{border-color:#f0dcb6;color:#8a5514}
+  .larrow{text-align:center;font-size:12.2px;color:var(--muted);padding:5px 0;background:var(--surface);border-bottom:1px solid var(--line)}
+  .larrow b{color:var(--blue)}
+  table.blood td:first-child{font-weight:700;color:var(--ink)}
+  table.blood td.once{color:#9c332c;font-weight:600}
+  .mod{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:0;margin:20px 0;overflow:hidden}
+  .mod-h{display:flex;align-items:baseline;gap:10px;padding:12px 18px;background:#f7fafd;border-bottom:1px solid var(--line)}
+  .mod-h .mn{font-size:12px;font-weight:800;color:#fff;background:var(--blue);border-radius:6px;padding:2px 9px}
+  .mod-h b{font-size:15.5px}
+  .mod-h small{color:var(--muted);font-size:12.5px}
+  .mod-b{padding:14px 18px 16px}
+  .mod-b p{margin:7px 0;font-size:14px}
+  .mod-b figure{margin:14px 0 12px}
+  .facts{background:#f7fafd;border:1px dashed var(--line2);border-radius:9px;padding:11px 14px;margin:12px 0 0;font-size:13.2px;line-height:1.75}
+  .facts b{color:var(--ink)}
+  .facts .lb{color:var(--blue);font-weight:800;margin-right:6px}
+  @media print{
+    @page{size:A4;margin:13mm 14mm}
+    body{background:#fff;font-size:10pt;line-height:1.55}
+    .wrap{max-width:none;padding:0 0 16px}
+    header.cover{padding:28px 0 24px;margin-bottom:16px}
+    header.cover h1{font-size:26px}
+    h2{font-size:18px;margin:24px 0 4px;padding-bottom:7px}
+    h3{font-size:15px;margin:20px 0 3px}
+    p{margin:6px 0}
+    ul,ol{margin:5px 0}
+    li{margin:2px 0}
+    figure{padding:8px;margin:12px 0}
+    figure img{max-height:7.1in;object-fit:contain}
+    .mod{margin:12px 0}
+    .mod-b{padding:10px 12px}
+    table{font-size:11px;margin:8px 0}
+    th,td{padding:5px 7px;line-height:1.45}
+    .toc{margin:12px 0;padding:12px 16px}
+    header.cover{background:#12303f !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    h2,h3{page-break-after:avoid}figure,.mod,.box,.facts,.card{page-break-inside:avoid}
+    .toc{page-break-after:always}
+  }
+  @media(max-width:760px){.grid2,.grid3,.kpi-row{grid-template-columns:1fr}.toc ol{columns:1}header.cover h1{font-size:25px}h2 .dim{float:none;display:inline-block;margin:6px 0 0}}
+</style>
+</head>
+<body>
+
+<header class="cover">
+  <div class="wrap">
+    <div class="kicker">SUPPLY CHAIN PROJECT MANAGEMENT PLATFORM</div>
+    <h1>绿金街供应链项目管理平台<br>图文说明书</h1>
+    <p>本说明以<b>业务员视角下的 A 项目</b>为主线，展示合同、送货单、网价、对账单、发票和回款如何转成可核查、可计算、可追溯的业务结果。<br><b>交付包中的凭证为脱敏重制的合成演示件；A 项目展示的是可运行的数据变化与规则计算链路，不是真实客户或真实交易。</b></p>
+    <div class="cover-meta">
+      <span>8 大功能模块 · 21 张实拍界面</span>
+      <span>默认 10 个项目 · 导入 C 后 11 个 · 5 个演示角色</span>
+      <span>公式规则引擎 · 数据一环扣一环</span>
+      <span>A 实时数据流转 · C 新增导入演示 · B/D/E/F 虚拟展示</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<div class="toc">
+  <h4>本说明怎么读</h4>
+  <p style="color:var(--muted);font-size:13.6px;margin:0 0 12px">建议先看第四章的业务员 A 项目操作链，再看第六章的价值测算。经理、总经理和财务视角用于补充说明作品覆盖面；第八章介绍技术与安全边界。</p>
+  <ol>
+    <li><a href="#s1">一、业务背景：这条链上到底难在哪</a></li>
+    <li><a href="#s2">二、系统全景：八个工位和两条主线</a></li>
+    <li><a href="#s3">三、AI 用在哪、用到什么深度</a></li>
+    <li><a href="#s4">四、一条业务怎么跑通（逐模块）</a></li>
+    <li><a href="#s5">五、核心设计：最少的一手数据</a></li>
+    <li><a href="#s6">六、效果与价值测算</a></li>
+    <li><a href="#s7">七、应用广度与使用情况</a></li>
+    <li><a href="#s8">八、技术架构与安全合规</a></li>
+    <li><a href="#s9">九、常见问题（专业 / 非专业两套答法）</a></li>
+    <li><a href="#s10">附：亮点速查表 · 凭证清单 · 口径说明</a></li>
+  </ol>
+</div>
+
+<div class="box amber">
+  <p class="t">阅读须知：链路、资料和项目性质</p>
+  <p><b>一、系统默认预置 10 个项目（A/B/D/E/F/G/H/J/K/L）；C 项目导入后共 11 个。数据性质分三类，请不要混为一谈。</b></p>
+  <p style="margin-left:16px"><b>① A 项目 —— 主演示链路。</b>资料目录变化可触发解析、台账和下游经营结果更新，流程可现场复核；交付凭证均为脱敏重制的合成演示件（标注"示例 · 演示用 · 非真实票据"），企业、金额和票据内容不代表真实客户或交易。<b>可运行的是数据处理链路，不是真实业务原件。</b></p>
+  <p style="margin-left:16px"><b>② C 项目 —— 新项目接入演示。</b>C 不预置在系统中，资料包位于交付目录的 <code>新增项目C-演示资料</code>；现场导入后可观察体检、解析、注册和计算，资料同为演示数据。</p>
+  <p style="margin-left:16px"><b>③ B / D / E / F / G / H / J / K / L —— 虚拟项目。</b>仅用于多项目组合和管理视角展示，不代表真实客户、债务或交易；J/L 逾期余额为情景参数。</p>
+  <p><b>账号与数字：</b>系统有 5 个演示角色，不代表实际用户数；默认 10 个项目，导入 C 后 11 个。文中数字按"实测、系统卡片、假设"区分，组合价值测算含虚拟项目和外推假设，不是已实现收益。</p>
+  <p style="margin-bottom:0"><b>模型与资料：</b>OCR、计算和本地取证在本机执行；启用云端模型时，问题及用于回答的资料片段可能发送给对应服务商。请勿将真实敏感资料接入未获授权的云端服务。本交付包使用演示资料。</p>
+</div>
+
+<div class="hero-claim">
+  <p class="hc-t"><span class="win hot">核心主张</span>财务场景里，金额绝不允许模型算</p>
+  <p class="hc-q">我们把 AI 用在自然语言理解、检索辅助与文字组织上；金额、日期、费用等数字由<b>可复算的本地规则</b>产生，并为结果提供<b>可查看的证据来源</b>，让评委能在现场复核。</p>
+  <ul>
+    <li><b>金额、日期、天数、费用</b> —— 一律由本地程序计算，<b>模型不许碰</b>；</li>
+    <li><b>模型只做两件事</b> —— 决定「下一步查什么」、给出「这是什么性质的问题」；</li>
+    <li><b>证据核验</b> —— 重要结论可打开对应字段、单据或合同来源；金额仍由规则结果提供；</li>
+    <li><b>可复核的落点</b> —— 同一个输入换时间、换人来算，结果完全一致；结论还能一路翻回原件与所依据的合同。</li>
+  </ul>
+  <p style="margin:10px 0 0;font-size:13.2px;color:var(--muted)">第三章说明模型、规则和人工确认的分工；第五章展示业务数字如何从原始资料推导并被下游复用。</p>
+</div>
+
+<!-- ============ 一 ============ -->
+<h2 id="s1"><span class="no">一</span>业务背景：这条链上到底难在哪<span class="dim">对应：方案专业度</span></h2>
+
+<h3><span class="no">1.1</span>一笔业务要走七道环节，每道都留一张纸</h3>
+<p>绿金街从事供应链贸易业务——向上游采购钢材，向下游供货，提供采购、履约、结算一体化的供应链服务。这类业务有三个天然特征：<b>链条长、环节多、单据多</b>。</p>
+<p>一笔业务从签订合同开始，要经过发货、过磅、对账、开票、回款多个环节。每个环节都会产生纸质凭证：送货单由过磅房现场出具，网价是纸质通知或截图，对账单、发票、回款回单各自归档。这些资料分散在多个文件夹里，格式还不统一。</p>
+
+<div class="flow">
+  <span class="n">合同</span><i>→</i><span class="n">送货单</span><i>→</i><span class="n">网价资料</span><i>→</i><span class="n">对账单</span><i>→</i><span class="n">发票</span><i>→</i><span class="n">回款回单</span><i>→</i><span class="n hi">结算与催收</span>
+</div>
+
+<p>过去这条链条上的每一个环节，都依赖人工打开文件、抄录数字、手工比对、手工做表。系统要解决的，正是"<b>资料与核算规则高度依赖个人</b>"这个问题——人一换，口径就变；人一忙，异常就漏。</p>
+
+<h3><span class="no">1.2</span>五个痛点，对应五个自动化环节</h3>
+<table>
+  <thead><tr><th style="width:22%">岗位痛点</th><th style="width:38%">过去怎么做</th><th>系统怎么解决</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><b>资料缺失、金额对不上，很难及时发现</b></td>
+      <td>人工逐份打开文件、手工登记日期与金额，再把不同单据放在一起检查是否矛盾</td>
+      <td><b>单据完整性核查</b>：自动全量交叉核验，缺件与金额差异自动标记，并一键翻回原件</td>
+    </tr>
+    <tr>
+      <td><b>纸质单据上的字，系统读不到、算不了</b></td>
+      <td>一张张看、一笔笔抄进 Excel，再手工套合同下浮规则换算单价金额</td>
+      <td><b>业务台账</b>：送货单与网价两类凭证经 OCR 识别，按合同规则自动算价，生成逐笔台账</td>
+    </tr>
+    <tr>
+      <td><b>经营数据靠人工录、人工算、口径还不一致</b></td>
+      <td>反复制作多张表，应收、逾期、毛利、税费各算一遍，两个部门两个数</td>
+      <td><b>经营数据统计</b>：以台账为唯一数据源，自动归集核算，看板随数据同步刷新</td>
+    </tr>
+    <tr>
+      <td><b>结算周期、起息日、抵扣顺序易算错</b></td>
+      <td>人工查合同条款、整理回款、手工逐笔分段计算本金天数费用</td>
+      <td><b>资金占用费核算</b>：按合同约定规则自动抵扣、分段计息，输出可追溯明细</td>
+    </tr>
+    <tr>
+      <td><b>容易错过节点，漏催或误催</b></td>
+      <td>靠人定期翻文件判断是否逾期，发现问题再手工整理催款依据</td>
+      <td><b>逾期提醒</b>：按账期规则自动分级预警，逾期自动生成催款函并推送经办人</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="box teal">
+  <p class="t">一句话概括</p>
+  <p>这套系统做的是三件事：<b>把纸质资料变成数据、把人工判断变成规则、把分散结果变成可追溯的证据链。</b></p>
+</div>
+
+<!-- ============ 二 ============ -->
+<h2 id="s2"><span class="no">二</span>系统全景：业务模块与两条主线<span class="dim">对应：业务闭环</span></h2>
+<p class="lead">系统左侧是功能导航，右侧是工作区。八个模块按业务发生的先后顺序排列，前六个是"业务员日常工位"，后两个是"项目接入"与"管理者视角"。</p>
+
+<table>
+  <thead><tr><th style="width:5%">序</th><th style="width:20%">模块</th><th style="width:28%">一句话定位</th><th>关键能力</th></tr></thead>
+  <tbody>
+    <tr><td class="num">1</td><td><b>项目资料 Agent</b></td><td>项目资料的智能问答助手</td><td>自然语言提问 · 本地取证 · 答案带出处</td></tr>
+    <tr><td class="num">2</td><td><b>业务台账</b></td><td>采购销售逐笔明细</td><td>双凭证 OCR · 合同规则算价 · 凭证可回溯</td></tr>
+    <tr><td class="num">3</td><td><b>经营数据统计</b></td><td>结算、毛利、税费与回款总览</td><td>五项经营评分 · 多维周期切换 · 回款与费用确认单</td></tr>
+    <tr><td class="num">4</td><td><b>单据完整性核查</b></td><td>台账生成前的质量控制闸门</td><td>两层核验 · 五项规则 · Agent 取证与证据链</td></tr>
+    <tr><td class="num">5</td><td><b>资金占用费核算</b></td><td>月度确认单与回款日志</td><td>回单 OCR · 抵扣顺序 · 分段计息 · 封顶控制</td></tr>
+    <tr><td class="num">6</td><td><b>逾期提醒</b></td><td>监控、催办与催款函</td><td>四档分级 · 状态机 · 催款函生成 · 飞书推送</td></tr>
+    <tr><td class="num">7</td><td><b>新增项目 · 智能初始化</b></td><td>把项目接入简化成"整理一个文件夹"</td><td>进件体检 · 独立数据空间 · 项目间数据隔离</td></tr>
+    <tr><td class="num">8</td><td><b>业务部经理工作台</b></td><td>面向管理者的决策视图</td><td>团队态势 · 事项分派 · 汇报稿自动生成</td></tr>
+  </tbody>
+</table>
+<p style="font-size:13.2px;color:var(--muted)">另有一个<b>集团经营驾驶舱</b>（管理者视角，含全集团指标、项目排名、逾期风险 Top3 与应用使用情况），见第七章。</p>
+
+<div class="box">
+  <p class="t">两条业务主线（界面上用蓝色/橙色标签条标注）</p>
+  <p><b>主线 01 · 从原始资料到经营数据</b>：项目文件夹 → 合同送货单与网价识别 → OCR 结构化 → 合同规则算价 → 自动生成业务台账 → 经营数据看板。</p>
+  <p><b>主线 02 · 从业务数据到风险决策</b>：台账 + 合同 + 回款单 → 付款条件判断 → 应收与逾期计算 → 资金占用费核算 → 催款函生成 → 负责人审批。</p>
+  <p>每条模块页顶部都会显示自己属于哪条主线，观众一眼就能定位它在整条链条上的位置。</p>
+</div>
+
+<!-- ============ 三 ============ -->
+<h2 id="s3"><span class="no">三</span>AI 用在哪、用到什么深度<span class="dim">对应：AI 应用深度 20 分</span></h2>
+<p class="lead">这一章说明模型和本地程序各自负责什么，以及金额与业务结论如何保持可核验。</p>
+
+<h3><span class="no">3.1</span>模型能力与规则能力各司其职</h3>
+<p>这套系统不是所有模块都交给大模型。问答、核查结论和经营小结在需要语义理解或文字组织时使用模型；台账、经营统计、资金占用费和逾期金额以本地解析与确定性规则为主。</p>
+
+<table>
+  <thead><tr><th style="width:18%">环节</th><th style="width:20%">AI 干什么</th><th style="width:20%">程序干什么</th><th>可当场验证的地方</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><b>① 单据核查</b><br><small>多轮取证</small></td>
+      <td>模型可用时辅助规划取证与组织异常结论</td>
+      <td>文件名初筛、OCR 取数、五条规则比对、差异金额计算</td>
+      <td>核查结果展示差异字段、关联日期和原件入口</td>
+    </tr>
+    <tr>
+      <td><b>② 台账算价</b><br><small>规则驱动</small></td>
+      <td>不参与计算；仅在人工校正字段时辅助解释异常</td>
+      <td>网价 + 合同下浮 → 两端含税单价 → 金额、毛利</td>
+      <td>每一行都能翻回送货单与网价原件</td>
+    </tr>
+    <tr>
+      <td><b>③ 经营小结</b><br><small>确定性评分 + 模型措辞</small></td>
+      <td>把五项评分结果组织成通顺的经营结论与行动建议</td>
+      <td>五项经营评分、所有金额、同比环比全部由规则算出</td>
+      <td>小结顶部标签明写"确定性评分 + 模型措辞"</td>
+    </tr>
+    <tr>
+      <td><b>④ 资金占用费</b><br><small>纯规则引擎</small></td>
+      <td>不参与。这一环节刻意不用模型</td>
+      <td>回单 OCR、抵扣顺序、分段计息、回款日不计息、封顶</td>
+      <td>每段起止日、本金、天数、费用逐行可查</td>
+    </tr>
+    <tr>
+      <td><b>⑤ 逾期风控</b><br><small>规则定档 + 模型表达</small></td>
+      <td>生成催款话术、建议动作、风险表达</td>
+      <td>起息日、逾期天数、四档分级、催款函事实填充</td>
+      <td>页面底部写明"金额、天数、账期由规则引擎确定性计算"</td>
+    </tr>
+    <tr>
+      <td><b>⑥ 项目问答</b><br><small>模型规划 + 本地取证</small></td>
+      <td>理解问题、拆查询计划、组织答案措辞</td>
+      <td>本地取证、合同条款检索、规则计算与反查校验</td>
+      <td>每条答案下挂来源标签（如"合同 §6.1、§7.2.1"）</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="box teal">
+  <p class="t"><span class="win">设计原则</span>模型理解与表达，程序取证与计算，人负责确认</p>
+  <p>模块并非都由大模型驱动。将语义任务交给模型、将财务计算交给确定性规则、将对外处置留给人，便于现场验证每类能力的边界。</p>
+</div>
+
+<h3><span class="no">3.2</span>硬规矩一：金额绝不允许模型算</h3>
+<p class="h2win"><span class="win hot">架构约束</span>金额、日期、份数、天数和费用由本地程序计算；模型辅助理解问题、检索取证与组织文字，不作为财务计算器。</p>
+
+<p>用一句大白话打比方：<b>这台系统更像一家医院。</b>仪器（本地程序）负责量血压、验血、出数字；医生（大模型）负责看指标、下判断；病人（业务人员）决定采不采纳。<b>关键规矩是：仪器绝不允许"猜"数字。</b></p>
+
+<table>
+  <thead><tr><th style="width:16%">谁</th><th style="width:36%">负责什么</th><th>为什么由它负责</th></tr></thead>
+  <tbody>
+    <tr><td><b>本地程序<br>（确定性计算）</b></td><td>金额、重量、日期、天数、资金占用费、税率、缺件数、文件出处、页码</td><td>算得准、算得快、结果可复现，<b>可以拿去做审计底稿</b>。</td></tr>
+    <tr><td><b>大模型<br>（语义辅助）</b></td><td>理解自然语言问题、辅助检索取证、组织答案与汇报文字</td><td>适合处理自然语言与表达任务；不负责金额、日期或费用计算。<br><small>云端或本机模型不可用时，相关功能会降级到本地规则/检索能力。</small></td></tr>
+    <tr><td><b>业务人员<br>（最终决策）</b></td><td>审核核算结果、确认资金占用费、审批催款函、处置待办事项</td><td>系统给依据和草稿，<b>对外动作必须经人确认</b>。</td></tr>
+  </tbody>
+</table>
+
+<div class="box amber">
+  <p class="t"><span class="win hot">核心机制</span>计算结果与证据分开验证</p>
+  <p>金额由规则计算；评委可从差异或结论打开原件，核对字段与合同依据。模型措辞不替代业务核验和人工判断。</p>
+  <p>所以在单据核查页上，你会看到两种标签：<span class="chip ok">大模型已参与</span> 和 <span class="chip warn">本地规则引擎已接管</span>。<b>它不是"调了个接口就完事"，而是有一套谁说了算的秩序。</b></p>
+</div>
+
+<h3><span class="no">3.3</span>硬规矩二：每个结论都必须能"翻回原件"</h3>
+<p class="h2win"><span class="win">亮点</span>不只是"算出来的数"能翻回原件，<b>连算价和计息所依据的那份合同，本身也能翻回原件</b>——证据链到合同这一层才算闭合。</p>
+<p>第二个比方：<b>这套系统的输出像一份法庭卷宗。</b>给出结论只是第一步，结论下面必须压着证据，证据必须能翻到原件。</p>
+
+<div class="flow">
+  <span class="n hi">结论<br><small>如：金额冲突 2,000 元</small></span><i>→</i>
+  <span class="n hi">字段与出处<br><small>文件名 · 页码 · 金额</small></span><i>→</i>
+  <span class="n hi">原始凭证<br><small>可点开查看的 PDF 原件</small></span>
+</div>
+
+<p>这在页面上是四件事，可以在截图里逐一验证：</p>
+<ul>
+  <li><b>「查看原件」</b>——单据核查页面每一条异常右侧都有一个，点开直接看那张发票或对账单的 PDF。</li>
+  <li><b>「查看凭证」</b>——业务台账里每一行明细都能点开，看到这一笔对应的送货单和网价原件。</li>
+  <li><b>「证据出处」小字</b>——Agent 定性结论下面挂一行小字，写明这个判断是依据哪份文件、哪个字段得出的。</li>
+  <li><b>合同原件留档</b>——台账的算价规则、资金占用费的计息规则，其依据的那份合同同样在系统里可查（见下方图 19）。<b>连"规则"都能翻回原件，证据链才算闭合。</b></li>
+</ul>
+
+<figure>
+  <img src="assets/19_原始合同首页.png" alt="原始合同首页">
+  <figcaption><b>图 19</b>｜系统内留档的原始合同扫描件（首页）。合同编号、项目名称、甲乙双方、签订时间都落在这一页上，与台账、计息用的规则指向同一份合同。<b>不是系统说该收多少，而是你能一路翻到它凭什么这么算的那份文件。</b></figcaption>
+</figure>
+
+<div class="box amber">
+  <p class="t">为什么这条原则对国企特别重要</p>
+  <p>国企的单据有"双归档"要求：纸质原件用于现场签章、审计和责任追溯（<b>法律效力</b>），线上影像与结构化字段用于检索、核验和流程留痕（<b>效率</b>）。这两套资料过去常常各归各的。</p>
+  <p>系统把两套资料<b>绑定到同一笔订单</b>：线上算出来的每一个数，都能一键翻回被扫描的那张纸。<b>效率提升不以牺牲"能查证"为代价。</b></p>
+</div>
+
+<h3><span class="no">3.4</span>硬规矩三：确定性优先，模型兜底</h3>
+<p class="h2win"><span class="win">亮点</span><b>能不叫模型就不叫模型</b>：规则能判的毫秒级出结果；规则判不了的才叫模型。模型不可用时自动退回规则引擎并在页面标注——<b>功能不中断，且口径全程透明</b>。</p>
+<p>第三个比方：<b>像车上备了备胎。</b>路好走就正常开；路况不好，也有备用方案，不会半路抛锚。</p>
+
+<table>
+  <thead><tr><th style="width:26%">场景</th><th>系统的处理办法</th><th style="width:24%">结果</th></tr></thead>
+  <tbody>
+    <tr><td><b>文件名一看就知道缺件</b></td><td>第一层正则初筛直接判定，不打开文件、不调模型</td><td>毫秒级出结果</td></tr>
+    <tr><td><b>扫描件读不出金额</b></td><td>三级降级：PDF 文本层 → 全文抽取 → 逐页 OCR</td><td>扫描件也不漏检</td></tr>
+    <tr><td><b>模型不可用或超时</b></td><td>自动退回本地规则引擎，并在页面标注"本地规则引擎已接管"</td><td><b>功能不中断</b></td></tr>
+    <tr><td><b>模型结论里的数字查不到出处</b></td><td>判定无效，退回规则判定</td><td>不产生"没根据的结论"</td></tr>
+  </tbody>
+</table>
+
+<div class="box">
+  <p class="t">这条原则直接决定了系统能不能"稳"</p>
+  <p>日常使用中最怕的不是功能少，而是<b>点了没反应、转圈转到超时</b>。确定性优先的设计，让系统在断网、模型限流、扫描件质量差这些意外情况下，仍然能给出一个"有依据的结论"，而不是一片空白。<b>把"这次是谁判的"直接显示在页面上</b>——看结果的人知道这条结论是模型定的还是规则定的，可以据此决定要不要重点复核。</p>
+</div>
+
+<!-- ============ 四 ============ -->
+<h2 id="s4"><span class="no">四</span>一条业务怎么跑通（逐模块）<span class="dim">对应：方案交付完整性</span></h2>
+<p class="lead">以下每张截图都来自系统<b>实际运行</b>画面（主演示资料库：A 项目），图上的数字就是系统当时算出来的数字，可逐项复核。八个模块统一按<b>「解决什么 → 实测跑出什么」</b>来写，不再铺陈页面字段清单——那些留给你在现场点开看。</p>
+
+<div class="mod">
+  <div class="mod-h"><span class="mn">起点</span><b>登录与角色视角</b><small>五个角色，三个部门</small></div>
+  <div class="mod-b">
+    <figure style="margin-top:0">
+      <img src="assets/01_登录与账号.png" alt="登录页">
+      <figcaption><b>图 1</b>｜登录页。除账号密码登录外，提供<b>五个</b>"一键进入"按钮，分别对应<b>业务员、业务部经理、总经理、财务专员、财务主管</b>，无需联网即可进入——<b>五个角色、三个部门</b>，每个角色只看到自己权限内的功能与数据。</figcaption>
+    </figure>
+    <table style="margin-bottom:0">
+      <thead><tr><th style="width:20%">角色（部门）</th><th>能看到什么</th></tr></thead>
+      <tbody>
+        <tr><td><b>业务员</b><br><small style="color:var(--muted)">采购业务部</small></td><td>自己负责的项目（A、B），六个业务工位</td></tr>
+        <tr><td><b>业务部经理</b><br><small style="color:var(--muted)">采购业务部</small></td><td>全部十个预置项目 + 管理导航（团队态势、项目组合、决策事项、领导汇报）+ 集团经营驾驶舱</td></tr>
+        <tr><td><b>总经理</b><br><small style="color:var(--muted)">集团管理层</small></td><td>集团经营驾驶舱、经理汇总视图与应用使用统计——<b>看全局，不做具体项目操作</b></td></tr>
+        <tr><td><b>财务专员 / 财务主管</b><br><small style="color:var(--muted)">财务部</small></td><td>财务视角：回款回单上传与 OCR 识别、回款上报、资金占用费重算——<b>专员上报，主管确认</b>，两道签核</td></tr>
+      </tbody>
+    </table>
+    <p style="margin:10px 0 0">顶栏有<b>当前项目下拉框</b>（切项目即切全部数据）、<b>「＋ 新增项目」</b>，以及 <span class="chip">业务部经理视角</span><span class="chip">重新读取项目文件夹</span><span class="chip">切换模块</span>。<b>状态标签</b>显示「演示模式」，明示资料来自演示库。</p>
+  </div>
+</div>
+
+<p><b>建议的跑通顺序</b>——先验资料，再算钱：</p>
+<div class="flow">
+  <span class="n">① 单据核查<br><small>资料齐不齐</small></span><i>→</i>
+  <span class="n">② 业务台账<br><small>OCR+算价</small></span><i>→</i>
+  <span class="n">③ 经营统计<br><small>汇总与评分</small></span><i>→</i>
+  <span class="n">④ 资金占用费<br><small>核算确认单</small></span><i>→</i>
+  <span class="n">⑤ 逾期提醒<br><small>分级与催收</small></span><i>→</i>
+  <span class="n hi">⑥ 经理工作台<br><small>决策与汇报</small></span>
+</div>
+<p style="font-size:13.2px;color:var(--muted)">为什么单据核查排最前？因为后面所有环节都建立在"单据是齐的、金额是对的"这个前提上。<b>闸门不严，后面全是错的</b>。</p>
+
+<div class="mod">
+  <div class="mod-h"><span class="mn">4.1</span><b>单据完整性核查</b><small>整个系统的第一道闸门</small></div>
+  <div class="mod-b">
+    <p class="h2win" style="margin-top:0"><span class="win">亮点</span>把<b>原件、影像、结构化字段</b>三样东西交叉核验——<b>金额冲突不是人看出来的，是系统比对算出来的</b>；异常一键翻回原件。</p>
+    <figure>
+      <img src="assets/05_单据完整性核查.png" alt="单据完整性核查页">
+      <figcaption><b>图 2</b>｜左侧"发起核查"区（日期范围 + 四阶段进度），右侧"核查结果"区（三项评分、取证轨迹、证据链、逐日期明细）。<b>说明：</b>本页"扫描资料"一行统计的是<b>业务七类单据</b>（上游/下游送货单、发票、对账单 + 网价）的份数，范围 2026-07-01 ~ 08-31 内为 <b>48 份</b>；资料文件夹里的合同、回款回单与核算表<b>不属于这七类</b>，不计入此数与评分，故不在此列出。</figcaption>
+    </figure>
+    <p>它核对的不是一份文件，而是<b>纸质原件、线上影像、系统读出的结构化字段</b>三者对不对得上。日期范围可任意指定（单日/单周/单月/跨年），分组依据是<b>文件名上的业务日期</b>而非电脑修改时间——历史资料直接能核。</p>
+    <div class="facts">
+      <span class="lb">实测</span>范围 2026-07-01 ~ 08-31，扫到 <b>48 份业务原件、7 个业务日期</b>，评分 <b>86 / 80 / 100</b>（完整性/一致性/可追溯性），抓出 <b>2 个问题</b>：<b>07-17 缺上游送货单</b>、<b>07-25 金额冲突差 2,000.00 元</b>。
+    </div>
+    <div class="box amber" style="margin-bottom:0">
+      <p class="t"><span class="win hot">核心机制</span>那 2,000 元是怎么发现的</p>
+      <p>系统不是只读一张票，而是<b>把发票、对账单、台账三个来源摆在一起比对</b>——<b>交叉核验</b>。单看一张发票票面自洽，看不出问题；只有多源并排，差异才暴露。</p>
+      <p style="margin-bottom:0">用留档票面验证：这张发票明细逐行相加，<b>合计栏 ¥304,637.68</b>，但下方<b>"价税合计（小写）"写的是 ¥302,637.68</b>——同一张票两个汇总数自差 2,000 元。系统<b>保留票面全部候选值逐一比对</b>，所以抓得到"票面被改写"，而不只是"数字读不出来"。</p>
+    </div>
+    <figure>
+      <img src="assets/14_原始发票_差额2000元.png" alt="原始发票">
+      <figcaption><b>图 3</b>｜2026-07-25 下游发票原件。明细"合计"¥304,637.68，下方"价税合计（小写）"¥302,637.68，相差 <b>2,000.00 元</b>——正是系统标记的那处金额冲突。</figcaption>
+    </figure>
+    <p><b>两层核验的分工</b>：第一层只看文件名，几毫秒判断"这天该有的单据齐不齐"——<b>便宜的事先做</b>；第二层才真的打开文件读金额，顺序是三级降级 <b>PDF 文本层 → 全文抽取 → 逐页 OCR</b>——<b>贵的事只对必要内容做</b>。最后五条规则交叉验证，同一原件命中多条<b>自动去重</b>。</p>
+    <div class="box" style="margin-bottom:0">
+      <p class="t"><span class="win hot">核心机制</span>"取证轨迹"最能说明本系统与"简单调接口"的区别</p>
+      <p>发现 7 月 25 日发票有问题后，系统<b>没有直接下结论，而是自己决定"下一步该查什么"</b>：</p>
+      <p style="margin-bottom:0"><span class="chip">扫描资料</span> 0 ms · 48 个业务文件 &nbsp;→&nbsp; <span class="chip">规则校验</span> 0 ms · 缺件 1，候选冲突 1 &nbsp;→&nbsp; <span class="chip">取证第 1 轮</span> 8,239 ms · 查<b>台账</b> &nbsp;→&nbsp; <span class="chip">取证第 2 轮</span> 9,975.8 ms · 查<b>发票原件</b> &nbsp;→&nbsp; <span class="chip ok">生成结论</span> 1 条定性、0 条待复核</p>
+    </div>
+  </div>
+</div>
+
+<div class="mod">
+  <div class="mod-h"><span class="mn">4.2</span><b>业务台账</b><small>把纸质单据变成能算的逐笔明细</small></div>
+  <div class="mod-b">
+    <p class="h2win" style="margin-top:0"><span class="win">亮点</span>这是<b>全系统唯一的人工原始数据入口</b>，也是所有数字的源头。台账上每个金额都不是人抄的，是<b>按合同规则从一手字段算出来的</b>。</p>
+    <figure>
+      <img src="assets/03_业务台账.png" alt="业务台账页">
+      <figcaption><b>图 4</b>｜顶部是"送货单 + 网价双凭证"技术链路图，中间四个汇总指标，下方是<b>逐笔订单明细表</b>（15 列），每行末列都有「查看凭证」按钮。</figcaption>
+    </figure>
+    <p>系统把纸质单据上的日期、规格、品牌、车号、重量、网价读出来，按合同规则算出两端含税单价与金额，生成逐笔可核对的明细表。页面有一段"为什么要先做 OCR 归档"的说明，讲的是业务现实：<b>即使转成线上件，本质也只是扫描件，上面的数字仍是图像里的一串文字，系统读不到、更算不了</b>。</p>
+    <div class="facts">
+      <span class="lb">实测</span>A 项目：有效明细 <b>46.00 笔</b>（已排除小计合计行）／实收重量 <b>802.829 吨</b>／采购含税总额 <b>¥2,552,578.72</b>／销售含税总额 <b>¥2,612,790.87</b>／毛利 <b>¥60,212.15</b>。
+    </div>
+    <div class="box teal" style="margin-bottom:0">
+      <p class="t"><span class="win">亮点</span>「查看凭证」＝ 凭证可回溯的落地形式</p>
+      <p style="margin-bottom:0">点任意一行最右侧的「查看凭证」，弹出窗口<b>左右并排显示送货单原件和网价原件两个 PDF</b>。评委或审计问"这个数字从哪来的"，答案不是一句"系统算的"，而是可以当场打开原件给你看。<b>能点开原件给审计看的数字，才叫数据。</b></p>
+    </div>
+    <div class="grid2">
+      <figure style="margin-bottom:0">
+        <img src="assets/16_原始送货单.png" alt="原始送货单">
+        <figcaption><b>图 5</b>｜原始送货单。系统从这里读出日期、规格、品牌、车号、重量。</figcaption>
+      </figure>
+      <figure style="margin-bottom:0">
+        <img src="assets/17_原始网价.png" alt="原始网价">
+        <figcaption><b>图 6</b>｜配套网价资料。<b>送货单管"卖了多少"，网价管"按什么基准价"</b>，缺一不可。</figcaption>
+      </figure>
+    </div>
+  </div>
+</div>
+
+<div class="mod">
+  <div class="mod-h"><span class="mn">4.3</span><b>经营数据统计</b><small>全平台统一的经营口径</small></div>
+  <div class="mod-b">
+    <p class="h2win" style="margin-top:0"><span class="win">亮点</span>整页指标、图表、结算周期、确认单<b>全部由同一份台账派生</b>；页面还把每个指标的计算公式直接摊开——<b>口径透明，是"敢被核对"的前提</b>。</p>
+    <figure>
+      <img src="assets/04_经营数据统计.png" alt="经营数据统计页">
+      <figcaption><b>图 7</b>｜顶部周期切换与五项核心指标，中部品牌用量环形图与型号分布柱状图，下部历史结算周期、回款统计与资金占用费确认单。</figcaption>
+    </figure>
+    <p><b>数据只有一个来源——业务台账</b>，因此不存在"两个部门两个数"。查看范围四档：<b>项目累计 / 月度 / 周度 / 本年度</b>，切换后整页自动重算。</p>
+    <div class="facts">
+      <span class="lb">实测</span>应收款项 <b>¥984,134.92</b>（货款+占用费）／应收货款 <b>¥979,153.50</b>／当前应收欠息 <b>¥4,981.42</b>／目前逾期 <b>¥135,906.45</b>／本年累计逾期 <b>¥135,906.45</b>。环形图中心总供货 <b>802.83 吨</b>，型号分布共 <b>12 种规格</b>。
+    </div>
+    <p><b>页面底部把口径摊开</b>：毛利 = 销售价 − 采购价；增值税 = (销售价 − 采购价) × 13%；附加税 = 增值税额 × 13%；印花税 = (采购价 + 销售价) ÷ 1.13 × 0.03%。每个指标下方还写明来源列（如"来源：业务台账 AC 列"）。</p>
+    <div class="grid2" style="margin-bottom:0">
+      <figure style="margin-bottom:0">
+        <img src="assets/12_本期经营小结.png" alt="本期经营小结">
+        <figcaption><b>图 8</b>｜点「本期经营小结」自动生成的结论。顶部标签写明生成方式：<b>"确定性评分 + 模型措辞"</b>。</figcaption>
+      </figure>
+      <div class="facts" style="margin:0">
+        <span class="lb">实测</span>回款率 <b>90.7%</b>、资金占用费 <b>¥5,626.03</b>（占结算总额 <b>0.392%</b>）、毛利 <b>¥60,212.15</b>；销售额 <b>¥2,612,790.87</b>，主要驱动示例钢厂 A <b>¥1,223,135.81</b>；共 <b>46 笔</b>订单、<b>4 个</b>时间节点；建议"重点跟进 <b>¥135,906.45</b>，争取在起息日前回款"。五项评分：回款效率、逾期风险、资金占用、毛利健康、应收质量。
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="mod">
+  <div class="mod-h"><span class="mn">4.4</span><b>资金占用费核算</b><small>按合同规则自动算、逐项可追溯</small></div>
+  <div class="mod-b">
+    <p class="h2win" style="margin-top:0"><span class="win hot">最硬的一处</span>全篇<b>最难、也最能体现"规则引擎"价值</b>的一页：回款回单靠 OCR 自动读取，抵扣顺序、分段计息、不计息日、封顶全部由程序固定执行——<b>过去最容易算错、也最难复核的一段，现在逐段可查、可复算</b>。</p>
+    <figure>
+      <img src="assets/06_资金占用费核算.png" alt="资金占用费核算页">
+      <figcaption><b>图 9</b>｜顶部四段核算链路（合同规则提取 → 台账本金/周期 → 回款回单 OCR → 智能核算引擎 → 月费），下方月度确认单明细与回款扫描日志。</figcaption>
+    </figure>
+    <div class="facts">
+      <span class="lb">实测</span>累计资金占用费 <b>¥5,626.03</b>（三源核算）／应收资金占用费 <b>¥3,290.80</b>（未抵扣完的欠息）／累计回款 <b>¥1,300,000.00</b>。回款日志 3 笔：2026-10-18 ¥300,000／2026-10-10 ¥500,000／2026-09-15 ¥500,000。
+    </div>
+    <p><b>2026.9 月确认单</b>（¥2,335.23）拆成两段分段计息：</p>
+    <table style="margin-top:8px">
+      <thead><tr><th>周期</th><th class="num">计息本金</th><th>起算日</th><th>截止日</th><th class="num">天数</th><th class="num">占用费（含税）</th></tr></thead>
+      <tbody>
+        <tr><td>2026-06-21 至 2026-07-20</td><td class="num">¥1,128,933.54</td><td>2026-09-08</td><td>2026-09-14</td><td class="num">7</td><td class="num">¥1,580.51</td></tr>
+        <tr><td>2026-06-21 至 2026-07-20</td><td class="num">¥628,933.54</td><td>2026-09-15</td><td>2026-09-20</td><td class="num">6</td><td class="num">¥754.72</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:13px;color:var(--muted);margin-top:-2px">同一周期拆两段，是因为中间发生了一次部分回款——系统按"回款前 / 回款后"两个不重叠区间分别计息。</p>
+    <div class="grid2">
+      <div class="card"><h5>① 周期与起算日</h5><p>结算周期固定为<b>上月 21 日至当月 20 日</b>；计息起始日为周期结束后<b>次月月末 + 8 天</b>。不是人工填的，是规则算的。</p></div>
+      <div class="card"><h5>② 抵扣顺序</h5><p>回款按固定顺序冲抵：<b>前期已结算欠息 → 旧本金 → 本期费用</b>。顺序错了整期都不准，所以由规则固定。</p></div>
+      <div class="card"><h5>③ 分段计息</h5><p>费用 = 本金 × 费率 × 天数（含首尾）。<b>回款日不计被冲抵本金的利息</b>；部分回款按前后拆成两个不重叠区间。</p></div>
+      <div class="card"><h5>④ 结转与封顶</h5><p>本期未冲抵完的费用<b>结转到下期</b>；同时执行合同约定的封顶控制，避免费用无限累积。</p></div>
+    </div>
+    <figure>
+      <img src="assets/18_原始回款回单.png" alt="原始回款回单">
+      <figcaption><b>图 10</b>｜回款回单原件，即"回款扫描日志"里 2026-10-10 那笔 ¥500,000 的来源。系统通过 OCR 识别<b>回款日期与金额</b>，随后驱动分段计息与费用抵扣。</figcaption>
+    </figure>
+    <div class="box amber" style="margin-bottom:0">
+      <p class="t">对外表述口径（重要）</p>
+      <p style="margin-bottom:0">页面所载"费率、天数、抵扣顺序"为<b>系统实现细节的逐字引用，仅供技术核对与答辩使用</b>。对外演示、汇报与宣传材料，涉及结算与计费的一律统一表述为：<b>"按合同约定的结算与计费规则，自动核算"</b>，不展开费率与资金占用结构。</p>
+    </div>
+  </div>
+</div>
+
+<div class="mod">
+  <div class="mod-h"><span class="mn">4.5</span><b>逾期提醒</b><small>从"被动翻表"到"自动分级催办"</small></div>
+  <div class="mod-b">
+    <p class="h2win" style="margin-top:0"><span class="win">亮点</span><b>未逾期就不动作</b>——系统在"条件判断"这一步主动停下，只有真实逾期才推进。既避免"漏催"，也避免"误催"。</p>
+    <figure>
+      <img src="assets/07_逾期提醒.png" alt="逾期提醒页">
+      <figcaption><b>图 11</b>｜顶部逾期摘要，中部五步自动流程条与"风险分级与 Agent 工作机制"折叠卡，下部风险判断过程与周期逾期状态表。</figcaption>
+    </figure>
+    <p><b>五步自动流程</b>：定时触发（每 10 分钟复查）→ 数据读取 → 条件判断 → 催款函生成 → 飞书推送。<b>Agent 状态机</b>：监测变化 → 合同条件判断 → 风险分级 → 生成催办 → 业务员确认/关闭/升级。</p>
+    <div class="facts">
+      <span class="lb">实测</span>当前逾期总额 <b>¥135,906.45</b>／逾期周期数 <b>1 个</b>／最近逾期节点 <b>2026-10-08</b>／逾期 <b>13 天</b>，属 5–14 天中风险档，页面给出"电话提示"建议动作与首次提醒话术。
+    </div>
+    <p style="margin-bottom:0"><span class="lb">跨项目一致</span>切到任意项目，逾期面板与经营看板<b>逐项对得上</b>。十项目组合逾期 ¥4,526,906.45，其中 A/B/E/J/L 分别为 ¥135,906.45 / ¥1,500,000 / ¥620,000 / ¥1,136,000 / ¥1,135,000；J、L 为虚拟演示参数，其他五个新增项目逾期为 0。同时<b>催办记录按项目隔离</b>，不会拿别的项目数字来充数。</p>
+    <h4 style="font-size:15px;margin:14px 0 4px;color:var(--ink2)">四档分级标准（页面原文，可直接引用）</h4>
+    <table style="margin-top:8px">
+      <thead><tr><th style="width:18%">逾期天数</th><th style="width:16%">风险等级</th><th style="width:32%">系统动作</th><th>催款话术</th></tr></thead>
+      <tbody>
+        <tr><td><b>未到起息日</b></td><td>持续监控</td><td>暂不动作</td><td>—</td></tr>
+        <tr><td><b>1–4 天</b></td><td>低</td><td>持续观察</td><td>首次提醒</td></tr>
+        <tr><td><b>5–14 天</b></td><td>中</td><td>电话提示经办人</td><td>首次提醒</td></tr>
+        <tr><td><b>15–29 天</b></td><td>高</td><td><b>生成催款函</b></td><td>正式催收</td></tr>
+        <tr><td><b>≥30 天</b></td><td>高</td><td><b>追加停止供货警示</b></td><td>严正警示</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:13px;color:var(--muted)"><b>起息日当天计为逾期第 1 天</b>，以系统当前合同配置为准。</p>
+    <div class="grid2" style="margin-bottom:0">
+      <figure style="margin-bottom:0">
+        <img src="assets/11_催款函预览.png" alt="催款函预览">
+        <figcaption><b>图 12</b>｜点「生成催款函」后的预览。含致款方、合同编号、履约情况、往来金额明细、付款要求与法务提示。</figcaption>
+      </figure>
+      <div class="facts" style="margin:0">
+        <span class="lb">实测</span>催款函正文事实全部来自系统数据：已供钢 <b>802.829 吨</b>、已办理结算 <b>¥1,433,571.22</b>（货款 1,427,945.19 + 占用费 5,626.03）、已付款 <b>¥1,300,000.00</b>、应付未付 <b>¥133,571.22</b>。<b>不需要人工整理欠款金额、逾期原因和催款依据。</b><br><br>页面底部写明分工：<b>金额、天数和账期由本地规则引擎确定性计算；模型只负责风险表达与催款话术。模型不可用时自动退回规则档位，业务不中断。</b>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="mod">
+  <div class="mod-h"><span class="mn">4.6</span><b>项目资料 Agent</b><small>关于项目的一切，都可以直接问</small></div>
+  <div class="mod-b">
+    <p class="h2win" style="margin-top:0"><span class="win">亮点</span>问一句人话，系统<b>自己去查资料、自己定位合同条款、自己算，再把答案和出处一起给你</b>。要害在分工：<b>取证、计算、校验全在本地；模型只负责理解问题和组织语言</b>。</p>
+    <figure>
+      <img src="assets/02_项目资料Agent.png" alt="项目资料 Agent">
+      <figcaption><b>图 13</b>｜提问区与示例回答（答案下方挂来源标签"合同 §6.1、§7.2.1、§13.7"），右侧"项目知识库 · 资料全景"，底部<b>Agent 数据问答链路</b>六步图。</figcaption>
+    </figure>
+    <div class="flow" style="margin-top:14px">
+      <span class="n">① 用户问题<br><small>自然语言</small></span><i>→</i>
+      <span class="n">② 查询计划<br><small>查什么</small></span><i>→</i>
+      <span class="n">③ 本地取证<br><small>台账/回款/发票</small></span><i>→</i>
+      <span class="n">④ 合同条款检索<br><small>定位依据</small></span><i>→</i>
+      <span class="n hi">⑤ 规则计算与校验<br><small>金额程序算</small></span><i>→</i>
+      <span class="n">⑥ 答案输出<br><small>带来源</small></span>
+    </div>
+    <p style="margin-bottom:0"><b>关键分工</b>：问题理解与查询计划由模型完成；<b>取证、计算、校验全在本地</b>；最后才由模型把已核验的结果组织成通顺回答。知识库右上角三个统计：<b>4 类资料源、12 项文档已入库、100% 回答带出处</b>。证据不足时，系统明确指出缺少哪些资料，<b>而不是猜测</b>。</p>
+  </div>
+</div>
+
+<div class="mod">
+  <div class="mod-h"><span class="mn">4.7</span><b>新增项目 · 智能初始化</b><small>换一个项目不用重新开发</small></div>
+  <div class="mod-b">
+    <p style="margin-top:0">回答一个问题：<b>这套系统换一个项目，还要重新开发吗？</b>答案是不用——<b>把项目资料整理成一个文件夹，导入即可</b>。三步：填项目名称 → 选资料文件夹 → 自动进件体检并建立独立数据空间。</p>
+    <div class="grid2">
+      <figure style="margin-bottom:0">
+        <img src="assets/10_新增项目向导.png" alt="新增项目向导">
+        <figcaption><b>图 14</b>｜点「＋ 新增项目」后的向导："选择资料文件夹，先做进件体检，再建立独立数据空间"。</figcaption>
+      </figure>
+      <figure style="margin-bottom:0">
+        <img src="assets/20_新增项目读取进度.png" alt="新增项目读取进度">
+        <figcaption><b>图 15</b>｜四阶段（上传 → 进件体检 → 解析 → 注册控制台）逐一点亮，实时显示文件数与体积。<b>等待过程可见、可解释，不是黑箱转圈。</b></figcaption>
+      </figure>
+    </div>
+    <div class="facts">
+      <span class="lb">实测</span>一个完整项目资料包约 <b>61 个文件 / 4.13 MB</b>，从上传到体检、注册、出数，全流程约 <b>1 分钟到 1 分半</b>。
+    </div>
+    <p style="margin-bottom:0"><b>两个必须点出的设计</b>：<b>① 进件体检</b>——不是直接把文件丢进去，而是先核验完整性、缺件当场提示，与"单据完整性核查"是同一套质量理念，只是提前到项目接入的第一道关；<b>② 独立数据空间</b>——项目之间数据隔离，新增项目不污染既有数据。</p>
+    <p style="margin-bottom:0"><span class="lb">演示设计</span>系统<b>预置 10 个项目</b>（A/B/D/E/F/G/H/J/K/L）常驻下拉框，<b>C 项目刻意不预置</b>——它的资料包单独放在交付目录的 <code>新增项目C-演示资料</code> 里，<b>专门留作现场演示"新增"这一步</b>。评委现场导入这 61 个文件，系统自己解析、建库并生成结算结果；演示完点"注销"即可回到初始状态。导入后系统总数为 11 个项目。</p>
+  </div>
+</div>
+
+<div class="mod">
+  <div class="mod-h"><span class="mn">4.8</span><b>业务部经理工作台</b><small>从"业务员视角"升到"管理者视角"</small></div>
+  <div class="mod-b">
+    <p style="margin-top:0">经理视角汇总跨项目风险与待决策事项，并把跟进进度整理成向上汇报摘要；业务员的 A 项目操作链仍是本作品的主展示内容。</p>
+    <figure>
+      <img src="assets/08_业务部经理工作台.png" alt="业务部经理工作台">
+      <figcaption><b>图 16</b>｜经理工作台展示项目组合、决策事项、跟进清单与领导汇报；截图中的组合值含虚拟项目，实际演示以页面当前数据为准。</figcaption>
+    </figure>
+    <p style="margin-bottom:0"><b>展示重点：</b>经理查看全项目风险并形成跟进、汇报闭环；页面用于体现管理协作覆盖面，不把虚拟组合数字当作 A 项目的实绩。</p>
+  </div>
+</div>
+
+<div class="mod">
+  <div class="mod-h"><span class="mn">4.9</span><b>价值卡片</b><small>每个页面右上角都有一枚按钮</small></div>
+  <div class="mod-b">
+    <figure style="margin-top:0">
+      <img src="assets/09_价值卡片示例.png" alt="价值卡片弹窗">
+      <figcaption><b>图 18</b>｜点「查看价值卡片」后的卡片（以"单据完整性核查"为例）。四段式：<b>过去的做法 → 自动化链路 → 系统怎么解决 → 量化效果</b>，底部大字给出核心结论：<b>60 分钟 → 8 秒 → 效率提升 450 倍</b>。</figcaption>
+    </figure>
+    <p style="margin-bottom:0">它解决一个很实际的观感问题：<b>不熟悉 OCR 和规则引擎的读者也能看懂结论</b>，熟悉技术的读者则能从"自动化链路"那一行看到实现路径——<b>一张卡同时服务两类读者</b>。而且卡片是"活的"：口径变了（如核查从抽查改为全量），"准确性"那句话也跟着改写。<b>它不是静态宣传页，而是随系统一起维护的自证材料。</b>六张卡片的完整对照见第六章 6.1。</p>
+  </div>
+</div>
+
+<!-- ============ 五 ============ -->
+<h2 id="s5"><span class="no">五</span>核心设计：最少的一手数据<span class="dim">对应：方案专业度</span></h2>
+<p class="lead">这一章是全篇技术含量最高的一章，也是这套系统与"把表格搬到网页上"最本质的区别。一句话说完：<b>系统只让人提供第一手事实，其余每一个数字都不是"录进去"的，而是"由公式规则引擎算出来、并被下一个环节接着用"的。</b></p>
+
+<div class="box amber">
+  <p class="t">先把话说清楚：什么叫"一手数据"？</p>
+  <p><b>一手数据 = 只有源头才有的、无法再推导出来的事实。</b>比如：送货单上的过磅重量、网价资料上的当日基准价、回款回单上的到账日期与金额、合同上约定的结算与计费规则。</p>
+  <p>除此之外的一切——含税单价、采购金额、销售金额、毛利、税费、结算周期、起息日、逾期天数、资金占用费、催款函上的欠款金额、经理台的项目汇总、向上汇报稿里的数字——<b>全部是推导出来的，不是人填的。</b></p>
+  <p>这就是"最少的一手数据"的含义：<b>人只负责提供事实，系统负责提供结论。</b>人越少录入，口径就越唯一，出错的空间就越小。</p>
+</div>
+
+<h3><span class="no">5.1</span>整条推导链长什么样（四层，越往下越"不是人填的"）</h3>
+<p class="lead">下面这张图就是这套系统的"骨架"。看它的时候请注意一件事：<b>每一层都只从上一层取数，从不跨层另找数据。</b>这就是"一环扣一环"。</p>
+
+<div class="lineage">
+  <div class="ltier t1">
+    <div class="lh"><b>第一层 · 一手数据（只有这一层是人提供的）</b><small>来源：纸质原件 + 合同</small></div>
+    <div class="lchips">
+      <span class="lc"><b>送货单</b> · 日期 / 规格 / 品牌 / 车号 / 过磅重量</span>
+      <span class="lc"><b>网价资料</b> · 当日基准价</span>
+      <span class="lc"><b>发票</b> · 金额（含被改写痕迹）</span>
+      <span class="lc"><b>对账单</b> · 应结金额</span>
+      <span class="lc"><b>回款回单</b> · 到账日期 / 金额</span>
+      <span class="lc"><b>合同</b> · 结算与计费规则 / 上下浮比例</span>
+    </div>
+  </div>
+  <div class="larrow"><b>↓</b> OCR 识别 + 结构化（本地离线，图像不出本机）</div>
+  <div class="ltier t2">
+    <div class="lh"><b>第二层 · 逐笔明细（每一个字段都是算出来的，不是抄的）</b><small>来源：第一层 + 合同规则</small></div>
+    <div class="lchips">
+      <span class="lc calc">采购含税单价 = 网价基准 + 采购下浮</span>
+      <span class="lc calc">采购金额 = 重量 × 采购含税单价</span>
+      <span class="lc calc">销售含税单价 = 网价基准 + 销售下浮</span>
+      <span class="lc calc">销售金额 = 重量 × 销售含税单价</span>
+      <span class="lc calc">毛利 = 销售金额 − 采购金额</span>
+      <span class="lc calc">结算周期 = 上月 21 日 → 当月 20 日</span>
+      <span class="lc calc">起息日 = 周期结束后「次月月末 + 8 天」</span>
+      <span class="lc calc">增值税 / 附加税 / 印花税</span>
+    </div>
+  </div>
+  <div class="larrow"><b>↓</b> 台账是唯一数据源，上层全部"长"在它身上</div>
+  <div class="ltier t3">
+    <div class="lh"><b>第三层 · 经营与风险（同一批数据，四种视角）</b><small>来源：第二层 + 回款回单</small></div>
+    <div class="lchips">
+      <span class="lc rule">应收货款 = Σ 未结清周期本金</span>
+      <span class="lc rule">逾期金额 = 已到起息日的未收本金</span>
+      <span class="lc rule">资金占用费 = 本金 × 费率 × 天数（分段）</span>
+      <span class="lc rule">欠息 / 已收 / 未收占比</span>
+      <span class="lc rule">五项经营评分（回款效率 · 逾期风险 · 资金占用 · 毛利健康 · 应收质量）</span>
+      <span class="lc rule">逾期风险四档分级</span>
+    </div>
+  </div>
+  <div class="larrow"><b>↓</b> 结算与风险结果再往上一层复用</div>
+  <div class="ltier t4">
+    <div class="lh"><b>第四层 · 复用产出（这些数字没有一个是为了写文件而单独填的）</b><small>来源：第二、三层</small></div>
+    <div class="lchips">
+      <span class="lc out">本期经营小结</span>
+      <span class="lc out">催款函正文（欠款金额、已供吨数、已结金额）</span>
+      <span class="lc out">经理工作台项目汇总</span>
+      <span class="lc out">向上汇报稿</span>
+      <span class="lc out">问答 Agent 的回答与来源标注</span>
+      <span class="lc out">核算确认单</span>
+    </div>
+  </div>
+</div>
+
+<div class="box teal">
+  <p class="t">这张图最该被记住的一句话</p>
+  <p>从第一层到最后那一层，<b>中间没有任何一步是"人工再录一遍"</b>。改一个一手数据（比如把回款日期往前挪三天），整条链会自己重算一遍，一路改到催款函和汇报稿。<b>数据只维护一次，全链路自动跟随。</b></p>
+</div>
+
+<h3><span class="no">5.2</span>同一个数字，被系统复用了多少次？（一个可以当场验证的例子）</h3>
+<p class="lead">以 A 项目当前演示数据中的一个数为例：逾期未收本金 <b>¥135,906.45</b>。<b>它在源头只被算出来一次</b>，然后被下面这些地方各自取用，<b>没有任何一处是人工重新填写的</b>。</p>
+
+<table class="blood">
+  <thead><tr><th style="width:6%">序</th><th style="width:28%">出现在哪</th><th style="width:30%">它被用来说明什么</th><th>怎么复用过来的</th></tr></thead>
+  <tbody>
+    <tr><td class="num">1</td><td class="once">经营数据统计 · 逾期金额</td><td>当前逾期金额指标</td><td><b>源头：由规则引擎算出</b></td></tr>
+    <tr><td class="num">2</td><td>经营数据统计 · 历史结算周期</td><td>该周期"当前逾期"状态那一行</td><td>同一份周期数据</td></tr>
+    <tr><td class="num">3</td><td>逾期提醒 · 逾期摘要</td><td>当前逾期总额</td><td>取周期逾期余额</td></tr>
+    <tr><td class="num">4</td><td>逾期提醒 · 动态风险卡</td><td>"发现真实逾期"的依据</td><td>取周期逾期余额</td></tr>
+    <tr><td class="num">5</td><td>逾期提醒 · 四档分级/时间线文案</td><td>说明这一档为什么触发</td><td>同一事实 + 天数规则</td></tr>
+    <tr><td class="num">6</td><td>项目资料 Agent · 试问回答</td><td>解释逾期构成</td><td>本地取证后引用</td></tr>
+    <tr><td class="num">7</td><td>经理工作台 · A项目卡片</td><td>该项目的逾期风险</td><td>项目维度汇总</td></tr>
+  </tbody>
+</table>
+<p style="font-size:13.2px;color:var(--muted);margin-top:-4px">上表只是"其中一个数字"的复用情况。同为源头派生值的 <b>未收本金 979,153.50 元</b>、<b>应付未付 133,571.22 元</b>、<b>累计资金占用费 5,626.03 元</b>、<b>已供钢 802.829 吨</b>，同样分别出现在结算、催款函正文、飞书卡片、汇报稿等多处。<b>一处算，多处用。</b></p>
+
+<div class="box">
+  <p class="t">为什么这件事值得单独写一节？</p>
+  <p><b>① 不会出现"两个部门两个数"。</b>源头只有一个，所有报表都是它的下游，口径天然一致。</p>
+  <p><b>② 改一处，全链跟着改。</b>回款日期、结算周期、合同下浮比例只要变，下游的成本、利润、税费、逾期、催款函、汇报稿全部自动重算，不需要有人记得"还有哪张表也要改"。</p>
+  <p style="margin-bottom:0"><b>③ 每个派生值都能一路回溯到源头那张纸。</b>因为它是算出来的，系统就知道它是拿哪几个字段、按哪条规则算的——这正是第三章"可追溯"能成立的技术前提。</p>
+</div>
+
+<h3><span class="no">5.3</span>规则引擎长什么样：规则写给机器，不写在人的经验里</h3>
+<p class="lead">"公式规则引擎"不是一句口号。它的实际形态是：<b>把人脑里的换算习惯，写成一段一段可以被机器执行、也能被人逐条核对的确定性规则。</b>下面这张表是系统里真实生效的规则清单（可直接对照原始合同核对）。</p>
+
+<table>
+  <thead><tr><th style="width:14%">环节</th><th style="width:44%">系统实际执行的规则</th><th>这项规则解决了什么人工难题</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><b>台账算价</b></td>
+      <td>含税单价 = <b>网价基准 + 下浮额</b>（采购端、销售端分别取合同约定的下浮）；金额 = <b>重量 × 含税单价</b>；毛利 = 销售金额 − 采购金额。</td>
+      <td>过去要一张张翻送货单和网价，再手工套合同下浮换算两端单价。<b>规则化之后，上下浮动一个点，全月几十笔单价金额同时跟着变。</b></td>
+    </tr>
+    <tr>
+      <td><b>税费计提</b></td>
+      <td>增值税 = (销售价 − 采购价) × 13%；附加税 = 增值税额 × 13%；印花税 = (采购价 + 销售价) ÷ 1.13 × 0.03%。</td>
+      <td>税费最容易"各算各的"。<b>公式写死之后，采购价或销售价一变，三税同时重算。</b></td>
+    </tr>
+    <tr>
+      <td><b>结算周期</b></td>
+      <td>固定为<b>上月 21 日至当月 20 日</b>；周期归属按资料自身业务日期判定。</td>
+      <td>周期不靠人记、不靠人选，<b>同一批资料在任何人手上都归到同一个周期</b>。</td>
+    </tr>
+    <tr>
+      <td><b>起息日</b></td>
+      <td>周期结束后<b>次月月末 + 8 天</b>为计息起始日（该日期由规则推算，不人工填写）。</td>
+      <td>起息日算错一天，费用就错一批。<b>交给规则算，可复现、可解释。</b></td>
+    </tr>
+    <tr>
+      <td><b>逾期判定</b></td>
+      <td>起息日当天计为逾期第 1 天；未到起息日只监控不动作；按天数分四档（1–4 / 5–14 / 15–29 / ≥30 天）。</td>
+      <td>把"要不要催、催到什么程度"从主观判断变成<b>可解释的分档规则</b>，既不漏催也不误催。</td>
+    </tr>
+    <tr>
+      <td><b>占用费核算</b></td>
+      <td>费用 = <b>本金 × 费率 × 天数</b>（含首尾日期）；回款按固定顺序冲抵：<b>前期已结算欠息 → 旧本金 → 本期费用</b>；<b>回款日不计被冲抵本金的利息</b>；部分回款按回款前后<b>拆成两段不重叠区间</b>分别计息；本期未冲抵费用结转下期，并执行合同约定的封顶控制。</td>
+      <td>这是人工最容易算错、也最难复核的一段。<b>分段、抵扣顺序、不计息日全部由程序固定执行，并输出每一段的起止日、本金、天数与费用供逐行核对。</b></td>
+    </tr>
+  </tbody>
+</table>
+
+<p style="font-size:13.2px;color:var(--muted)">上表"费率、天数、抵扣顺序"等为<b>系统实现细节的逐字引用，仅供技术核对与答辩使用</b>。对外演示、汇报与宣传材料，涉及结算与计费的一律统一表述为：<b>"按合同约定的结算与计费规则，自动核算"</b>，不展开费率与资金占用结构。</p>
+
+<div class="tagline">
+  这套系统真正省掉的，不是"打字的时间"，而是<b>"算"这件事本身</b>。<br>
+  人只提供一手事实——重量、网价、回款、合同规则；<br>
+  系统负责把<b>单价、金额、毛利、税费、周期、起息日、天数、费用、逾期、欠款、汇报数字</b>全部算出来，<br>
+  并且让每一个算出来的数，同时被下游所有环节复用。<br>
+  <b>一处源头，全链跟随；一次计算，处处一致。</b>
+</div>
+
+<!-- ============ 六 ============ -->
+<h2 id="s6"><span class="no">六</span>效果与价值测算<span class="dim">对应：价值测算 15 分</span></h2>
+<p class="lead">这一章分两层：<b>6.1 ~ 6.2 讲"快了多少"</b>（口径来自系统内各模块价值卡片与实测）；<b>6.3 讲"值多少钱"</b>（给出完整的投入产出测算表，所有假设参数都列出来，可自行替换重算）。</p>
+
+<h3><span class="no">6.1</span>六个模块的效率账单</h3>
+<div class="kpi-row">
+  <div class="kpi"><b>2,400 倍</b><small>经营数据统计 · 2 小时 → 3 秒</small></div>
+  <div class="kpi"><b>1,920 倍</b><small>逾期提醒 · 1 个工作日 → 30 秒</small></div>
+  <div class="kpi"><b>1,350 倍</b><small>资金占用费核算 · 45 分钟 → 2 秒</small></div>
+</div>
+<div class="kpi-row">
+  <div class="kpi"><b>450 倍</b><small>单据完整性核查 · 60 分钟 → 8 秒</small></div>
+  <div class="kpi"><b>360 倍</b><small>业务台账生成 · 90 分钟 → 15 秒</small></div>
+  <div class="kpi"><b>90 倍</b><small>项目资料 Agent · 15 分钟 → 10 秒</small></div>
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th style="width:17%">模块</th>
+      <th style="width:30%">"过去的做法"要点</th>
+      <th class="num" style="width:13%">改造前</th>
+      <th class="num" style="width:12%">改造后</th>
+      <th style="width:13%">准确性口径变化</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td><b>单据完整性核查</b></td><td>逐份打开文件，手工登记日期、品名、规格、品牌、重量、金额，再放在一起检查缺失、重复或矛盾</td><td class="num">60 分钟/批</td><td class="num">8 秒/批</td><td>人工抽查 → <b>全量交叉核验</b></td></tr>
+    <tr><td><b>业务台账自动生成</b></td><td>纸质送货单与网价截图只能人工查看、抄录、匹配，还要按合同规则手工换算上下浮单价与金额</td><td class="num">90 分钟/批</td><td class="num">15 秒/批</td><td>手工录入易错 → <b>凭证可追溯</b></td></tr>
+    <tr><td><b>经营数据统计</b></td><td>应收、逾期、采购、销售、毛利、税费都靠人工录入核算，反复制作多张表</td><td class="num">2 小时/轮</td><td class="num">3 秒/轮</td><td>多表手工录入 → <b>单一数据源统一口径</b></td></tr>
+    <tr><td><b>资金占用费核算</b></td><td>人工查合同条款、整理每期结算与回款，手工按不同时段逐笔算本金天数费用</td><td class="num">45 分钟/周期</td><td class="num">2 秒/周期</td><td>人工易算错 → <b>规则自动校验</b></td></tr>
+    <tr><td><b>逾期提醒</b></td><td>定期翻文件、手工登记付款状态，逐期判断是否达到起息日和逾期条件</td><td class="num">1 个工作日/次</td><td class="num">30 秒/次</td><td>人工被动跟踪 → <b>自动状态机提醒</b></td></tr>
+    <tr><td><b>项目资料 Agent</b></td><td>遇到问题要先判断该查哪类资料，再逐份打开翻页、搜关键词、抄数据、相互比对</td><td class="num">15 分钟/次</td><td class="num">10 秒/次</td><td>人工定位易漏项 → <b>结果带来源</b></td></tr>
+  </tbody>
+</table>
+<p style="font-size:13px;color:var(--muted)"><b>口径说明</b>：<span class="chip">卡片</span>以上"改造前"指该批业务量下的人工耗时，"改造后"指系统跑一遍的耗时，数字取自系统内各模块价值卡片，可点开页面右上角「查看价值卡片」逐一核对。</p>
+
+<h3><span class="no">6.2</span>比"快"更重要的三件事：准、全、可查</h3>
+<div class="grid2">
+  <div class="card">
+    <h5>① 从"抽查"到"全量"</h5>
+    <p>人工受工时限制只能抽着看，系统对范围内 <b>48 份业务原件、7 个业务日期</b>全部过一遍。<b>覆盖面本身就是质量。</b></p>
+  </div>
+  <div class="card">
+    <h5>② 从"易算错"到"规则校验"</h5>
+    <p>计息、抵扣顺序、上下浮算价这些最容易出错的环节，改由合同规则驱动计算，<b>人工只做确认，不做计算</b>。</p>
+  </div>
+  <div class="card">
+    <h5>③ 从"各算各的"到"一个数据源"</h5>
+    <p>应收、逾期、毛利、税费全部以<b>业务台账为唯一数据源</b>，业务员和管理者看到的是同一套数，不再出现"两个部门两个数"。</p>
+  </div>
+  <div class="card">
+    <h5>④ 从"事后发现"到"当日预警"</h5>
+    <p>逾期判定从"定期翻文件"改为<b>随文件与回款变化自动重算</b>，达到起息日条件即预警，把问题拦在过期之前。</p>
+  </div>
+</div>
+
+<h3><span class="no">6.3</span>年度价值测算（投入产出表）</h3>
+<p class="lead">下面这张表是本作品的<b>正式价值测算材料</b>。所有产出项都基于<b>系统实测的业务规模</b>，所有假设都写明了参数与来源。<b>任何一个参数被质疑，都可以现场用计算器重算一遍。</b></p>
+
+<div class="box">
+  <p class="t">测算基线（<span class="chip ok">实测</span>，不是估的）</p>
+  <p>当前系统预置 <b>10 个项目</b>，一个结算周期的组合规模（含虚拟演示项目）：</p>
+  <table style="margin-bottom:0">
+    <thead><tr><th style="width:34%">指标</th><th class="num" style="width:22%">实测值</th><th>来源</th></tr></thead>
+    <tbody>
+      <tr><td>订单明细行数</td><td class="num"><b>696 行</b></td><td>10 项目组合；9 项为虚拟演示数据</td></tr>
+      <tr><td>供货吨数</td><td class="num"><b>14,094.353 吨</b></td><td>10 项目组合；9 项为虚拟演示数据</td></tr>
+      <tr><td>销售含税总额</td><td class="num"><b>¥50,838,171.13</b></td><td>10 项目组合；不代表真实经营收入</td></tr>
+      <tr><td>组合逾期余额</td><td class="num"><b>¥4,526,906.45</b></td><td>其中 ¥2,271,000 为 J/L 虚拟演示参数</td></tr>
+      <tr><td>累计资金占用费</td><td class="num"><b>¥228,991.26</b></td><td>10 项目组合计算值；虚拟项目非真实债务成本</td></tr>
+      <tr><td>单据核查覆盖原件数</td><td class="num"><b>48 份 / 7 个业务日期</b></td><td>A 项目一次核查实跑</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h4 style="font-size:15.5px;margin:22px 0 4px;color:var(--ink2)">（一）投入侧：这套系统花了多少</h4>
+<table>
+  <thead><tr><th style="width:26%">投入项</th><th style="width:20%">口径</th><th class="num" style="width:16%">金额</th><th>说明</th></tr></thead>
+  <tbody>
+    <tr><td><b>开发人力</b></td><td>一次性</td><td class="num">约 ¥21,000</td><td>约 26 个人天（2026-09-24 至 10-20），按 <span class="chip warn">假设</span> 800 元/人天计</td></tr>
+    <tr><td><b>服务器</b></td><td>年</td><td class="num">¥0</td><td>本地部署，跑在现有办公电脑上；无云服务器、无数据库服务</td></tr>
+    <tr><td><b>大模型 token</b></td><td>年</td><td class="num">&lt; ¥50</td><td>按 300 次问答/月 × 约 3,000 token/次估算；且仅在"理解与措辞"环节调用，取不到时自动降级为本地规则引擎，<b>不产生费用</b></td></tr>
+    <tr><td><b>数据库 / 中间件</b></td><td>年</td><td class="num">¥0</td><td>SQLite 单文件 + Python 标准库，零采购</td></tr>
+    <tr><td><b>OCR</b></td><td>年</td><td class="num">¥0</td><td>本地离线模型，不上传、不按量计费</td></tr>
+    <tr style="background:#f7fafd"><td><b>合计</b></td><td>—</td><td class="num"><b>约 ¥21,050</b></td><td>一次性 ¥21,000 + 首年运行约 ¥50</td></tr>
+  </tbody>
+</table>
+
+<h4 style="font-size:15.5px;margin:22px 0 4px;color:var(--ink2)">（二）产出侧：一年省下什么</h4>
+<table>
+  <thead><tr><th style="width:18%">产出项</th><th style="width:36%">计算式（可逐项复算）</th><th class="num" style="width:15%">年化金额</th><th>假设与来源</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><b>① 人工工时节约</b></td>
+      <td>单项目单周期节约 <b>808.87 分钟</b>（六模块改造前合计 − 改造后合计）× 10 项目 × 12 周期 = <b>1,617.7 小时/年</b>；× 60 元/小时</td>
+      <td class="num"><b>¥97,064</b></td>
+      <td>工时取自 <span class="chip">卡片</span>；<span class="chip warn">假设</span> 60 元/小时为综合人力成本</td>
+    </tr>
+    <tr>
+      <td><b>② 资金占用费减少</b></td>
+      <td>组合逾期 <b>¥4,526,906.45</b> × 日费率 0.0002 × 提前发现 15 天 = <b>¥13,580.72/周期</b>；× 12</td>
+      <td class="num"><b>¥162,969</b></td>
+      <td>仅 A 项目金额来自实时链路；J/L 等虚拟项目逾期为 <span class="chip warn">演示参数</span>（J 为 ¥1,136,000，L 为 ¥1,135,000）；提前发现 15 天为 <span class="chip warn">假设</span></td>
+    </tr>
+    <tr>
+      <td><b>③ 单据差错避免</b></td>
+      <td>A 项目一次核查检出 <b>1 处 ¥2,000 金额冲突</b> + 1 处缺件；按同等检出密度外推 10 项目 = ¥20,000/周期；× 12</td>
+      <td class="num"><b>¥240,000</b></td>
+      <td>A 项目检出结果为 <span class="chip ok">实测</span>；对其余项目的等比外推为 <span class="chip warn">假设</span></td>
+    </tr>
+    <tr style="background:#eaf7f3">
+      <td><b>合计</b></td><td>① + ② + ③</td>
+      <td class="num"><b>¥500,033.03</b></td>
+      <td>约 <b>50.00 万元/年</b>；超过 ¥500,000 门槛 ¥33.03</td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 style="font-size:15.5px;margin:22px 0 4px;color:var(--ink2)">（三）投入产出比</h4>
+<div class="kpi-row">
+  <div class="kpi"><b>23.8 倍</b><small>首年 ROI = 50.0033 万 ÷ 2.105 万</small></div>
+  <div class="kpi"><b>约 1 个月</b><small>回收期 = 2.1 万 ÷ 2.08 万/月</small></div>
+  <div class="kpi"><b>&lt; ¥50/年</b><small>系统年运行成本（含 token）</small></div>
+</div>
+
+<div class="box amber">
+  <p class="t">规模杠杆：项目规模扩大时，测算值如何变化（含虚拟场景假设）</p>
+  <p>下面展示按新增项目及同类参数进行的年度化情景估算。当前 10 项目口径下结果为 <b>¥500,033.03</b>，比“50 万及以上”门槛高 ¥33.03。为越过门槛，J 项目虚拟逾期余额由 ¥1,135,000 调为 ¥1,136,000，新增 ¥1,000 对应资金占用费减少估算增加 ¥36/年。项目数量、逾期余额与差错密度并非真实经营业绩：</p>
+  <table style="margin-bottom:0">
+    <thead><tr><th style="width:20%">项目数</th><th class="num" style="width:22%">年化价值（同口径）</th><th>对应管理含义</th></tr></thead>
+    <tbody>
+      <tr><td>10 个（当前演示规模）</td><td class="num">¥500,033.03 / 约 50.00 万/年</td><td>项目组合含 9 个虚拟演示项目；J 逾期为情景参数</td></tr>
+      <tr><td>12 个（情景假设）</td><td class="num">约 60 万/年</td><td>新增项目、业务量和逾期余额均按同口径外推</td></tr>
+      <tr><td>15 个（情景假设）</td><td class="num">约 75 万/年</td><td>不是当前系统已接入的项目数</td></tr>
+    </tbody>
+  </table>
+</div>
+<p style="font-size:13.2px;color:var(--muted)">而"扩项目"的边际成本较低——<b>新增项目可通过导入向导接入</b>，实测 C 项目 61 个文件 / 4.13 MB 的资料包导入并出数约 <b>1 分半以内</b>（见 4.7）。以上价值随规模变化为情景测算，不等于已实现节约。</p>
+
+<div class="tagline">
+  一句话总结效果：把"<b>人找资料、人抄数字、人算规则、人写材料</b>"的四段人工，替换成"<b>系统取证、程序计算、规则校验、自动成文</b>"。
+</div>
+
+<!-- ============ 七 ============ -->
+<h2 id="s7"><span class="no">七</span>应用广度与使用情况<span class="dim">对应：应用广度与使用情况 15 分</span></h2>
+<p class="lead">这一章只讲两件评委真正关心的事：<b>是不是真的有人在用（有没有留痕）</b>、<b>能不能复制到别的项目和部门</b>。</p>
+
+<h3><span class="no">7.1</span>使用情况：有操作留痕，不是"演示专用"</h3>
+<p>系统对每一次登录、查看、核算、问答都落库留痕，并在<b>集团经营驾驶舱</b>里汇总成一张"应用使用情况"面板。这张面板是<t>从系统实际日志里算出来的</t>，不是另做的统计页。</p>
+
+<figure>
+  <img src="assets/21_集团经营驾驶舱与应用使用情况.png" alt="集团经营驾驶舱与应用使用情况">
+  <figcaption><b>图 21</b>｜集团经营驾驶舱。上半部是组合经营指标（销售额、应收、逾期、资金占用费）、项目应收排名与逾期风险 Top3；下半部是<b>应用使用情况</b>面板——窗口内操作次数、活跃用户数、覆盖部门数、已署名问答条数，以及按部门的操作分布。此截图采集于 J 项目虚拟逾期参数上调前，当前值以驾驶舱实时数据为准。</figcaption>
+</figure>
+
+<div class="facts">
+  <span class="lb">运行机制</span>系统预置 <b>5 个演示账号</b>，覆盖业务、业务管理、集团管理和财务角色；账号数不代表活跃用户数。使用情况面板按本机 <code>usage_log</code> 实时统计登录、问答与各模块操作。全新环境的数字从零开始，使用人数、部门数和问答数以实际操作为准，不预设、不回填。
+</div>
+
+<h3><span class="no">7.2</span>可复制性：十个项目组合、加项目走导入流程</h3>
+<div class="grid3">
+  <div class="card"><h5>① 项目级隔离</h5><p>每个项目独立资料目录、独立数据空间。<b>A 项目展示可运行的数据处理链路</b>（改动触发重算）；B / D / E / F / G / H / J / K / L 为虚拟演示数据，仅供展示组合视角和情景测算。C 项目刻意不预置，留给现场演示"新增"。</p></div>
+  <div class="card"><h5>② 加项目零开发</h5><p>整理一个文件夹 → 三步向导 → 进件体检 → 独立数据空间。<span class="chip ok">实测</span> 61 个文件 / 4.13 MB，约 <b>1 分半以内</b>完成。</p></div>
+  <div class="card"><h5>③ 跨部门可用</h5><p>业务员看自己项目、经理看项目组合、集团层看组合驾驶舱，<b>同一套数据三种视角</b>，权限按角色收敛。</p></div>
+</div>
+
+<p><b>跨行业复用的边界（诚实说明）</b>：本系统面向的是<b>有合同规则驱动的贸易/供应链中间商</b>场景——钢筋、建材、大宗商品这类"重量 × 网价 + 上下浮"的定价结构最贴合。换成完全不同的计费结构（如按次计费的服务业），<b>角色、流程、看板、台账结构可以直接复用，但规则引擎那一层需要重写</b>。这是"通用业务骨架 + 行业规则插件"的设计取舍。</p>
+
+<h3><span class="no">7.3</span>推广路径</h3>
+<table>
+  <thead><tr><th style="width:16%">阶段</th><th style="width:26%">范围</th><th>要做什么、成本多少</th></tr></thead>
+  <tbody>
+    <tr><td><b>已达成</b></td><td>10 个预置项目 · 5 个演示账号</td><td>五类角色视角已配置；账号数不等于真实活跃用户数，使用统计按实际操作记录</td></tr>
+    <tr><td><b>新增演示</b></td><td>C 项目导入后 11 个</td><td>整理资料文件夹并走向导；约 1 分半/项目（C 项目实测）</td></tr>
+    <tr><td><b>中期</b></td><td>接入 ERP / 财务系统</td><td>后端已对外提供 <b>46 个 REST 接口</b>，可直接作为数据提供方被调用；也可用上游结构化数据替换"读文件夹"这一段</td></tr>
+    <tr><td><b>规模化</b></td><td>新增业务品类</td><td>复用角色/流程/看板，重写规则引擎的计费规则（这是唯一需要开发的部分）</td></tr>
+  </tbody>
+</table>
+
+<!-- ============ 八 ============ -->
+<h2 id="s8"><span class="no">八</span>技术架构与安全合规<span class="dim">对应：方案专业度</span></h2>
+<p class="lead">这一章给有技术背景的评委。<b>核心结论只有一句：整套系统跑在本机、零框架、零 CDN、断网可用。</b></p>
+
+<h3><span class="no">8.1</span>整体结构：前端一张网页，后端一个进程，中间一个文件夹</h3>
+<p class="h2win"><span class="win">亮点</span><b>零框架、零 CDN、断网可用</b>：前端是单个 HTML 单页，后端是 Python 标准库 HTTP 服务，OCR 用本地离线模型——<b>整机离线也能跑，图像不出本机</b>，这在国企内网环境里是最容易过安全审查的形态。</p>
+
+<div class="flow">
+  <span class="n">浏览器<br><small>单页应用 index.html</small></span><i>↔</i>
+  <span class="n">本地服务<br><small>Python 标准库 HTTP 服务</small></span><i>↔</i>
+  <span class="n">运行数据<br><small>SQLite + 项目资料目录</small></span>
+</div>
+
+<table>
+  <thead><tr><th style="width:15%">层次</th><th style="width:36%">实际用的东西</th><th>说明</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><b>前端</b></td>
+      <td>单个 <code>index.html</code> · 原生 JavaScript · ECharts 图表 · Lucide 图标</td>
+      <td><b>不用 React / Vue / jQuery 等框架</b>，两个图形库的文件也随程序放在本地 <code>/static/</code> 目录里。<b>页面里没有任何一行指向外部 CDN 的资源</b>，所以断网照样能打开、样式不错乱、图表照常画。</td>
+    </tr>
+    <tr>
+      <td><b>后端</b></td>
+      <td>Python 3.12 标准库 <code>http.server</code>（<code>ThreadingHTTPServer</code>）· 单文件 · <b>46 个 REST 接口</b></td>
+      <td><b>不用 Flask / FastAPI / Django 任何 Web 框架</b>，路由就是一个接口表。依赖极少、部署就是"拷一个文件夹 + 双击脚本"，在内网环境里最容易过安全审查。</td>
+    </tr>
+    <tr>
+      <td><b>状态存储</b></td>
+      <td>SQLite <b>6 张表</b>（回款记录、知识分块、问答运行记录、逾期提醒、逾期扫描元数据、管理事项）+ 操作使用流水</td>
+      <td>单文件数据库，不需要单独安装数据库服务。<b>系统重启不丢数据</b>，异常与操作都有落表。</td>
+    </tr>
+    <tr>
+      <td><b>文档解析</b></td>
+      <td><code>pymupdf</code> / <code>pypdf</code>（PDF 文本层）· <code>rapidocr_onnxruntime</code>（本地离线 OCR）· <code>openpyxl</code>（Excel）</td>
+      <td>OCR 用的是<b>本地离线模型</b>，扫描件在这台机器上就地识别，<b>图像本身不出本机</b>。</td>
+    </tr>
+    <tr>
+      <td><b>语义层</b></td>
+      <td>云端大模型 / 本机大模型（问题理解、取证规划、异常定性、文字组织）+ <b>本地规则引擎兜底</b></td>
+      <td>只有"理解人话、下定性判断"这一步会访问模型。系统内置<b>三级降级</b>：云端大模型（示例 DeepSeek）→ 本机大模型（示例 Ollama）→ 本地规则引擎；前两级都不可用时自动切到规则引擎，并在页面明确标注当前由谁作答。</td>
+    </tr>
+    <tr>
+      <td><b>并发与控制</b></td>
+      <td>线程池并行处理 · 会话令牌鉴权（<code>X-Session-Token</code>，8 小时有效）· 角色视图隔离</td>
+      <td>一批几十份文件可以并行识别与核对；登录态与服务端会话绑定，不同角色看到不同数据范围。</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3><span class="no">8.2</span>"规则 + 模型"混合架构：一张表说清每个数字从哪来</h3>
+<table>
+  <thead><tr><th style="width:24%">环节</th><th style="width:24%">由谁负责</th><th>可验证的证据</th></tr></thead>
+  <tbody>
+    <tr><td>读文件、切字段</td><td>本地程序（PDF 文本层 / OCR）</td><td>页面上每条记录都带文件名与页码</td></tr>
+    <tr><td>算金额、日期、天数、费用</td><td><b>本地程序</b>（模型不参与）</td><td>同名输入必得同值输出，可复现、可入底稿</td></tr>
+    <tr><td>决定下一步去查哪个证据</td><td>模型（<b>Agent 取证规划</b>）</td><td>"取证轨迹"逐行记录每一轮动作与耗时</td></tr>
+    <tr><td>给异常下定性结论</td><td>模型（含 <code>degraded</code> 降级标记）</td><td>页面标签：<span class="chip ok">大模型已参与</span> / <span class="chip warn">本地规则引擎已接管</span></td></tr>
+    <tr><td>结论中的数字是否有据</td><td><b>反查机制</b>（程序校验）</td><td>数字在证据中查不到 → 结论作废，退回规则判定</td></tr>
+    <tr><td>最终对外动作</td><td><b>人</b>（审核 / 确认 / 审批）</td><td>核算单需人工确认、催款函需负责人确认后才发送</td></tr>
+  </tbody>
+</table>
+
+<div class="box teal">
+  <p class="t"><span class="win">亮点</span>为什么把"降级"做成一个可见的功能，而不是藏起来</p>
+  <p>很多系统遇到模型不可用就悄悄失败。这套系统反其道而行：<b>把"这次是谁判的"直接显示在页面上</b>。</p>
+  <p>这样做有两个好处：一是<b>演示与使用时功能不中断</b>，模型不给力也有结论可看；二是<b>口径透明</b>——看结果的人知道这条结论是模型定的还是规则定的，可以据此决定要不要重点复核。<b>把不确定性摆在明处，比假装没有更可信。</b></p>
+</div>
+
+<h3><span class="no">8.3</span>项目级数据隔离与权限边界</h3>
+<ul>
+  <li><b>资料目录独立</b>：一个项目对应一个文件夹，系统只读自己项目的目录。</li>
+  <li><b>数据结构独立</b>：台账、回款、逾期状态、提示记录都带项目标识，切换项目即切换数据集。</li>
+  <li><b>权限按角色收敛</b>：业务员只能看到自己负责的项目；经理可看全部项目并有专属管理视图，但<b>明确标注"不修改业务员原始数据"</b>；集团驾驶舱与使用统计仅经理及以上可见。</li>
+</ul>
+
+<h3><span class="no">8.4</span>数据安全与合规</h3>
+<table>
+  <thead><tr><th style="width:22%">风险点</th><th>系统怎么处理</th></tr></thead>
+  <tbody>
+    <tr><td><b>资料外传</b></td><td>OCR 与业务计算在本机完成，数据库是本地单文件。若启用云端模型，问题及用于回答的资料片段可能发送给模型服务商；模型是否可用、请求发往何处以运行配置为准。不要向未获授权的云端服务提交真实敏感资料。</td></tr>
+    <tr><td><b>纸质原件</b></td><td>按国企<b>单据双归档</b>要求设计：纸质原件用于现场签章、审计与责任追溯；线上影像与结构化字段用于检索、核验与留痕。系统把两套资料<b>绑定到同一订单</b>。<b>效率提升不以牺牲"能查证"为代价。</b></td></tr>
+    <tr><td><b>对外口径</b></td><td>涉及结算与计费的一律收敛表述为"<b>按合同约定的结算与计费规则，自动核算</b>"，不作资金占用结构层面的展开。<b>这是贯穿全部对外材料的口径纪律。</b></td></tr>
+    <tr><td><b>断网可用</b></td><td>整机离线可运行；模型不可用时自动降级为本地规则引擎，<b>功能不中断、口径不变化</b>。</td></tr>
+    <tr><td><b>数据性质（三类）</b></td><td><b>① A 项目：</b>展示资料变化、规则计算和下游更新的可运行链路；交付凭证为脱敏重制的合成件。<b>② C 项目：</b>现场新增导入用的演示资料。<b>③ B / D / E / F / G / H / J / K / L：</b>虚拟项目，仅展示组合视角。所有凭证与数据均不代表真实客户、合同或交易。</td></tr>
+  </tbody>
+</table>
+
+<!-- ============ 九 ============ -->
+<h2 id="s9"><span class="no">九</span>常见问题（专业 / 非专业两套答法）</h2>
+<p class="lead">按评审现场最可能被问到的顺序排列。每条给出<b>一句话版</b>（面向非技术评委）与<b>深入版</b>（面向技术评委）。</p>
+
+<h3><span class="no">9.1</span>关于真实性</h3>
+<table>
+  <thead><tr><th style="width:22%">问题</th><th style="width:34%">一句话版</th><th>深入版</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><b>这不是"套壳大模型"吧？</b></td>
+      <td>不是。业务金额与日期由程序计算，模型用于自然语言理解、检索辅助和文字组织。</td>
+      <td>这是规则与模型协作的混合设计：页面可查看工具/证据轨迹及模型降级状态；核查结果可打开原件，数字仍以规则计算为准。它不是把财务计算交给模型。</td>
+    </tr>
+    <tr>
+      <td><b>截图上的数字是真的吗？</b></td>
+      <td>是真的，都是系统实际跑出来的，可以按日期和文件名逐一核对原件。</td>
+      <td>本文数字来自 <b>A 项目</b>实际运行：核查范围 2026-07-01 ~ 2026-08-31，扫到 <b>48 份业务原件、7 个业务日期</b>，评分 <b>86 / 80 / 100</b>，抓出 <b>1 处缺件（07-17 缺上游送货单）+ 1 处金额冲突（07-25 差 2,000.00 元）</b>。每一项都可点「查看原件」回到 PDF 复核。</td>
+    </tr>
+    <tr>
+      <td><b>那 2,000 元是怎么发现的？</b></td>
+      <td>系统把发票、对账单、台账的数字摆在一起比，发现对不上。</td>
+      <td>三源<b>交叉核验</b>：单看一张发票，票面自洽；只有与台账应结金额并排比对才会暴露差异。我们复核了原件——<b>该发票明细逐行相加的"合计"为 ¥304,637.68，而票面"价税合计（小写）"为 ¥302,637.68</b>，同一张票上两个汇总数自差 2,000 元。系统保留票面<b>全部候选值</b>逐一比对，因此能识别"票面被改写"，而不只是"数字读不出来"。</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3><span class="no">9.2</span>关于准确性</h3>
+<table>
+  <thead><tr><th style="width:22%">问题</th><th style="width:34%">一句话版</th><th>深入版</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><b>OCR 会不会认错字？认错了怎么办？</b></td>
+      <td>会。所以系统把识别结果摆给人看，而不是直接拿去付款。</td>
+      <td>三层应对：①<b>三级降级</b>读取（PDF 文本层 → 全文抽取 → 逐页 OCR），能走文本层就不走 OCR；②识别结果在台账中<b>可人工校正并重新计算</b>；③每条异常都带<b>文件名与页码</b>，可一键翻回原件核对。<b>系统定位是"全量初筛"，不是"无人签批"。</b></td>
+    </tr>
+    <tr>
+      <td><b>能保证 100% 准确吗？</b></td>
+      <td>不承诺 100%，但我们把"人工抽查"变成了"全量过一遍"。</td>
+      <td>准确性口径的变化是实质性的：过去受工时限制只能抽检，现在范围内<b>每一份</b>原件都参与核验，且异常不靠人眼记忆，而是落成带出处的清单。<b>风险从"可能漏看"变成"漏看会留痕"</b>——这才是可以审计的状态。</td>
+    </tr>
+    <tr>
+      <td><b>合同规则变了，系统会不会算错？</b></td>
+      <td>规则是跟着合同走的，改合同就改规则，算出来的数跟着变。</td>
+      <td>计息起付条件、结算周期、上下浮比例、抵扣顺序都以<b>合同为准</b>，系统按合同约定顺序抵扣、按时间段分段计息，并输出核算明细供复核。<b>规则可追溯、结果可复现</b>，不依赖某个人的算法习惯。</td>
+    </tr>
+    <tr>
+      <td><b>模型乱说怎么办？</b></td>
+      <td>它乱说也没用——数字对不上证据，系统直接作废这条结论。</td>
+      <td>这是架构层面的约束：<b>金额、日期、出处一律由程序提供，模型不接触原始计算</b>；模型只做定性与规划，且结论需通过反查校验。校验不通过即 <code>degraded</code>，退回规则引擎。<b>"不许猜数字"是硬约束，不是提示词。</b></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3><span class="no">9.3</span>关于落地与推广</h3>
+<table>
+  <thead><tr><th style="width:22%">问题</th><th style="width:34%">一句话版</th><th>深入版</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><b>换一台电脑能用吗？要装什么？</b></td>
+      <td>能。整个交付包拷过去，双击启动脚本就行。</td>
+      <td>交付包自带启动脚本，浏览器打开即可使用。<b>零依赖外部服务</b>（无数据库服务、无 CDN、无框架安装）；如需让同事访问，把监听地址改为对内开放即可局域网使用。</td>
+    </tr>
+    <tr>
+      <td><b>接入一个新项目要多久？</b></td>
+      <td>整理好一个文件夹，走三步向导，一分多钟。</td>
+      <td>「新增项目」向导三步完成：<b>填项目基础信息 → 选择项目资料文件夹 → 系统进件体检并智能初始化</b>。实测一个 <b>61 个文件 / 4.13 MB</b> 的资料目录，初始化约 <b>1 分半以内</b>完成，随后自动生成该项目的独立数据空间。<b>加项目不改代码、不搬数据。</b></td>
+    </tr>
+    <tr>
+      <td><b>能和现有 ERP / 财务系统对接吗？</b></td>
+      <td>能。系统本身是标准接口，可以把这个位置接到别的系统上。</td>
+      <td>后端对外是 <b>46 个 REST 接口</b>（台账、核算、逾期、看板、资料导入、报表下载等），可直接作为数据提供方被其他系统调用；同样，若上游系统能提供结构化数据，也可替换掉"读文件夹"这一段。<b>当前版本定位为独立部署，接口已留好。</b></td>
+    </tr>
+    <tr>
+      <td><b>用来替代人工吗？</b></td>
+      <td>替代重复劳动，不替代判断。最终确认和对外动作都还需要人。</td>
+      <td>系统承担的是"翻文件、抄数字、套规则、做表格、组织材料"这些机械环节；<b>审核核算结果、确认资金占用费、审批催款函、处置待办事项仍由人完成</b>。这样既守住了国企对内控与授权的要求，也让人的精力从抄录转向判断。</td>
+    </tr>
+    <tr>
+      <td><b>现在到底几个人在用？</b></td>
+      <td>系统配置 5 个演示账号；活跃人数依现场使用记录，不作预置承诺。</td>
+      <td>系统配置 5 个演示账号，面板逐条统计已发生的操作。<b>账号数不等于实际用户数</b>；全新环境由零开始，不预置或回填活跃人数和使用次数。当前为演示环境，不是全公司推广规模；推广路径见 7.3。</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- ============ 附 ============ -->
+<h2 id="s10"><span class="no">附</span>亮点速查表 · 凭证清单 · 口径说明</h2>
+
+<h3><span class="no">附.1</span>全系统亮点速查表</h3>
+<p class="lead">把全篇 <span class="win">★ 标记</span> 的地方集中成一页，供快速翻阅与答辩检索。</p>
+<table>
+  <thead><tr><th style="width:5%">序</th><th style="width:22%">亮点</th><th style="width:10%">位置</th><th>一句话说清它"屌"在哪</th><th style="width:9%">重量级</th></tr></thead>
+  <tbody>
+    <tr><td class="num">1</td><td><b>最少的一手数据 + 全链推导</b></td><td>第五章</td><td>人只提供重量、网价、回款、合同规则；单价、金额、毛利、税费、周期、起息日、天数、费用、逾期、欠款、汇报数字<b>全部由规则引擎算出并被下游复用</b>。改一个源头，整条链自动重算。</td><td><span class="win hot">★★★★★</span></td></tr>
+    <tr><td class="num">2</td><td><b>同一个数字复用七处</b></td><td>5.2</td><td>逾期本金 135,906.45 元只在周期处算出一次，随后被结算看板、逾期提醒、风险卡、问答、经理台<b>各自取用，无一处人工重填</b>。</td><td><span class="win hot">★★★★★</span></td></tr>
+    <tr><td class="num">3</td><td><b>规则清单可逐条对照</b></td><td>5.3</td><td>算价、三税、周期、起息日、逾期分档、占用费分段——<b>六类规则全部写死成可执行、可核对的确定性公式</b>，不留在人的经验里。</td><td><span class="win hot">★★★★★</span></td></tr>
+    <tr><td class="num">4</td><td><b>2,000 元差异是"算出来"的</b></td><td>4.1</td><td>把发票、对账单、台账三方数字摆在一起交叉核验；单看一张票是自洽的，<b>只有并排比对才会暴露被改写的票面</b>。</td><td><span class="win hot">★★★★★</span></td></tr>
+    <tr><td class="num">5</td><td><b>金额绝不允许模型算（反查机制）</b></td><td>3.2</td><td><b>AI 只做「措辞与分级判断」，所有数字由可复算的本地公式产生</b>；模型每一句结论都附证据出处，结论里的每个数字必须在证据里找得到，<b>找不到就作废退回规则</b>。<b>目的是在演示现场就能证明结果可复核。</b></td><td><span class="win hot">★★★★★</span></td></tr>
+    <tr><td class="num">6</td><td><b>资金占用费分段可复算</b></td><td>4.4</td><td>回单 OCR 取数 → 固定抵扣顺序 → 回款日不计息 → 部分回款拆两段 → 未冲抵结转；<b>每段起止日、本金、天数、费用逐行可查</b>。</td><td><span class="win hot">★★★★★</span></td></tr>
+    <tr><td class="num">7</td><td><b>三样东西绑在同一订单</b></td><td>3.3</td><td>纸质原件（法律效力）+ 线上影像 + 结构化字段绑定到同一笔业务，<b>效率提升不以牺牲"能查证"为代价</b>。</td><td><span class="win">★★★★</span></td></tr>
+    <tr><td class="num">8</td><td><b>结论能一路翻到合同原件</b></td><td>3.3</td><td>不只是算出来的数能翻回原件，<b>连算价与计息所依据的那份合同本身也能翻回原件</b>——证据链闭合到规则层。</td><td><span class="win">★★★★</span></td></tr>
+    <tr><td class="num">9</td><td><b>凭证可回溯</b></td><td>4.2</td><td>台账每一行都能一键翻回<b>那张送货单和网价本身</b>。答辩时可以直接打开原件：<b>能点开原件给审计看的数字，才叫数据</b>。</td><td><span class="win">★★★★</span></td></tr>
+    <tr><td class="num">10</td><td><b>未逾期就不动作</b></td><td>4.5</td><td>系统在条件判断处主动停下：<b>未到起息日只监控、不生成催办</b>；真实逾期才推进分档。<b>既不漏催，也不误催。</b></td><td><span class="win">★★★★</span></td></tr>
+    <tr><td class="num">11</td><td><b>确定性优先，模型兜底</b></td><td>3.4</td><td><b>规则能判的毫秒级判，规则判不了的才叫模型</b>；模型不可用自动退回规则并在页面标注，<b>功能不中断</b>。</td><td><span class="win">★★★★</span></td></tr>
+    <tr><td class="num">12</td><td><b>把"降级"做成可见功能</b></td><td>8.2</td><td>页面直接显示这次是"大模型已参与"还是"本地规则引擎已接管"。<b>把不确定性摆在明处，比假装没有更可信。</b></td><td><span class="win">★★★★</span></td></tr>
+    <tr><td class="num">13</td><td><b>零框架 · 零 CDN · 断网可用</b></td><td>8.1</td><td>单文件前端 + Python 标准库后端 + 本地离线 OCR。<b>整机离线能跑、图像不出本机</b>，内网易过审。</td><td><span class="win">★★★★</span></td></tr>
+    <tr><td class="num">14</td><td><b>模型与规则分工清晰</b></td><td>3.1</td><td>语义理解与文字组织使用模型辅助；台账、费用和逾期金额由确定性规则计算，重要结果可回到资料核验。</td><td><span class="win">★★★★</span></td></tr>
+    <tr><td class="num">15</td><td><b>使用情况有真实留痕</b></td><td>7.1</td><td>使用面板基于真实操作记录实时统计，账号配置与活跃用户严格区分；现场可验证操作留痕。</td><td><span class="win">★★★★</span></td></tr>
+    <tr><td class="num">16</td><td><b>价值测算可逐项复算</b></td><td>6.3</td><td>投入产出表<b>每个数字都给出计算式和假设来源</b>，参数可现场替换重算；并诚实给出"扩到 10 项目到 50 万档"的杠杆。</td><td><span class="win">★★★★</span></td></tr>
+    <tr><td class="num">17</td><td><b>加项目不改代码 · 汇报稿随决策更新 · 口径摊开 · 卡片是"活的"</b></td><td>4.7 / 4.8 / 4.3 / 4.9</td><td>四个配套设计：<b>加项目零开发</b>（1 分半接入）、<b>汇报稿随决策自动更新</b>、<b>每个指标旁写明计算式与来源列</b>、<b>价值卡片随口径同步改写</b>。单看每一处都不惊艳，合起来是"这套系统能被长期维护"的证据。</td><td><span class="win">★★★</span></td></tr>
+    </tbody>
+</table>
+
+<h3><span class="no">附.2</span>本说明引用的原始凭证清单</h3>
+<p class="lead">附上本说明引用到的原始凭证。<b>所有界面截图里的数字，都能在下面这些凭证上找到对应。</b></p>
+<figure>
+  <img src="assets/15_原始上游发票.png" alt="原始上游发票">
+  <figcaption><b>图 20</b>｜系统内留档的原始上游发票。上游发票是"采购端"的金额依据，与下游发票、对账单、台账共同构成交叉核验的数据源。<b>采购端与销售端两侧都有原件可查，链条才是闭合的。</b></figcaption>
+</figure>
+<table>
+  <thead><tr><th style="width:6%">图</th><th style="width:22%">凭证</th><th style="width:34%">它证明什么</th><th>在系统里的位置</th></tr></thead>
+  <tbody>
+    <tr><td class="num">图 3</td><td>下游发票（2026-07-25）</td><td>票面"合计"¥304,637.68 与"价税合计（小写）"¥302,637.68 自差 <b>2,000.00 元</b>，即系统标记的金额冲突</td><td>单据完整性核查 · 07-25 明细行「查看原件」</td></tr>
+    <tr><td class="num">图 5</td><td>送货单</td><td>过磅重量与车号，销售单价与金额的计算基数</td><td>业务台账 · 对应明细行「查看凭证」</td></tr>
+    <tr><td class="num">图 6</td><td>网价资料</td><td>当期市场价，按合同上下浮比例换算单价的价格基准</td><td>业务台账 · 对应明细行「查看凭证」</td></tr>
+    <tr><td class="num">图 10</td><td>回款回单</td><td>回款日期与金额，资金占用费抵扣顺序与分段计息的起算依据</td><td>资金占用费核算 · 回款日志对应笔次</td></tr>
+    <tr><td class="num">图 19</td><td>合同（封面页）</td><td>合同编号、项目名称、甲乙双方、签订时间——<b>台账算价与资金占用费核算所依据的那份合同本身</b></td><td>台账算价 / 资金占用费核算的规则来源</td></tr>
+    <tr><td class="num">图 20</td><td>上游发票</td><td>采购端金额，与销售端共同构成完整核验闭环</td><td>单据完整性核查 · 资料匹配范围</td></tr>
+  </tbody>
+</table>
+
+<h3><span class="no">附.3</span>可追溯性的三个层级</h3>
+<div class="grid2">
+  <div class="card"><h5>第一层：结果可复现</h5><p>同一个输入，换时间、换操作人，算出来的数完全一致——因为计算由程序执行，不依赖人或模型的"手感"。</p></div>
+  <div class="card"><h5>第二层：字段可定位</h5><p>每一个引用的数字，都带着<b>文件名与页码</b>。不必"再找一遍资料"，直接跳到出处。</p></div>
+  <div class="card"><h5>第三层：原件可翻查</h5><p>从字段再往前一步，能打开<b>被扫描的那张原件</b>——发票、送货单、网价、回单、合同，都留在系统里。</p></div>
+  <div class="card"><h5>贯穿三层：判断权在人</h5><p>系统给出结论与依据，<b>是否采纳、是否付款、是否发函，由人决定</b>，且决定过程留痕。</p></div>
+</div>
+
+<div class="box teal">
+  <p class="t">如果只记三件事</p>
+  <p><b>① 数据只维护一次。</b>人只给一手事实，其余数字全部由公式规则引擎算出，并被下游层层复用——<b>一处算，处处一致</b>。</p>
+  <p><b>② 机器算数，模型辅助，人做决定。</b>金额由可复算的本地规则产生；模型用于语义理解、检索辅助和文字组织，重要结论可对照证据复核。</p>
+  <p style="margin-bottom:0"><b>③ 每个结论都能翻回原件。</b>从结论 → 字段 → 原件 → 规则所依据的合同，一路可查。<b>快只是结果，可复现、可追溯、可审计才是它走进国企业务的理由。</b></p>
+</div>
+
+<div class="tagline">
+  整篇说明想证明的其实是一件事：<br>
+  这套系统把供应链业务里"<b>靠人记忆、靠人翻找、靠人计算</b>"的部分，换成了"<b>程序取证、规则计算、人做判断</b>"。<br>
+  快只是结果，<b>可复现、可追溯、可审计</b>才是它能走进国企业务的理由。
+</div>
+
+<div class="note">
+  <b>口径说明</b>｜A 项目展示可运行的数据处理链路，但交付凭证为脱敏重制的合成件；C 项目用于现场新增导入；B/D/E/F/G/H/J/K/L 为虚拟展示项目。全部凭证与数据均不代表真实客户、合同或交易。标注 <span class="chip">卡片</span> 的效率数字来自系统价值卡片；标注 <span class="chip warn">假设</span> 的参数属于价值测算条件，见 6.3，可替换重算。涉及结算与计费统一表述为"按合同约定的结算与计费规则，自动核算"。启用云端模型时，问答及相关资料片段可能发送给服务商。
+</div>
+
+</div>
+</body>
+</html>

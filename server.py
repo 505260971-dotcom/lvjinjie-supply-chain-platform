@@ -442,6 +442,35 @@ def _ocr_extract_date(text: str, filename: str) -> str:
         return f"{m.group(1)}-{int(m.group(2)):02d}-{int(m.group(3)):02d}"
     return ""
 
+
+def _extract_receipt_fields(path: Path) -> dict[str, Any]:
+    """Extract amount/date from one receipt for both scanning and upload flows."""
+    text = ""
+    suffix = path.suffix.lower()
+    try:
+        if suffix == ".pdf":
+            if PdfReader is not None:
+                text = "\n".join((page.extract_text() or "") for page in PdfReader(str(path)).pages)
+            if not text.strip() and pymupdf is not None:
+                doc = pymupdf.open(str(path))
+                try:
+                    text = "\n".join(page.get_text() or "" for page in doc)
+                finally:
+                    doc.close()
+        elif suffix in {".png", ".jpg", ".jpeg"}:
+            ocr = _get_ocr()
+            if ocr:
+                result, _ = ocr(str(path))
+                if result:
+                    text = "\n".join(line[1] for line in result)
+    except Exception as exc:  # noqa: BLE001
+        LOGGER.info("receipt ocr failed %s: %s", path.name, exc)
+    amount = _ocr_extract_amount(text) if text else None
+    if amount is not None and amount <= 0:
+        amount = None
+    return {"amount": round(amount, 2) if amount else None,
+            "paid_date": _ocr_extract_date(text, path.stem)}
+
 def parse_repayment_receipts() -> list[dict[str, Any]]:
     """扫描回款回单目录，用 OCR 识别图片内容提取日期和金额。带缓存：文件未变不重复识别。"""
     if not REPAYMENT_DIR.exists(): return []
@@ -456,7 +485,6 @@ def parse_repayment_receipts() -> list[dict[str, Any]]:
             cache = {}
 
     rows = []
-    ocr = _get_ocr()
     new_cache = {}
     for path in REPAYMENT_DIR.iterdir():
         if path.suffix.lower() not in {".pdf", ".png", ".jpg", ".jpeg"}: continue
@@ -471,16 +499,9 @@ def parse_repayment_receipts() -> list[dict[str, Any]]:
                 new_cache[cache_key] = cached
                 new_cache[cache_key]["paid_date"] = paid_date
             else:
-                text = ""
-                if path.suffix.lower() == ".pdf":
-                    if PdfReader is None: continue
-                    text = "\n".join((p.extract_text() or "") for p in PdfReader(str(path)).pages)
-                elif ocr:
-                    result, _ = ocr(str(path))
-                    if result:
-                        text = "\n".join(line[1] for line in result)
-                amount = _ocr_extract_amount(text) if text else None
-                paid_date = _ocr_extract_date(text, path.stem)
+                fields = _extract_receipt_fields(path)
+                amount = fields.get("amount")
+                paid_date = fields.get("paid_date") or ""
                 if amount and amount > 0:
                     new_cache[cache_key] = {"amount": amount, "paid_date": paid_date}
 
@@ -3596,12 +3617,14 @@ FEE_RATE_PER_DAY = 0.0002  # 与资金占用费引擎一致
 USER_ACCOUNTS = {
     "lijuanyan": {"password": os.getenv("DEMO_PWD_USER", "88888888"), "role": "业务员", "name": "李鹃妍"},
     "buzhang": {"password": os.getenv("DEMO_PWD_MINISTER", "88888888"), "role": "业务部经理", "name": "业务部经理"},
+    "zongjingli": {"password": os.getenv("DEMO_PWD_CEO", "88888888"), "role": "总经理", "name": "总经理"},
     "caiwu": {"password": os.getenv("DEMO_PWD_FINANCE", "88888888"), "role": "财务专员", "name": "财务专员"},
     "caiwuzhuguan": {"password": os.getenv("DEMO_PWD_FINANCE_MANAGER", "88888888"), "role": "财务主管", "name": "财务主管"},
 }
 ROLE_DEPT = {
     "业务员": "采购业务部",
     "业务部经理": "采购业务部",
+    "总经理": "集团管理层",
     "财务专员": "财务部",
     "财务主管": "财务部",
 }
@@ -3712,8 +3735,8 @@ def usage_stats_payload(days: int = 30) -> dict[str, Any]:
 
 def _require_minister(handler: BaseHTTPRequestHandler) -> dict[str, Any] | None:
     session = _resolve_session(handler)
-    if not session or session.get("role") != "业务部经理":
-        json_response(handler, {"error": "未授权：需要业务部经理身份"}, 401)
+    if not session or session.get("role") not in {"业务部经理", "总经理"}:
+        json_response(handler, {"error": "未授权：需要业务部经理或总经理身份"}, 401)
         return None
     return session
 
@@ -4718,7 +4741,7 @@ def agent_graph_payload() -> dict[str, Any]:
     }
 
 
-def minister_overview_payload() -> dict[str, Any]:
+def minister_overview_payload(session: dict[str, Any] | None = None) -> dict[str, Any]:
     """业务部经理工作台汇总：按负责人区分真实联动项目与演示项目。"""
     global _MANAGER_FACTS_CACHE
     cards = []
@@ -4758,7 +4781,7 @@ def minister_overview_payload() -> dict[str, Any]:
     graph = agent_graph_payload()
     return {
         "ok": True,
-        "role": "业务部经理",
+        "role": (session or {}).get("role") or "业务部经理",
         "generated_at": datetime.now().isoformat(timespec="seconds"),
         "projects": cards,
         "agent_nodes": len(graph.get("nodes", [])),
@@ -4959,6 +4982,11 @@ PROJECTS = [
     {"id": "demo_d", "name": "D项目", "is_real": False, "owner": "业务员1", "data_mode": "demo", "sync_scope": "演示数据快照"},
     {"id": "demo_e", "name": "E项目", "is_real": False, "owner": "业务员2", "data_mode": "demo", "sync_scope": "演示数据快照"},
     {"id": "demo_f", "name": "F项目", "is_real": False, "owner": "业务员3", "data_mode": "demo", "sync_scope": "演示数据快照"},
+    {"id": "demo_g", "name": "G项目", "is_real": False, "owner": "业务员4", "data_mode": "demo", "sync_scope": "演示数据快照"},
+    {"id": "demo_h", "name": "H项目", "is_real": False, "owner": "业务员5", "data_mode": "demo", "sync_scope": "演示数据快照"},
+    {"id": "demo_j", "name": "J项目", "is_real": False, "owner": "业务员1", "data_mode": "demo", "sync_scope": "演示数据快照"},
+    {"id": "demo_k", "name": "K项目", "is_real": False, "owner": "业务员2", "data_mode": "demo", "sync_scope": "演示数据快照"},
+    {"id": "demo_l", "name": "L项目", "is_real": False, "owner": "业务员3", "data_mode": "demo", "sync_scope": "演示数据快照"},
 ]
 
 DATASETS_DIR = BASE_DIR / "datasets"
@@ -5078,6 +5106,31 @@ VIRTUAL_CONFIG = {
         "brands": ["建龙", "鞍钢", "柳钢"], "specs": (12, 16, 20, 25, 28),
         "weight_target": 820.0, "price_factor": 1.08,
         "overdue_cycles": 0, "overdue_amount": 0.0,
+    },
+    "demo_g": {
+        "brands": ["莱钢", "济钢", "石横"], "specs": (12, 16, 20, 25),
+        "weight_target": 1450.0, "price_factor": 1.03,
+        "overdue_cycles": 0, "overdue_amount": 0.0,
+    },
+    "demo_h": {
+        "brands": ["南钢", "马钢", "新余"], "specs": (14, 18, 22, 28),
+        "weight_target": 1180.0, "price_factor": 0.97,
+        "overdue_cycles": 0, "overdue_amount": 0.0,
+    },
+    "demo_j": {
+        "brands": ["攀钢", "昆钢", "水钢"], "specs": (10, 12, 16, 20),
+        "weight_target": 1620.0, "price_factor": 1.06,
+        "overdue_cycles": 1, "overdue_amount": 1136000.0,
+    },
+    "demo_k": {
+        "brands": ["太钢", "包钢", "邯钢"], "specs": (12, 14, 18, 22),
+        "weight_target": 1380.0, "price_factor": 1.01,
+        "overdue_cycles": 0, "overdue_amount": 0.0,
+    },
+    "demo_l": {
+        "brands": ["凌钢", "通钢", "北台"], "specs": (16, 20, 25, 28),
+        "weight_target": 1560.0, "price_factor": 0.99,
+        "overdue_cycles": 1, "overdue_amount": 1135000.0,
     },
 }
 PROJECT_NAMES = {p["id"]: p["name"] for p in PROJECTS}
@@ -6338,6 +6391,7 @@ def _audit_cache_key(path: Path) -> str:
     except ValueError:
         relative = path.name
     payload = {
+        "extractor_version": "20261021-task2-v1",
         "dataset": str(DATASET_ID),
         "path": relative,
         "size": size,
@@ -6359,28 +6413,46 @@ def _audit_extract_file(path: Path, force: bool = False) -> dict[str, Any]:
 
     candidates: list[float] = []
     kind = "unreadable"
+    degraded_reason = ""
     suffix = path.suffix.lower()
-    if suffix == ".pdf" and PdfReader is not None:
-        try:
-            text = "\n".join((page.extract_text() or "") for page in PdfReader(str(path)).pages)
-        except Exception:
-            text = ""
-        labelled = re.findall(r"(?:价税合计|含税合计|合计金额|合计|小写)[^0-9]{0,40}([0-9][0-9,]*\.\d{2})", text)
-        raw_amounts = labelled or re.findall(r"[0-9][0-9,]*\.\d{2}", text)
-        candidates = [float(token.replace(",", "")) for token in raw_amounts if float(token.replace(",", "")) >= 1000]
-        if candidates:
-            kind = "text_layer"
-        elif pymupdf is not None:
+    if suffix == ".pdf":
+        text = ""
+        if PdfReader is not None:
+            try:
+                text = "\n".join((page.extract_text() or "") for page in PdfReader(str(path)).pages)
+            except Exception:
+                text = ""
+
+        def _amounts(tokens: list[str]) -> list[float]:
+            values: list[float] = []
+            for token in tokens:
+                try:
+                    value = float(token.replace(",", ""))
+                except ValueError:
+                    continue
+                if value >= 1000:
+                    values.append(value)
+            return values
+
+        if text.strip():
+            labelled = re.findall(r"(?:价税合计|含税合计|合计金额|合计|小写)[^0-9]{0,40}([0-9][0-9,]*\.\d{2})", text)
+            candidates = _amounts(labelled) or _amounts(re.findall(r"[0-9][0-9,]*\.\d{2}", text))
+            if candidates:
+                kind = "text_layer"
+
+        if not candidates and pymupdf is not None:
             try:
                 doc = pymupdf.open(str(path))
-                pymupdf_text = "\n".join(page.get_text() for page in doc)
-                doc.close()
-                values = [float(x.replace(",", "")) for x in re.findall(r"\d[\d,]*\.\d{2}", pymupdf_text)]
-                candidates = [value for value in values if value >= 1000]
+                try:
+                    pymupdf_text = "\n".join(page.get_text() or "" for page in doc)
+                finally:
+                    doc.close()
+                candidates = _amounts(re.findall(r"[0-9][0-9,]*\.\d{2}", pymupdf_text))
                 if candidates:
                     kind = "pymupdf"
             except Exception:
                 pass
+
         if not candidates and RapidOCR is not None and pymupdf is not None:
             try:
                 global _AUDIT_OCR_ENGINE
@@ -6401,7 +6473,13 @@ def _audit_extract_file(path: Path, force: bool = False) -> dict[str, Any]:
                     kind = "rapidocr"
             except Exception:
                 pass
+
+        if not candidates and PdfReader is None and pymupdf is None:
+            kind = "degraded"
+            degraded_reason = "PDF文本解析不可用：pypdf与pymupdf均未安装，未执行金额一致性核查"
     payload = {"candidates": candidates, "kind": kind}
+    if degraded_reason:
+        payload["degraded_reason"] = degraded_reason
     try:
         AUDIT_CACHE_DIR.mkdir(parents=True, exist_ok=True)
         cache_path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
@@ -6448,6 +6526,9 @@ def quick_document_audit(range_text: str | None = None, force: bool = False) -> 
             except ValueError:
                 range_start = range_end = None
     results = []
+    required = {"上游送货单", "下游送货单", "上游发票", "下游发票", "上游对账单", "下游对账单", "网价"}
+    transaction_types = required
+    degraded_reasons: list[str] = []
     # 台账金额是本地规则引擎独立算出的基准，用于识别发票被改动但
     # PDF 文本层缺少“合计”标签的情况。
     ledger_by_day: dict[tuple[str, str], float] = defaultdict(float)
@@ -6478,23 +6559,24 @@ def quick_document_audit(range_text: str | None = None, force: bool = False) -> 
         elif "网价" in name: typ = "网价"
         elif "对账单" in name: typ = f"{direction}对账单" if direction else "对账单"
         elif "发票" in name: typ = f"{direction}发票" if direction else "发票"
-        elif "回款" in name: typ = "回款回单"
-        if date_str and typ != "其他": groups[date_str].add(typ)
-        if date_str and typ.endswith(("发票", "对账单")) and f.suffix.lower() == ".pdf" and PdfReader is not None:
+        elif "回款回单" in name: typ = "回款回单"
+        if date_str and typ in transaction_types: groups[date_str].add(typ)
+        if date_str and typ.endswith(("发票", "对账单")) and f.suffix.lower() == ".pdf":
             generic_type = "发票" if typ.endswith("发票") else "对账单"
             extracted = _audit_extract_file(f, force=force)
             candidates = [float(value) for value in extracted.get("candidates", []) if float(value) >= 1000]
+            if extracted.get("degraded_reason"):
+                degraded_reasons.append(str(extracted["degraded_reason"]))
             if candidates:
                 amounts[(date_str, generic_type)].append((max(candidates), f, direction))
                 amount_candidates[(date_str, generic_type, direction, str(f))] = candidates
             else:
                 unreadable_docs.append((date_str, f, direction, generic_type))
-        results.append({"file": name, "source": str(f.relative_to(DATASET_ROOT)), "path": str(f), "type": typ, "date": date_str,
-                        "layer1_pass": True, "layer2_pass": True, "match": True,
-                        "note": f"文件名日期 {date_str or '未识别'}，来源 {f.relative_to(DATASET_ROOT)}"})
-    required = {"上游送货单", "下游送货单", "上游发票", "下游发票", "上游对账单", "下游对账单", "网价"}
+        if date_str and typ in transaction_types:
+            results.append({"file": name, "source": str(f.relative_to(DATASET_ROOT)), "path": str(f), "type": typ, "date": date_str,
+                            "layer1_pass": True, "layer2_pass": True, "match": True,
+                            "note": f"文件名日期 {date_str or '未识别'}，来源 {f.relative_to(DATASET_ROOT)}"})
     missing = []
-    transaction_types = {"上游送货单", "下游送货单", "上游发票", "下游发票", "上游对账单", "下游对账单", "网价"}
     for d, types in sorted(groups.items()):
         if not (types & transaction_types):
             continue
@@ -6554,7 +6636,8 @@ def quick_document_audit(range_text: str | None = None, force: bool = False) -> 
         key = (str(conflict.get("date") or ""), str(conflict.get("source") or conflict.get("file") or ""))
         unique_conflicts.setdefault(key, conflict)
     conflicts = list(unique_conflicts.values())
-    score = round(sum(1 for d in groups if required <= groups[d]) / max(1, len(groups)) * 100)
+    business_days = [d for d in groups if groups[d] & transaction_types]
+    score = round(sum(1 for d in business_days if required <= groups[d]) / max(1, len(business_days)) * 100)
     for conflict in conflicts:
         conflict_source = str(conflict.get("source") or "")
         for row in results:
@@ -6563,7 +6646,13 @@ def quick_document_audit(range_text: str | None = None, force: bool = False) -> 
             same_file = not conflict_source and row.get("file") == conflict.get("file")
             if same_source or same_file:
                 row.update({"layer2_pass": False, "match": False, "conflict": True, "mismatch": conflict["reason"], "note": conflict["reason"]})
-    return {"ok": True, "results": results, "summary": {"total": len(results), "missing": missing, "mismatched": conflicts, "conflicts": conflicts, "pending": [], "scores": {"completeness": score, "consistency": max(0,100-len(conflicts)*20), "traceability": 100}, "conclusion": "发现资料缺失或金额冲突，请核对原件。" if missing or conflicts else "文件名与日期配套检查通过。", "supplement": missing + [x["reason"] for x in conflicts]}}
+    summary = {"total": len(results), "missing": missing, "mismatched": conflicts, "conflicts": conflicts, "pending": [],
+               "scores": {"completeness": score, "consistency": max(0, 100-len(conflicts)*20), "traceability": 100},
+               "conclusion": "发现资料缺失或金额冲突，请核对原件。" if missing or conflicts else "文件名日期与业务单据配套检查通过。",
+               "supplement": missing + [x["reason"] for x in conflicts]}
+    if degraded_reasons:
+        summary["degraded_reason"] = "；".join(sorted(set(degraded_reasons)))
+    return {"ok": True, "results": results, "summary": summary}
 
 
 # ==================== 单据审核 Agent：只读工具与受限取证 ====================
@@ -7754,18 +7843,20 @@ class Handler(BaseHTTPRequestHandler):
             elif path == "/api/agents":
                 json_response(self, agent_graph_payload())
             elif path == "/api/minister/overview":
-                if not _require_minister(self):
+                session = _require_minister(self)
+                if not session:
                     return
-                json_response(self, minister_overview_payload())
+                json_response(self, minister_overview_payload(session))
             elif path == "/api/minister/items":
                 if not _require_minister(self):
                     return
                 json_response(self, _management_items_payload())
             elif path == "/api/minister/report":
-                if not _require_minister(self):
+                session = _require_minister(self)
+                if not session:
                     return
                 payload = _management_items_payload()
-                report_text = _minister_report_text(payload.get("items", []), minister_overview_payload())
+                report_text = _minister_report_text(payload.get("items", []), minister_overview_payload(session))
                 json_response(self, {"ok": True, "text": report_text})
             elif path.startswith("/api/minister/report/download/"):
                 if not _require_minister(self):
@@ -8003,7 +8094,7 @@ class Handler(BaseHTTPRequestHandler):
                 if not _require_minister(self):
                     return
                 payload = _management_items_payload()
-                report_text = _minister_report_text(payload.get("items", []), minister_overview_payload())
+                report_text = _minister_report_text(payload.get("items", []), minister_overview_payload(_resolve_session(self)))
                 # 允许前端回传部长手工编辑后的正文：下载的 Word 与屏幕上看到的保持一致。
                 # 注意：这份正文是多行文本，绝不能走 normalize_text()（它会把换行压成空格）。
                 edited = body.get("text")
@@ -8186,6 +8277,40 @@ class Handler(BaseHTTPRequestHandler):
                     return
                 json_response(self, payload, status)
                 return
+            if path == "/api/finance/repayment-receipt/upload":
+                if not _intake_session(self, {"财务专员", "财务主管", "业务部经理"}):
+                    return
+                if not multipart:
+                    json_response(self, {"ok": False, "error": "请使用文件上传表单"}, 400)
+                    return
+                _project_name, items = _parse_upload_parts(self, raw)
+                if not items:
+                    json_response(self, {"ok": False, "error": "未收到文件（表单字段名必须为 files）"}, 400)
+                    return
+                item = items[0]
+                try:
+                    filename = _safe_upload_name(getattr(item, "filename", ""))
+                except ValueError:
+                    json_response(self, {"ok": False, "error": "文件名不合法"}, 400)
+                    return
+                suffix = Path(filename).suffix.lower()
+                if suffix not in {".pdf", ".png", ".jpg", ".jpeg"}:
+                    json_response(self, {"ok": False, "error": "仅支持 PDF / PNG / JPG 回单"}, 400)
+                    return
+                target_dir = REPAYMENT_DIR
+                target_dir.mkdir(parents=True, exist_ok=True)
+                stem, ext = Path(filename).stem, Path(filename).suffix
+                target = target_dir / filename
+                if target.exists():
+                    target = target_dir / f"{stem}_{int(time.time())}{ext}"
+                target.write_bytes(item.file.read())
+                fields = _extract_receipt_fields(target)
+                ocr_ok = bool(fields.get("amount"))
+                json_response(self, {"ok": True, "filename": target.name,
+                    "amount": fields.get("amount"), "paid_date": fields.get("paid_date") or "",
+                    "ocr_ok": ocr_ok,
+                    "message": "回单已识别" if ocr_ok else "回单已保存，未能自动识别金额，请手工填写"})
+                return
             if path == "/api/finance/repayment-intake/confirm":
                 session = _intake_session(self, {"财务主管", "业务部经理"})
                 if not session:
@@ -8246,6 +8371,31 @@ class Handler(BaseHTTPRequestHandler):
                             cached = json.loads(cache_path.read_text(encoding="utf-8"))
                             if isinstance(cached, dict) and cached.get("ok") and isinstance(cached.get("summary"), dict):
                                 audit_cache_hit = True
+                                # The cached scan is reusable, but historical comparison
+                                # is live state and must be rebuilt after every request.
+                                # Otherwise the second identical audit incorrectly reports
+                                # "首次记录" forever.
+                                cached["history"] = []
+                                summary = cached.get("summary") or {}
+                                cached_conflicts = summary.get("conflicts") or summary.get("mismatched") or []
+                                cached_missing = summary.get("missing") or []
+                                issue_types = [_audit_issue_type(item) for item in cached_conflicts]
+                                issue_types.extend("missing_document" for _ in cached_missing)
+                                if not issue_types:
+                                    issue_types = ["clear"]
+                                for issue_type in issue_types:
+                                    rows = _audit_history_rows(issue_type, 10)
+                                    current = rows[0] if rows else None
+                                    previous = rows[1] if len(rows) > 1 else None
+                                    cached["history"].append({
+                                        "issue_type": issue_type,
+                                        "current": current,
+                                        "previous": previous,
+                                        "comparison": "首次记录" if previous is None else (
+                                            "问题持续存在" if current and current.get("verdict") == previous.get("verdict")
+                                            else "结论发生变化"
+                                        ),
+                                    })
                                 return cached
                         except (OSError, ValueError, json.JSONDecodeError):
                             pass
