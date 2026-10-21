@@ -477,7 +477,14 @@
         <button class="button login-btn" type="button" onclick="directMinisterDemoLogin()" style="margin-top:8px;background:#eef6ff;color:#245d93">进入演示 · 业务部经理</button>
         <div id="loginError" class="login-error"></div>
       </form>
-      <div class="login-tip" style="line-height:1.8;text-align:left"><strong>5 个演示角色账号</strong><br>业务员：lijuanyan　·　业务部经理：buzhang<br>总经理：zongjingli　·　财务专员：caiwu　·　财务主管：caiwuzhuguan<br>演示密码：88888888</div>
+      <div class="login-tip" style="line-height:1.8;text-align:left"><strong>5 个演示角色账号</strong><br>密码统一为 <b>88888888</b></div>
+      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:10px;text-align:left">
+        <button type="button" class="button" onclick="staticQuickLogin('lijuanyan')">业务员 · lijuanyan</button>
+        <button type="button" class="button" onclick="staticQuickLogin('buzhang')">业务部经理 · buzhang</button>
+        <button type="button" class="button" onclick="staticQuickLogin('zongjingli')">总经理 · zongjingli</button>
+        <button type="button" class="button" onclick="staticQuickLogin('caiwu')">财务专员 · caiwu</button>
+        <button type="button" class="button" onclick="staticQuickLogin('caiwuzhuguan')" style="grid-column:1/-1">财务主管 · caiwuzhuguan</button>
+      </div>
     </div>
     <div class="login-footer">示例投资控股集团 · 供应链综合服务平台</div>
   </div>
@@ -1572,6 +1579,25 @@ window.__SS_VOUCHER__ = {"A项目-回款与逾期核算表.pdf": "assets/voucher
     window.addEventListener('DOMContentLoaded', () => {
       // 登录页由 checkLogin() 决定显隐，首次打开必须展示登录入口。
     });
+    // 静态体验版的五个角色快捷入口，不依赖后端，保证评委可直接切换视角。
+    function staticQuickLogin(username) {
+      const accounts = {
+        lijuanyan: {name:'李经理', username:'lijuanyan', role:'业务员'},
+        buzhang: {name:'业务部经理', username:'buzhang', role:'业务部经理'},
+        zongjingli: {name:'总经理', username:'zongjingli', role:'总经理'},
+        caiwu: {name:'财务专员', username:'caiwu', role:'财务专员'},
+        caiwuzhuguan: {name:'财务主管', username:'caiwuzhuguan', role:'财务主管'}
+      };
+      const demoUser = accounts[username] || accounts.lijuanyan;
+      localStorage.setItem(SESSION_KEY, JSON.stringify(demoUser));
+      localStorage.setItem('tower_token', 'static-demo-' + demoUser.username);
+      localStorage.removeItem('tower_logged_out');
+      applyUser(demoUser, {stayView:true});
+      if (demoUser.role === '业务部经理') switchView('minister');
+      else if (demoUser.role === '总经理') switchView('executive');
+      else switchView('knowledge');
+      return false;
+    }
     // 演示兜底登录，不依赖后端，保证现场可用
     function directDemoLogin() {
       const demoUser = {name:'李经理', username:'lijuanyan', role:'业务员'};
@@ -1607,6 +1633,7 @@ window.__SS_VOUCHER__ = {"A项目-回款与逾期核算表.pdf": "assets/voucher
     const DEMO_ACCOUNTS = {
       lijuanyan: '88888888',
       buzhang: '88888888',
+       zongjingli: '88888888',
       caiwu: '88888888',
       caiwuzhuguan: '88888888'
     };
@@ -2857,7 +2884,7 @@ window.__SS_VOUCHER__ = {"A项目-回款与逾期核算表.pdf": "assets/voucher
      const SESSION_KEY = 'tower_session';
      let activeUser = null;
      function applyUser(u, opts = {}) {
-       if (!u || !['业务员', '业务部经理', '财务专员', '财务主管'].includes(u.role)) u = {name:'李经理', username:'lijuanyan', role:'业务员'};
+       if (!u || !['业务员', '业务部经理', '总经理', '财务专员', '财务主管'].includes(u.role)) u = {name:'李经理', username:'lijuanyan', role:'业务员'};
        activeUser = u || {name:'李经理', username:'lijuanyan', role:'业务员'};
        u = activeUser;
        localStorage.removeItem('tower_logged_out');
@@ -2871,7 +2898,7 @@ window.__SS_VOUCHER__ = {"A项目-回款与逾期核算表.pdf": "assets/voucher
         const projectInfo = (PROJECT_LIST || []).find(p => p.id === currentProject);
         const brandSubtitle = document.getElementById('brandSubtitle');
         const crumbProject = document.querySelector('.crumb b');
-        if (isMinister) {
+       if (isMinister) {
           if (brandSubtitle) brandSubtitle.textContent = '团队经营 · 全项目决策';
           if (crumbProject) crumbProject.textContent = '团队项目总览';
         } else {
@@ -2889,7 +2916,9 @@ window.__SS_VOUCHER__ = {"A项目-回款与逾期核算表.pdf": "assets/voucher
       if (!isMinister) fetch('/api/health-report', { method: 'POST' }).catch(() => {});
         if (isMinister) {
           if (!opts.stayView) setTimeout(() => switchView('minister'), 0);
-        } else if (currentView === 'minister' || currentView === 'executive') switchView('knowledge');
+         } else if (u.role === '总经理') {
+           setTimeout(() => switchView('executive'), 0);
+         } else if (currentView === 'minister' || currentView === 'executive') switchView('knowledge');
     }
      function checkLogin() {
        // 没有会话时停在登录页，让评委先看到角色入口。
@@ -2952,7 +2981,7 @@ window.__SS_VOUCHER__ = {"A项目-回款与逾期核算表.pdf": "assets/voucher
      function refreshPerspectiveSelect() {
        const select = document.getElementById('perspectiveSelect');
        if (!select) return;
-       select.value = activeUser?.role === '业务部经理'
+        select.value = activeUser?.role === '总经理' ? 'executive' : activeUser?.role === '业务部经理'
          ? (currentView === 'executive' ? 'executive' : 'manager')
          : 'staff';
      }
@@ -2973,7 +3002,7 @@ window.__SS_VOUCHER__ = {"A项目-回款与逾期核算表.pdf": "assets/voucher
        }
        if (value === 'executive') {
          const go = () => switchView('executive');
-         if (activeUser?.role === '业务部经理') { go(); return; }
+          if (activeUser?.role === '业务部经理' || activeUser?.role === '总经理') { go(); return; }
          directMinisterDemoLogin().then(go).catch(() => {
            go();
            const error = document.getElementById('executiveError');
@@ -4385,7 +4414,7 @@ window.__SS_VOUCHER__ = {"A项目-回款与逾期核算表.pdf": "assets/voucher
         const res = await fetch('/api/projects', {headers: await trackedHeaders()});
         const data = await res.json();
         const allProjects = data.projects || [];
-        PROJECT_LIST = activeUser && activeUser.role === '业务部经理'
+       PROJECT_LIST = activeUser && ['业务部经理', '总经理'].includes(activeUser.role)
           ? allProjects
           : allProjects.filter(p => p.owner === '李经理' || p.id === 'demo_a' || p.id === 'dongliu');
       } catch (e) { PROJECT_LIST = [{ id: 'demo_a', name: 'A项目' }]; }
