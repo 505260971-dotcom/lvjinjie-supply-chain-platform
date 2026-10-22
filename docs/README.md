@@ -2,7 +2,7 @@
 
 ## 在线静态体验
 
-[打开绿金街供应链项目管理平台在线体验版（2026-10-22 快照）](https://505260971-dotcom.github.io/lvjinjie-supply-chain-platform/?v=20261022)
+[打开绿金街供应链项目管理平台在线体验版（财务角色版）](https://505260971-dotcom.github.io/lvjinjie-supply-chain-platform/?v=finance-149dc63)
 
 这是包含 5 个演示角色和 10 个预置项目的纯前端离线演示快照，不连接本地业务后端。页面可用于快速了解主要模块和角色视角；文件上传、真实解析、模型问答及数据写入请使用本地交付包体验。
 
