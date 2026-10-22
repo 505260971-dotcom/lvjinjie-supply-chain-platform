@@ -863,12 +863,23 @@
 
         <section class="view" data-view="finance">
           <div class="page-head">
-            <div><h2>经营数据统计</h2><p>结算、回款、毛利与税费的项目经营总览</p></div>
+             <div><h2 id="financePageTitle">经营数据统计</h2><p id="financePageSubtitle">结算、回款、毛利与税费的项目经营总览</p></div>
             <button class="button primary" onclick="openHealthCard()"><i data-lucide="clipboard-list" width="15"></i>本期经营小结</button>
             <div class="date-stamp">来源：业务台账 + 合同条款 + 已确认回款</div>
           </div>
           <div class="mainline-flow"><span class="flow-no">01</span><b>从原始资料到经营数据</b><span>项目文件夹 → 合同、送货单与网价识别 → OCR结构化 → 合同规则算价 → 自动生成业务台账 → 经营数据看板</span></div>
-          <section id="healthCard" hidden aria-live="polite"><div class="section-head"><h3>本期经营小结 <span class="tag neutral">确定性评分 + 模型措辞</span></h3><button class="button" onclick="closeHealthCard()">✕ 收起</button></div><div class="analysis-sub">按当前筛选周期汇总台账与回款数据，计算回款效率、逾期风险、资金占用、毛利健康、应收质量五项评分，并由大模型把结果写成一段结论与建议。切换月度、周度或年度后自动重算。</div><div id="healthLoading">正在分析项目经营数据…</div><div id="healthGrid" hidden><div class="analysis-flow"><span>读取当前周期台账与回款</span><b>→</b><span>计算五项经营评分</span><b>→</b><span>与大模型共同生成结论</span><b>→</b><span>输出建议</span></div><div class="analysis-result-grid"><div class="analysis-result"><small>经营结论</small><strong id="healthReport">正在生成</strong></div><div class="analysis-result"><small>变化原因与重点关注</small><strong id="healthScores">按品牌、品类和结算周期解释经营变化</strong></div><div class="analysis-result"><small>证据链</small><strong>业务台账 · 回款记录 · 合同条款 · 单据原件</strong></div><div class="analysis-result action"><small>行动建议</small><strong id="healthAdvice">生成后展示负责人、金额和跟进时限</strong></div></div><div style="display:grid;grid-template-columns:minmax(0,1.3fr) minmax(260px,.7fr);gap:14px;margin-top:14px"><div class="analysis-result"><small>销售趋势与周期对比</small><div id="healthTrendChart" style="height:220px"></div></div><div class="analysis-result"><small>销售结构与重点来源</small><div id="healthStructureChart" style="height:220px"></div></div></div><div class="analysis-next">继续追问：哪个品牌变化最大？哪一笔应收最需要跟进？</div></div></section>
+           <section class="panel" id="financeWorkbench" style="display:none;margin:15px 0;border-color:#cfe4da;background:linear-gradient(120deg,#f2faf6,#fff 62%)">
+             <div class="section-head"><div><h3 style="margin:0;color:#174d3b">财务协同工作台</h3><p style="margin:5px 0 0;color:#667b72;font-size:12px">回款登记、账务复核、应收监控与资金占用核算 · 演示数据</p></div><span class="tag ok">财务角色视图</span></div>
+             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-top:14px">
+               <div style="padding:13px;border:1px solid #dcebe2;border-radius:8px;background:#fff"><small style="color:#688073">累计回款</small><div id="financeWorkbenchPaid" style="font-size:19px;font-weight:700;color:#17664b;margin-top:5px">读取中</div><small style="color:#7b8d84">已登记回款记录汇总</small></div>
+               <div style="padding:13px;border:1px solid #dcebe2;border-radius:8px;background:#fff"><small style="color:#688073">待复核上报</small><div id="financeWorkbenchPending" style="font-size:19px;font-weight:700;color:#9a6417;margin-top:5px">读取中</div><small style="color:#7b8d84">财务主管可确认或退回</small></div>
+               <div style="padding:13px;border:1px solid #dcebe2;border-radius:8px;background:#fff"><small style="color:#688073">当前应收余额</small><div id="financeWorkbenchReceivable" style="font-size:19px;font-weight:700;color:#244e62;margin-top:5px">读取中</div><small style="color:#7b8d84">本金与未冲抵占用费</small></div>
+               <div style="padding:13px;border:1px solid #dcebe2;border-radius:8px;background:#fff"><small style="color:#688073">当前逾期风险</small><div id="financeWorkbenchOverdue" style="font-size:19px;font-weight:700;color:#a34136;margin-top:5px">读取中</div><small style="color:#7b8d84">按合同周期口径统计</small></div>
+             </div>
+             <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:14px;padding:11px 12px;border-radius:8px;background:#e9f5ee;color:#315e48;font-size:12px"><b>财务处理链路</b><span>回单登记</span><span>→</span><span>金额与日期核验</span><span>→</span><span>主管复核</span><span>→</span><span>回款冲抵与归档</span></div>
+             <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="button primary" type="button" onclick="jumpFinanceIntake()"><i data-lucide="circle-dollar-sign" width="15"></i>登记回款</button><button class="button" type="button" onclick="switchView('fee-calc')"><i data-lucide="list-checks" width="15"></i>查看冲抵流水</button><button class="button" type="button" onclick="document.getElementById('repaymentAuditList')?.scrollIntoView({behavior:'smooth',block:'center'})"><i data-lucide="receipt-text" width="15"></i>核对回款记录</button></div>
+           </section>
+           <section id="healthCard" hidden aria-live="polite"><div class="section-head"><h3>本期经营小结 <span class="tag neutral">确定性评分 + 模型措辞</span></h3><button class="button" onclick="closeHealthCard()">✕ 收起</button></div><div class="analysis-sub">按当前筛选周期汇总台账与回款数据，计算回款效率、逾期风险、资金占用、毛利健康、应收质量五项评分，并由大模型把结果写成一段结论与建议。切换月度、周度或年度后自动重算。</div><div id="healthLoading">正在分析项目经营数据…</div><div id="healthGrid" hidden><div class="analysis-flow"><span>读取当前周期台账与回款</span><b>→</b><span>计算五项经营评分</span><b>→</b><span>与大模型共同生成结论</span><b>→</b><span>输出建议</span></div><div class="analysis-result-grid"><div class="analysis-result"><small>经营结论</small><strong id="healthReport">正在生成</strong></div><div class="analysis-result"><small>变化原因与重点关注</small><strong id="healthScores">按品牌、品类和结算周期解释经营变化</strong></div><div class="analysis-result"><small>证据链</small><strong>业务台账 · 回款记录 · 合同条款 · 单据原件</strong></div><div class="analysis-result action"><small>行动建议</small><strong id="healthAdvice">生成后展示负责人、金额和跟进时限</strong></div></div><div style="display:grid;grid-template-columns:minmax(0,1.3fr) minmax(260px,.7fr);gap:14px;margin-top:14px"><div class="analysis-result"><small>销售趋势与周期对比</small><div id="healthTrendChart" style="height:220px"></div></div><div class="analysis-result"><small>销售结构与重点来源</small><div id="healthStructureChart" style="height:220px"></div></div></div><div class="analysis-next">继续追问：哪个品牌变化最大？哪一笔应收最需要跟进？</div></div></section>
           <section class="panel period-bar">
             <div>
               <div class="period-title">经营指标查看范围</div>
@@ -1609,6 +1620,7 @@ window.__SS_VOUCHER__ = {"A项目-回款与逾期核算表.pdf": "assets/voucher
       applyUser(demoUser, {stayView:true});
       if (demoUser.role === '业务部经理') switchView('minister');
       else if (demoUser.role === '总经理') switchView('executive');
+      else if (['财务专员','财务主管'].includes(demoUser.role)) switchView('finance');
       else switchView('knowledge');
       return false;
     }
@@ -2922,6 +2934,13 @@ window.__SS_VOUCHER__ = {"A项目-回款与逾期核算表.pdf": "assets/voucher
        document.body.classList.toggle('manager-mode', isMinister);
        const intakePanel = document.getElementById('financeIntakePanel');
        if (intakePanel) intakePanel.style.display = ['财务专员', '财务主管', '业务部经理'].includes(u.role) ? '' : 'none';
+        const financeMode = ['财务专员', '财务主管'].includes(u.role);
+        const financeWorkbench = document.getElementById('financeWorkbench');
+        if (financeWorkbench) financeWorkbench.style.display = financeMode ? '' : 'none';
+        const financeTitle = document.getElementById('financePageTitle');
+        const financeSubtitle = document.getElementById('financePageSubtitle');
+        if (financeTitle) financeTitle.textContent = financeMode ? '财务协同工作台' : '经营数据统计';
+        if (financeSubtitle) financeSubtitle.textContent = financeMode ? '回款登记与复核、应收监控、资金占用核算' : '结算、回款、毛利与税费的项目经营总览';
       if (ministerNav) ministerNav.style.display = isMinister ? 'flex' : 'none';
        if (perspectiveSelect) perspectiveSelect.style.display = 'inline-flex';
        refreshPerspectiveSelect();
@@ -2932,6 +2951,8 @@ window.__SS_VOUCHER__ = {"A项目-回款与逾期核算表.pdf": "assets/voucher
           if (!opts.stayView) setTimeout(() => switchView('minister'), 0);
          } else if (u.role === '总经理') {
            setTimeout(() => switchView('executive'), 0);
+         } else if (['财务专员','财务主管'].includes(u.role)) {
+           setTimeout(() => switchView('finance'), 0);
          } else if (currentView === 'minister' || currentView === 'executive') switchView('knowledge');
     }
      function checkLogin() {
@@ -3607,6 +3628,7 @@ window.__SS_VOUCHER__ = {"A项目-回款与逾期核算表.pdf": "assets/voucher
       const taxDesc = document.getElementById('taxMetricDesc');
       if (taxDesc) taxDesc.textContent = `${periodNote} · 增值税 + 附加税 + 印花税`;
       if (typeof renderMaterialCharts === 'function') renderMaterialCharts();
+      updateFinanceWorkbenchSummary();
     }
     function renderBusinessMetrics(snapshot) {
       const k = snapshot?.kpis || {};
@@ -3663,6 +3685,16 @@ window.__SS_VOUCHER__ = {"A项目-回款与逾期核算表.pdf": "assets/voucher
       }
       document.getElementById('repaymentPagination').innerHTML=`<span class="pagination-info">第 ${repaymentPage}/${totalPages} 页 · 共 ${sorted.length} 笔</span><span class="pagination-actions"><button class="page-btn" ${repaymentPage<=1?'disabled':''} onclick="repaymentPage--;renderRepaymentDashboard(dashboardData)">上一页</button><span>第 ${repaymentPage}/${totalPages} 页</span><button class="page-btn" ${repaymentPage>=totalPages?'disabled':''} onclick="repaymentPage++;renderRepaymentDashboard(dashboardData)">下一页</button></span>`;
     }
+     function updateFinanceWorkbenchSummary(pendingCount=null){
+       const sources=[['financeWorkbenchPaid','repaymentGrandTotal'],['financeWorkbenchReceivable','receivableTotalMetric'],['financeWorkbenchOverdue','currentOverdueMetric']];
+       sources.forEach(([targetId,sourceId])=>{const target=document.getElementById(targetId),source=document.getElementById(sourceId);if(target&&source)target.textContent=source.textContent||'读取中';});
+       const pending=document.getElementById('financeWorkbenchPending');
+       if(pending&&pendingCount!==null) pending.textContent=`${pendingCount} 笔`;
+     }
+     function jumpFinanceIntake(){
+       document.getElementById('financeIntakePanel')?.scrollIntoView({behavior:'smooth',block:'center'});
+       document.getElementById('intakePaidDate')?.focus({preventScroll:true});
+     }
      function financeHeaders(json=false){ const h={}; if(json) h['Content-Type']='application/json'; const token=localStorage.getItem('tower_token')||''; if(token) h['X-Session-Token']=token; return h; }
      async function loadRepaymentIntake(){
        const list=document.getElementById('financeIntakeList'); if(!list)return;
@@ -3670,7 +3702,7 @@ window.__SS_VOUCHER__ = {"A项目-回款与逾期核算表.pdf": "assets/voucher
        try {
          const r=await fetch('/api/finance/repayment-intake',{headers:financeHeaders()}); const d=await r.json();
          if(!r.ok){ list.innerHTML=`<div class="empty">${d.error||'暂无权限读取上报记录'}</div>`; return; }
-         const rows=d.records||[]; const manager=['财务主管','业务部经理'].includes(activeUser?.role);
+          const rows=d.records||[]; updateFinanceWorkbenchSummary(rows.filter(x=>x.status==='pending').length); const manager=['财务主管','业务部经理'].includes(activeUser?.role);
          if(!rows.length){ list.innerHTML='<div class="empty">暂无财务上报记录</div>'; return; }
          list.innerHTML=`<table style="min-width:680px"><thead><tr><th>日期</th><th>金额</th><th>付款方/流水号</th><th>状态</th><th>操作</th></tr></thead><tbody>${rows.map(x=>{const st=x.status==='confirmed'?'已确认':x.status==='rejected'?'已驳回':'待确认'; const acts=x.status==='pending'&&manager?`<button class="button primary" style="padding:4px 8px;font-size:11px" onclick="confirmFinanceIntake(${x.id})">确认</button> <button class="button ghost" style="padding:4px 8px;font-size:11px" onclick="rejectFinanceIntake(${x.id})">驳回</button>`:'—'; return `<tr><td>${x.paid_date||'-'}</td><td>¥ ${money(x.amount||0)}</td><td>${x.payer||'-'}<br><small style="color:#64748b">${x.bank_ref||'无流水号'}</small></td><td><span class="tag ${x.status==='confirmed'?'ok':x.status==='rejected'?'bad':'warn'}">${st}</span></td><td>${acts}</td></tr>`;}).join('')}</tbody></table>`;
        } catch(e){ list.innerHTML='<div class="empty">财务上报服务暂不可用</div>'; }
@@ -3731,7 +3763,7 @@ window.__SS_VOUCHER__ = {"A项目-回款与逾期核算表.pdf": "assets/voucher
      function renderPayWaterfall(){
        const box=document.getElementById('calcPayWaterfall'); if(!box)return;
        const list=calcPaySteps||[];
-       if(!list.length){ box.innerHTML='<div class="empty">当前没有可展示的回款冲抵流水</div>'; return; }
+       if(!list.length){ box.innerHTML='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:9px"><article class="pay-step fee"><span class="pay-step-no">① 先抵前期占用费</span><strong>规则顺序示意</strong><span>静态体验快照未包含逐笔冲抵字段，不展示推算金额。</span></article><article class="pay-step principal"><span class="pay-step-no">② 再冲最早到期本金</span><strong>按到期顺序处理</strong><span>本金余额以本机运行版规则引擎结果为准。</span></article><article class="pay-step defer"><span class="pay-step-no">③ 本期费用后续处理</span><strong>不抢先冲抵</strong><span>逐笔金额与凭证来源请在交付版 A 项目查看。</span></article></div>'; return; }
        calcPayStepIndex=Math.min(Math.max(calcPayStepIndex,0),list.length-1);
        const current=list[calcPayStepIndex];
        const tabs=list.map((x,i)=>`<button class="pay-waterfall-tab ${i===calcPayStepIndex?'active':''}" onclick="calcPayStepIndex=${i};renderPayWaterfall()">${x.paid_date||'-'} · ¥ ${money(x.amount||0)}</button>`).join('');
