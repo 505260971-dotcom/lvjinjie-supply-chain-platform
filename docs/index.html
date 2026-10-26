@@ -4841,6 +4841,7 @@ window.__SS_VOUCHER__ = {"A项目-回款与逾期核算表.pdf": "assets/voucher
 
 
 
+
 <script data-static-v2="1">
 /* ==========================================================================
    静态体验版补丁 v2  —— 演示打磨（2026-10-26）
@@ -5266,6 +5267,48 @@ window.__SS_VOUCHER__ = {"A项目-回款与逾期核算表.pdf": "assets/voucher
     return true;
   }
 
+  /* ---------- 保护 Agent 回答区不被项目名替换 ----------
+     switchProject 会用 TreeWalker 把页面上所有「A项目演示」替换成新项目名，
+     以此让静态文案跟随项目切换。但「向项目资料提问」的示例回答 / Agent 回答
+     是合同原文（含「A项目演示按月结算」），被改成就成了「新增项目C按月结算」，
+     答案失真。index.html 支持 data-no-relabel 跳过替换，这里给答案区打标。 */
+  function protectAnswerBox() {
+    var box = document.getElementById('answerBox');
+    if (!box) return false;
+    if (!box.__v2Html) box.__v2Html = box.innerHTML;   /* 记住最初原文 */
+    if (box.getAttribute('data-no-relabel') === null) {
+      box.setAttribute('data-no-relabel', '');
+      console.log(LOGP, '已保护 Agent 回答区，项目切换不改写答案原文');
+    }
+    return true;
+  }
+
+  /* 再包一层 switchProject：switchProject 是 async，正文替换在 await 之前同步完成，
+     所以切换后立即还原答案区即可；再补一次微任务兜底。 */
+  function patchSwitchProject() {
+    var _sw = window.switchProject;
+    if (typeof _sw !== 'function') return false;
+    if (_sw.__v2) return true;
+
+    function restore() {
+      try {
+        var box = document.getElementById('answerBox');
+        if (!box) return;
+        if (!box.__v2Html) { box.__v2Html = box.innerHTML; return; }
+        if (box.innerHTML !== box.__v2Html) box.innerHTML = box.__v2Html;
+      } catch (e) { }
+    }
+
+    window.switchProject = function () {
+      var r = _sw.apply(this, arguments);
+      restore();
+      Promise.resolve(r).then(restore).catch(restore);
+      return r;
+    };
+    window.switchProject.__v2 = true;
+    return true;
+  }
+
   /* 轮询到主脚本就绪为止（最多约 20 秒），避免慢网络下补丁先执行、后续不重试。
      同时守护 runWizardSteps，防被主脚本改回去。 */
   function waitForMainScript() {
@@ -5275,7 +5318,9 @@ window.__SS_VOUCHER__ = {"A项目-回款与逾期核算表.pdf": "assets/voucher
       var a = patchWizardEntry();
       var b = patchSelectorRebuild();
       var c = installRunWizardSteps();
-      if (a && b && c) return;
+      var d = protectAnswerBox();
+      var e = patchSwitchProject();
+      if (a && b && c && d && e) return;
       if (tries < 80) setTimeout(tick, 250);
       else console.warn(LOGP, '等待主脚本超时，向导入口未挂上');
     })();
