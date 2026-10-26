@@ -223,6 +223,13 @@ GRAPH_NODES = [
 STATE_LOCK = threading.RLock()
 STATE: dict[str, Any] = {"fingerprint": None, "snapshot": None,
                          "reindex_status": {"status": "idle", "completed": 0, "total": 0, "files": []}}
+# 2026-10-26：按数据集分开存快照。
+#   原来 STATE["snapshot"]/["fingerprint"] 只有一份，而经理工作台会在同一轮里
+#   遍历 11 个项目（每次都 _activate_dataset 切目录）。A 项目算完后切到 C，
+#   C 算完后切回 A 时指纹已经对不上 C 留下的那份，于是 A 每轮都全量重建
+#   （实测 demo_a 快照稳定 12~14 秒 × 每轮必跑）—— 经理总览因此从 1.4s
+#   恶化到 49~94s。改成按 DATASET_ID 分槽后，各项目各自命中自己的缓存。
+_SNAPSHOT_BY_DATASET: dict[str, tuple[str, dict[str, Any]]] = {}
 
 
 def today_iso() -> str:
@@ -474,6 +481,14 @@ def _extract_receipt_fields(path: Path) -> dict[str, Any]:
 def parse_repayment_receipts() -> list[dict[str, Any]]:
     """扫描回款回单目录，用 OCR 识别图片内容提取日期和金额。带缓存：文件未变不重复识别。"""
     if not REPAYMENT_DIR.exists(): return []
+    # 2026-10-26：外层再加一层目录级缓存。内层的 repayment_ocr_cache.json
+    # 省掉的是「重复 OCR」，但目录遍历、缓存读写、日期与周期键的计算每次仍会重跑；
+    # 经理工作台对 11 个项目各调一次时，这部分累积起来同样是秒级开销。
+    return _cached_parse("repayment_receipts", _parse_cache_key(REPAYMENT_DIR),
+                         _parse_repayment_receipts_uncached)
+
+
+def _parse_repayment_receipts_uncached() -> list[dict[str, Any]]:
     cache_path = RUNTIME_DIR / "repayment_ocr_cache.json"
     cache = {}
     if cache_path.exists():
@@ -544,6 +559,12 @@ def parse_demo_fee_periods() -> list[dict[str, Any]]:
     pdf = _dataset_pdf("*回款与逾期核算表.pdf", "*资金占用费确认单*.pdf")
     if pdf is None:
         return []
+    # 2026-10-26：加解析缓存。本函数要读整份 PDF 并逐行跑正则，
+    # 经理工作台对 11 个项目各调一次时是主要耗时来源之一。
+    return _cached_parse("fee_periods", _parse_cache_key(pdf), lambda: _parse_fee_periods_uncached(pdf))
+
+
+def _parse_fee_periods_uncached(pdf) -> list[dict[str, Any]]:
     try:
         text = "\n".join((page.extract_text() or "") for page in PdfReader(str(pdf)).pages)
     except Exception:
@@ -1152,6 +1173,55 @@ def extract_dates_from_name(name: str) -> list[date]:
         except ValueError:
             pass
     return dates
+
+
+_PARSE_CACHE: dict[tuple, Any] = {}
+_PARSE_CACHE_LIMIT = 64
+
+
+def _parse_cache_key(*paths: Any) -> tuple:
+    """给「读文件→解析」类函数生成缓存键：数据集 ID + 每个文件的 (路径, 大小, mtime)。
+
+    2026-10-26：经理工作台每次刷新都要对 11 个项目跑一遍 overdue_status_demo，
+    而它内部的 parse_demo_fee_periods / parse_repayment_receipts 每次都重新读
+    PDF、重新跑正则（单项目 7~17 秒）。这些解析结果是纯函数的产物，
+    只要文件没变就该复用。键里带 mtime+size，文件一改立刻失效，
+    不会出现"改完单据数字没更新"的问题。
+    """
+    parts: list[Any] = [str(globals().get("DATASET_ID") or "")]
+    for p in paths:
+        try:
+            path = Path(p)
+            if path.is_dir():
+                for f in sorted(path.iterdir()):
+                    if f.is_file():
+                        st = f.stat()
+                        parts.append((f.name, st.st_size, round(st.st_mtime, 3)))
+            elif path.is_file():
+                st = path.stat()
+                parts.append((str(path), st.st_size, round(st.st_mtime, 3)))
+            else:
+                parts.append((str(path), None, None))
+        except OSError:
+            parts.append((str(p), "err", None))
+    return tuple(parts)
+
+
+def _cached_parse(name: str, key: tuple, builder):
+    """按 (函数名, 数据集, 文件状态) 缓存解析结果。
+
+    ★ 必须是「多槽」缓存，不能只存最后一组。经理工作台会在一轮里依次
+      解析 A 项目和 C 项目，单槽缓存会被后一个项目反复踢掉，
+      实测导致每次刷新都全量重算（14s → 49~94s）。
+    """
+    slot = (name, key)
+    if slot in _PARSE_CACHE:
+        return _PARSE_CACHE[slot]
+    value = builder()
+    if len(_PARSE_CACHE) >= _PARSE_CACHE_LIMIT:
+        _PARSE_CACHE.clear()   # 演示场景条目极少，整体清空即可，无需 LRU
+    _PARSE_CACHE[slot] = value
+    return value
 
 
 def file_fingerprint() -> str:
@@ -3439,11 +3509,19 @@ def dashboard_payload() -> dict[str, Any]:
 def get_snapshot() -> dict[str, Any]:
     with STATE_LOCK:
         fp = file_fingerprint()
+        key = str(globals().get("DATASET_ID") or "")
+        slot = _SNAPSHOT_BY_DATASET.get(key)
+        if slot and slot[0] == fp:
+            # 该数据集的缓存有效，直接复用（多项目来回切换时不再互相踢掉）
+            STATE["snapshot"] = slot[1]
+            STATE["fingerprint"] = fp
+            return slot[1]
         if STATE["snapshot"] is None or STATE["fingerprint"] != fp:
             # 文件有变化时异步重建知识库，不能阻塞看板请求。
             start_reindex()
             STATE["snapshot"] = build_cycle_snapshot()
             STATE["fingerprint"] = fp
+        _SNAPSHOT_BY_DATASET[key] = (fp, STATE["snapshot"])
         return STATE["snapshot"]
 
 
@@ -3452,6 +3530,7 @@ def refresh_all() -> dict[str, Any]:
     with STATE_LOCK:
         STATE["snapshot"] = build_cycle_snapshot()
         STATE["fingerprint"] = file_fingerprint()
+        _SNAPSHOT_BY_DATASET[str(globals().get("DATASET_ID") or "")] = (STATE["fingerprint"], STATE["snapshot"])
         _MANAGEMENT_SOURCE_CACHE = None
         _MANAGEMENT_SOURCE_CACHE_AT = 0.0
         _MANAGER_FACTS_CACHE = {}
@@ -4751,7 +4830,17 @@ def minister_overview_payload(session: dict[str, Any] | None = None) -> dict[str
         pid = project["id"]
         snap = get_project_snapshot(pid)
         kpis = snap.get("kpis", {}) or {}
-        audit = quick_document_audit() if pid in {"demo_a", "dongliu"} else {}
+        # ★ 关键：quick_document_audit() 读的是全局 DATASET_ROOT，而本循环
+        #   遍历的是「所有项目」。已注册的导入项目必须切到自己的数据集上下文里
+        #   去体检，否则会把 A 项目的目录当成自己的来扫 —— 结果既错又慢
+        #   （实测 C 项目导入后经理总览从 1.4s 涨到 52s，扫的是同一份 A 数据）。
+        audit_needed = pid in {"demo_a", "dongliu"} or project.get("data_mode") == "live"
+        if not audit_needed:
+            audit = {}
+        elif pid in DATASET_REGISTRY:
+            audit = _registered_call(pid, quick_document_audit) or {}
+        else:
+            audit = quick_document_audit()
         audit_summary = audit.get("summary", {}) if isinstance(audit, dict) else {}
         overdue = overdue_status_demo(pid)
         _MANAGER_FACTS_CACHE[pid] = {"audit": audit, "overdue": overdue}
@@ -5212,6 +5301,103 @@ def _registered_call(project_id: str, callback):
         finally:
             _ACTIVE_DATASET_ID = None
             _restore_dataset(previous)
+
+
+def _populate_embeddings_for_db(db_path: Path) -> dict[str, Any]:
+    """给指定项目的 control_tower.db 补建合同向量，**只用私有连接、不碰全局状态**。
+
+    与 populate_contract_embeddings() 的差别：后者走全局 db()（读 DB_PATH），
+    必须先进 _activate_dataset 切上下文，因此得在 DATASET_CONTEXT_LOCK 里跑；
+    本函数自己连库，可以在后台线程里安全地长跑，不会把 login / 台账接口卡住。
+    """
+    embedded = 0
+    dimensions = 0
+    rows: list[sqlite3.Row] = []
+    c = sqlite3.connect(db_path)
+    c.row_factory = sqlite3.Row
+    try:
+        rows = c.execute(
+            "SELECT id, title, content FROM knowledge_chunks "
+            "WHERE category='contract' AND (embedding IS NULL OR embedding='')"
+        ).fetchall()
+        if not rows:
+            existing = c.execute(
+                "SELECT embedding FROM knowledge_chunks WHERE category='contract' AND embedding <> '' LIMIT 1"
+            ).fetchone()
+            dimensions = len(json.loads(existing[0])) if existing and existing[0] else 0
+            return {"status": "complete", "embedded": 0, "total": 0, "dimensions": dimensions}
+        for offset in range(0, len(rows), 6):
+            batch = rows[offset:offset + 6]
+            payload = json.dumps({"model": EMBED_MODEL,
+                                  "input": [f"{row['title']}\n{row['content']}" for row in batch]},
+                                 ensure_ascii=False).encode("utf-8")
+            req = Request(f"{OLLAMA_BASE}/api/embed", data=payload,
+                          headers={"Content-Type": "application/json"})
+            with urlopen(req, timeout=120) as resp:
+                body = json.loads(resp.read().decode("utf-8"))
+            vectors = body.get("embeddings") or []
+            if len(vectors) != len(batch) or not all(isinstance(v, list) and v for v in vectors):
+                raise RuntimeError("embedding count or dimension invalid")
+            dims = {len(v) for v in vectors}
+            if len(dims) != 1:
+                raise RuntimeError("embedding vectors have inconsistent dimensions")
+            dimensions = dims.pop()
+            c.executemany(
+                "UPDATE knowledge_chunks SET embedding=? WHERE id=?",
+                [(json.dumps(vector, ensure_ascii=False), row["id"])
+                 for row, vector in zip(batch, vectors)],
+            )
+            c.commit()
+            embedded += len(batch)
+        return {"status": "complete", "embedded": embedded, "total": len(rows), "dimensions": dimensions}
+    except Exception as exc:
+        return {"status": "degraded", "embedded": embedded, "total": len(rows),
+                "dimensions": dimensions, "error": f"{type(exc).__name__}: {exc}"}
+    finally:
+        c.close()
+
+
+def _start_embedding_worker(project_id: str, task_id: str = "") -> bool:
+    """后台补建该项目的合同向量索引（2026-10-25 路演修复）。
+
+    为什么要放后台：bge-m3 在本机是纯 CPU 推理（Ollama /api/ps 显示
+    vram=0），36 段约 1100 字的合同文本要 73 秒，且与批大小几乎无关
+    （batch 6/12/36 分别实测 71.7 / 74.8 / 76.2s，说明瓶颈是模型前向
+    而不是调度）。同步跑会把「确认注册并打开项目」按钮变成 109 秒无响应，
+    路演现场看就是卡死。
+
+    为什么不干脆删掉向量化：retrieve_chunks 是 BM25 + 余弦的混合排序，
+    有向量时合同问答召回更好；异步补建两头都不损失。
+
+    ★ 关键：本线程**不能**进 DATASET_CONTEXT_LOCK，也不能依赖 _activate_dataset。
+      第一版实现偷懒用了 _registered_call()，结果后台 73 秒全程独占那把全局锁，
+      而锁内还把全局 DB_PATH 指向了新项目 —— 这期间 login 的 log_usage()
+      和 /api/projects 全被阻塞甚至写错库，实测登录直接超时。
+      现在改为私有 sqlite 连接 + 私有 RUNTIME 路径，与主线程零共享。
+    """
+    meta = DATASET_REGISTRY.get(project_id)
+    if not meta:
+        return False
+    db_path = BASE_DIR / "runtime" / project_id / "control_tower.db"
+
+    def worker():
+        try:
+            result = _populate_embeddings_for_db(db_path)
+        except Exception as exc:  # 后台线程必须自己兜住异常，否则会静默死掉
+            result = {"status": "degraded", "error": f"{type(exc).__name__}: {exc}"}
+        LOGGER.info("background embedding for %s: %s", project_id, result)
+        if task_id:
+            with IMPORT_TASK_LOCK:
+                task = IMPORT_TASKS.get(task_id)
+                if task:
+                    task["embedding"] = result
+            try:
+                _persist_import_tasks()
+            except OSError:
+                pass
+
+    threading.Thread(target=worker, name=f"embed-{project_id[:16]}", daemon=True).start()
+    return True
 
 
 def _virtual_ledger(project_id):
@@ -6514,8 +6700,39 @@ def _audit_result_cache_path(range_text: str | None) -> Path:
     return AUDIT_CACHE_DIR / f"result-{key}.json"
 
 
+_AUDIT_CACHE: dict[str, tuple[str, dict[str, Any]]] = {}
+
+
 def quick_document_audit(range_text: str | None = None, force: bool = False) -> dict[str, Any]:
-    """Fast first-pass audit: filename/date pairing returns immediately before OCR."""
+    """Fast first-pass audit: filename/date pairing returns immediately before OCR.
+
+    2026-10-26 加指纹缓存：本函数实测单次要 11~12 秒（要把项目目录下所有
+    PDF/图片扫一遍并读金额），而「业务部经理工作台」的 /api/minister/overview
+    每次都同步调它一次 —— 于是那个页面每次刷新都要等 14 秒，且连点两次不会变快。
+    改法与 build_cycle_snapshot 的快照缓存一致：文件指纹没变就直接复用结果。
+    force=True（用户点「重新核查」）时强制重算，语义不变。
+    """
+    # 缓存键必须带 DATASET_ID：切换项目时 DATASET_ROOT 会被 _activate_dataset 改掉，
+    # 只按 range_text 做键会让 A 项目的体检结果串到 C 项目上。
+    cache_key = f"{globals().get('DATASET_ID')}|{range_text or ''}"
+    if not force:
+        try:
+            fingerprint = file_fingerprint()
+        except Exception:
+            fingerprint = ""
+        if fingerprint:
+            cached = _AUDIT_CACHE.get(cache_key)
+            if cached and cached[0] == fingerprint:
+                return cached[1]
+    else:
+        fingerprint = ""
+    result = _quick_document_audit_uncached(range_text, force=force)
+    if fingerprint:
+        _AUDIT_CACHE[cache_key] = (fingerprint, result)
+    return result
+
+
+def _quick_document_audit_uncached(range_text: str | None = None, force: bool = False) -> dict[str, Any]:
     files = [f for f in DATASET_ROOT.rglob("*") if f.is_file() and f.suffix.lower() in {".pdf", ".png", ".jpg", ".jpeg"}]
     groups: dict[str, set[str]] = defaultdict(set)
     amounts: dict[tuple[str, str], list[tuple[float, Path, str]]] = defaultdict(list)
@@ -6772,7 +6989,12 @@ def audit_tool_lookup_repayment(date_from: str, date_to: str) -> dict[str, Any]:
 
 
 def audit_tool_list_cycle(cycle_key: str = "") -> dict[str, Any]:
-    cycles = build_cycle_snapshot().get("cycles", [])
+    # 2026-10-25：原实现每次直接调 build_cycle_snapshot()，绕过 get_snapshot()
+    # 的指纹缓存，把整份资料（台账/送货单/网价/回单 OCR）全量重算一遍。
+    # 实测单次约 26 秒，而该工具在逾期风险取证里被同步调用，
+    # 导致「逾期提醒」页要 28 秒才出数。改走 _cached_snapshot()：
+    # 文件没变直接复用（毫秒级），文件变了自动按指纹重建，语义不变。
+    cycles = _cached_snapshot().get("cycles", [])
     values = [c for c in cycles if not cycle_key or c.get("cycle_key") == cycle_key]
     return {"value": values, "source": {"doc": "结算周期快照", "location": cycle_key or "全部周期"}}
 
@@ -7021,13 +7243,95 @@ def enrich_document_audit(audit: dict[str, Any], range_text: str | None = None) 
 
 # ==================== 第七块：逾期提醒增强 ====================
 
+def _overdue_periods_from_snapshot(snap: dict[str, Any], limit: int | None = None,
+                                   virtual: bool = True) -> dict[str, Any]:
+    """把一份快照归一化成逾期面板的 periods + summary。
+
+    ★ 字段归一：真实数据集与虚拟演示项目的 cycles 字段名不同，而逾期引擎和
+      前端表格读的是 unpaid / overdue_start / settlement / period。不归一化会
+      得出一整排 0 和空单元格（2026-10-19 实测：B/E 看板 150 万/62 万，逾期
+      面板却是 0；B/D/F 周期表全部显示「已结清」，但已回款只占结算 40%）。
+
+    口径：① 有逾期余额的周期 —— 未收 = 逾期余额，结算 = 已收 + 逾期余额，
+          这样「逾期 150 万」与表格行自洽；② 未逾期周期 —— 未收 = 待收
+          outstanding，起息日置空。只改展示口径，不动 ledger 聚合出的
+          receivable_total，集团汇总不受影响。
+
+    limit: 虚拟演示项目沿用「只看最近 3 期」的旧口径；向导导入的真实项目传
+           None，显示全部期数（否则 C 项目 3 期之外的更早周期会被截掉）。
+    """
+    kpis = snap.get("kpis") or {}
+    cycles = snap.get("cycles") or []
+    rows = cycles if limit is None else cycles[-limit:]
+    periods = []
+    for c in rows:
+        row = dict(c)
+        row["period"] = row.get("period") or row.get("cycle_label")
+        row["period_key"] = row.get("period_key") or row.get("cycle_key")
+        overdue_out = round(float(row.get("overdue_outstanding") or 0), 2)
+        paid = round(float(row.get("paid") or 0), 2)
+        if overdue_out > 0:
+            row["unpaid"] = overdue_out
+            row["settlement"] = round(paid + overdue_out, 2)
+            if not row.get("overdue_start"):
+                row["overdue_start"] = row.get("overdue_date")
+        else:
+            outstanding = round(float(row.get("outstanding") or 0), 2)
+            row["unpaid"] = outstanding
+            row["settlement"] = round(paid + outstanding, 2)
+            row["overdue_start"] = None
+        # ★ 逾期判定必须在这里定死。快照的 cycle 里没有 is_overdue 字段，原先完全
+        # 依赖事实层回填；一旦事实层不可信（大模型抖动）就会整表没有逾期行，而
+        # summary.current_overdue 仍有值，表现为「金额有、表格没有一行标红」。
+        row["is_overdue"] = overdue_out > 0
+        periods.append(row)
+    # 「最近逾期节点」取第一个「仍有未付 + 有起息日」的周期起息日，与 A 项目分支
+    # （见 overdue_status_demo 里 next_due 的取法）保持同一口径。原先这里写死
+    # None，导致向导导入的真实项目逾期页明明有 1 个逾期周期，节点却显示「-」。
+    next_due = next(
+        (r.get("overdue_start") for r in periods if float(r.get("unpaid") or 0) > 0 and r.get("overdue_start")),
+        None,
+    )
+    # 逾期金额有两个口径，页面上要能互相核对，否则「汇总数」与「表格行相加」对不上：
+    #   ① overdue_principal —— 各期遗留本金之和，等于表格里逾期行的 unpaid 相加；
+    #   ② current_overdue   —— 业务口径的应付款 = 本金 + 截至今日未收资金占用费。
+    #      build_cycle_snapshot 里 overdue_balance 就是这么算的（见 2609 行
+    #      overdue_principal + fee_receivable_total），C 项目实测
+    #      293,092.44 + 2,095.24 = 295,187.68，与看板 kpis.overdue_total 完全一致。
+    # 主数字沿用 ②，保证「看板 = 逾期页」；再单独暴露 ① 与占用费便于现场解释。
+    overdue_principal = round(sum(float(c.get("overdue_outstanding") or 0) for c in cycles), 2)
+    overdue_total = round(float(kpis.get("overdue_total") or 0) or overdue_principal, 2)
+    return {
+        "periods": periods,
+        "summary": {
+            "current_overdue": overdue_total,
+            "overdue_principal": overdue_principal,
+            "overdue_fee": round(max(0.0, overdue_total - overdue_principal), 2),
+            "current_receivable": round(sum(float(c.get("outstanding") or 0) for c in cycles), 2),
+            "period_count": kpis.get("cycle_count", len(cycles)),
+            "overdue_period_count": sum(1 for c in cycles if float(c.get("overdue_outstanding") or 0) > 0),
+            "last_scan": date.today().isoformat(),
+            "next_due_date": next_due,
+            "fee_total": kpis.get("fee_total", 0),
+            # 只有虚拟演示项目才标 True；向导导入的真实项目（C 项目）传 False，
+            # 免得前端把它当成演示数据而隐藏「真实逾期」提示。
+            "virtual_demo": virtual,
+        },
+    }
+
+
 def overdue_status_demo(project_id="dongliu"):
     if project_id in DATASET_REGISTRY:
         # The callback runs inside the registered dataset context.  Use a
         # private active marker to avoid recursively re-entering the registry.
         return _registered_call(project_id, lambda: overdue_status_demo("__active_dataset__"))
     if project_id == "__active_dataset__":
-        snap = get_snapshot()
+        # ★ 必须在这里直接 return。历史实现只给 snap 赋值、不返回，流程会继续
+        # 落到函数末尾的 else，那里再用 get_project_snapshot("__active_dataset__")
+        # 重新取一次快照 —— 而它既不在 DATASET_REGISTRY 也不在 VIRTUAL_CONFIG，
+        # 只会拿到空快照，表现为「向导导入的真实项目，逾期页 0 期、逾期金额 0」。
+        # （实测 C 项目台账 25 行、逾期 295,187.68，逾期页却是 0 期。）
+        return _overdue_periods_from_snapshot(get_snapshot(), virtual=False)
     elif project_id == "demo_a":
         snap = get_project_snapshot("demo_a")
         cycles = snap.get("cycles", [])
@@ -7105,48 +7409,8 @@ def overdue_status_demo(project_id="dongliu"):
             },
         }
     else:
-        snap = get_project_snapshot(project_id)
-        kpis = snap.get("kpis", {})
-        overdue = kpis.get("overdue_total", 0)
-        # 字段归一：虚拟快照的 cycles 只写 outstanding / overdue_outstanding /
-        # overdue_date / sales_amount，而逾期引擎与前端表格读的是 unpaid /
-        # overdue_start / settlement / period。不归一化会得出一整排 0 和空单元格
-        # （2026-10-19 实测：B/E 看板 150 万/62 万，逾期面板却是 0；B/D/F 周期表
-        # 全部显示「已结清」，但已回款只占结算的 40%，算术不闭合）。
-        #
-        # 口径对齐 A 项目真实快照：
-        #   ① 有逾期余额的周期 —— 未收 = 逾期余额，结算 = 已收 + 逾期余额，
-        #      这样「逾期 150 万」与表格行自洽（B 第三期原结算 62 万小于逾期额）。
-        #   ② 未逾期周期 —— 未收 = 待收 outstanding，起息日置空（尚未进入逾期
-        #      流程，逾期引擎也不会把它判成逾期），结算 = 已收 + 待收。
-        # 只改展示口径，不动 ledger 聚合出的 receivable_total，集团汇总不受影响。
-        periods = []
-        for c in snap.get("cycles", [])[-3:]:
-            row = dict(c)
-            row["period"] = row.get("period") or row.get("cycle_label")
-            row["period_key"] = row.get("period_key") or row.get("cycle_key")
-            overdue_out = round(float(row.get("overdue_outstanding") or 0), 2)
-            paid = round(float(row.get("paid") or 0), 2)
-            if overdue_out > 0:
-                row["unpaid"] = overdue_out
-                row["settlement"] = round(paid + overdue_out, 2)
-                if not row.get("overdue_start"):
-                    row["overdue_start"] = row.get("overdue_date")
-            else:
-                outstanding = round(float(row.get("outstanding") or 0), 2)
-                row["unpaid"] = outstanding
-                row["settlement"] = round(paid + outstanding, 2)
-                row["overdue_start"] = None
-            periods.append(row)
-        return {
-            "periods": periods,
-            "summary": {
-                "current_overdue": overdue, "period_count": kpis.get("cycle_count", 0),
-                "overdue_period_count": sum(1 for c in snap.get("cycles", []) if c.get("overdue_outstanding", 0) > 0),
-                "last_scan": date.today().isoformat(), "next_due_date": None,
-                "fee_total": kpis.get("fee_total", 0), "virtual_demo": True,
-            },
-        }
+        # 虚拟演示项目（B/D/E…）：只展示最近 3 期，与历史口径保持一致。
+        return _overdue_periods_from_snapshot(get_project_snapshot(project_id), limit=3)
 
 
 def overdue_rules_status_payload(project_id: str = "demo_a", as_of_date: str | None = None) -> dict[str, Any]:
@@ -7164,8 +7428,18 @@ def overdue_rules_status_payload(project_id: str = "demo_a", as_of_date: str | N
         period["risk_level"] = fact.get("rule_risk_level") or None
         period["risk_action"] = fact.get("rule_action")
         period["risk_decided_by"] = "rules"
-    status["summary"]["current_overdue"] = round(sum(float(f.get("unpaid") or 0) for f in facts if f.get("is_overdue")), 2)
-    status["summary"]["overdue_period_count"] = sum(1 for f in facts if f.get("is_overdue"))
+    # ★ 主数字沿用快照算好的业务口径（逾期本金 + 未收资金占用费），不要在这里
+    # 用「各期 unpaid 相加」覆盖。unpaid 只是本金，一覆盖就会出现
+    # 「rules_only=1 得 293,092.44、完整请求得 295,187.68」两个答案，
+    # 自动演示用的是 rules_only 分支，现场看到的主数字比看板少一截占用费。
+    facts_principal = round(sum(float(f.get("unpaid") or 0) for f in facts if f.get("is_overdue")), 2)
+    summary = status.setdefault("summary", {})
+    snapshot_total = round(float(summary.get("current_overdue") or 0), 2)
+    # 快照偶发取不到值（空数据集）时退回本金口径，保证至少与表格行一致。
+    summary["current_overdue"] = snapshot_total if snapshot_total > 0 else facts_principal
+    summary["overdue_principal"] = facts_principal
+    summary["overdue_fee"] = round(max(0.0, summary["current_overdue"] - facts_principal), 2)
+    summary["overdue_period_count"] = sum(1 for f in facts if f.get("is_overdue"))
     status["risk_agent"] = {"status": "rules", "decisions": [], "facts": facts, "degraded": True}
     status["risk_facts"] = facts
     return status
@@ -7350,21 +7624,35 @@ def overdue_risk_payload(project_id: str = "demo_a", as_of_date: str | None = No
     risk = overdue_risk_agent(facts, project_id, deadline=time.perf_counter() + 25.0)
     decisions_by_key = {d.get("period_key"): d for d in risk.get("decisions", [])}
     facts_by_key = {f.get("period_key"): f for f in facts}
+    # ★ 金额与「是否逾期」以快照为准，事实层只在显式指定模拟日期时才改写。
+    # 原因：事实层每次都会重算 unpaid / is_overdue，而它依赖一次带 25 秒超时的
+    # 大模型判断；服务刚启动或模型抖动时会返回不同的归期结果，表现为同一个
+    # A 项目在两次连续请求里从「4 期 / 135,906.45」变成「3 期 / 319,757.23」。
+    # 快照口径（含确认单截止日、逾期余额）是确定性的，路演现场必须稳定可复述；
+    # 而「按模拟日期扫描」仍需要事实层，所以那种场景保留改写。
+    trust_facts = as_of_date is not None
     for period in status.get("periods", []):
         d = decisions_by_key.get(period.get("period_key"))
         fact = facts_by_key.get(period.get("period_key")) or {}
-        if fact:
-            # Rebind the row-level status to the requested simulation date;
-            # the legacy snapshot is still the source of amounts, while the
-            # Agent facts own the current overdue state.
+        if fact and trust_facts:
             period["unpaid"] = fact.get("unpaid", period.get("unpaid", 0))
             period["overdue_days"] = fact.get("overdue_days", 0)
             period["is_overdue"] = bool(fact.get("is_overdue"))
+        elif fact:
+            # 只用事实层补充「逾期天数」这类纯描述性字段，不动金额与逾期判定
+            period["overdue_days"] = period.get("overdue_days") or fact.get("overdue_days", 0)
         if d:
             period["risk_level"] = d.get("risk_level")
             period["risk_action"] = d.get("action")
             period["risk_reason"] = d.get("reason")
             period["risk_decided_by"] = d.get("decided_by")
+        if not period.get("is_overdue") and period.get("risk_action") not in (None, "", "暂不动作"):
+            # 快照判定该期未逾期，就不能再挂「发催款函 / 停止供货」这类动作，
+            # 否则表格里一行都不标红，动作却是催款，现场一眼就看出矛盾。
+            period["risk_level"] = None
+            period["risk_action"] = "暂不动作"
+            period["risk_reason"] = "尚未达到起息日，继续监控。" if float(period.get("unpaid") or 0) else "该周期已结清。"
+            period["risk_decided_by"] = "rules"
         elif fact:
             period["risk_level"] = fact.get("rule_risk_level") or None
             period["risk_action"] = fact.get("rule_action")
@@ -7375,7 +7663,23 @@ def overdue_risk_payload(project_id: str = "demo_a", as_of_date: str | None = No
     # 而 degraded 原先只写在 trace 里，导致徽标恒显示「已判断」。此处补一个顶层字段。
     risk["degraded"] = bool((risk.get("trace") or {}).get("degraded"))
     risk["summary"] = status.get("summary", {})
-    risk["summary"]["current_overdue"] = round(sum(float(f.get("unpaid") or 0) for f in facts if f.get("is_overdue")), 2)
+    # ★ 这里原本直接用「逾期行未付之和」覆盖 current_overdue，会把占用的资金
+    #   占用费抹掉，导致同一项目「看板 295,187.68 / 逾期页 293,092.44」两个数
+    #   并存，现场解释不通。业务口径的逾期金额 = 逾期本金 + 未收占用费
+    #   （见 build_cycle_snapshot 的 overdue_balance）。所以：
+    #     · current_overdue 保留快照里的业务口径（含占用费），与看板一致；
+    #     · overdue_principal 单独给出「逾期行相加」的本金，便于逐行核对。
+    fact_principal = round(sum(float(f.get("unpaid") or 0) for f in facts if f.get("is_overdue")), 2)
+    snapshot_total = round(float(risk["summary"].get("current_overdue") or 0), 2)
+    risk["summary"]["overdue_principal"] = fact_principal
+    if snapshot_total >= fact_principal:
+        # 快照口径包含占用费，优先采用，保证看板与逾期页同数
+        risk["summary"]["current_overdue"] = snapshot_total
+        risk["summary"]["overdue_fee"] = round(snapshot_total - fact_principal, 2)
+    else:
+        # 没有可用占用费来源时退回本金口径
+        risk["summary"]["current_overdue"] = fact_principal
+        risk["summary"]["overdue_fee"] = 0.0
     risk["summary"]["overdue_period_count"] = sum(1 for f in facts if f.get("is_overdue"))
     risk["summary"].update({
         "monitoring": True,
@@ -7510,7 +7814,12 @@ def overdue_reminders_enhanced(project_id: str = "demo_a"):
 
     current_by_period: dict[str, dict[str, Any]] = {}
     try:
-        live = overdue_status_demo("demo_a")
+        # ★ 必须用当前项目自己的快照。原先这里写死 "demo_a"，导致任何项目打开
+        # 逾期页时，右下角提醒记录的金额都被 A 项目的实时值覆盖：C 项目实测
+        # 摘要 295,187.68，提醒记录却显示 294,254.48（= A 项目的
+        # 293,092.44 + 1,162.04 巧合撞上 C 的本金），现场一对比就穿帮。
+        # 与 2026-10-19 修的「跨项目串台」是同一类错误。
+        live = overdue_status_demo(project_id)
         current_by_period = {
             str(p.get("period_key")): p
             for p in (live.get("periods") or [])
@@ -8171,13 +8480,26 @@ class Handler(BaseHTTPRequestHandler):
                 task["stage"] = "ready"
                 task["project_id"] = project_id
                 task["updated_at"] = datetime.now().isoformat(timespec="seconds")
-                embedding = _registered_call(
-                    project_id,
-                    lambda: (seed_knowledge(), populate_contract_embeddings())[1],
-                ) or {"status": "degraded", "error": "embedding 初始化未执行"}
+                # 2026-10-25 路演修复：原来这一步同步做完「抽取全部 PDF 文本 +
+                # 36 段 bge-m3 向量化」，实测稳定 109s（seed_knowledge 3.8s +
+                # populate_contract_embeddings 73s + build_cycle_snapshot 13.9s，
+                # 与 Ollama 是否预热无关；本机 /api/ps 显示 vram=0，纯 CPU 推理）。
+                # 前端进度条此时停在 85%「正在注册项目控制台…」，路演现场看就是卡死。
+                # 现在拆成两段：
+                #   ① seed_knowledge 同步跑（仅 3.8s，且合同问答的语料就是它落的库，
+                #      挪到后台会让刚注册的项目"问不出合同内容"，不能省）；
+                #   ② 向量化丢后台（73s，只影响语义召回；未建完时 retrieve_chunks
+                #      自动降级 BM25，问答照常可答——见 retrieve_chunks 的 try 分支）。
+                try:
+                    _registered_call(project_id, seed_knowledge)
+                except Exception as exc:  # 索引失败不该让注册失败
+                    LOGGER.info("seed_knowledge skipped for %s: %s", project_id, exc)
+                embedding = {"status": "pending", "embedded": 0, "total": 0,
+                             "note": "向量索引后台建立中，合同问答暂时走关键词检索"}
                 task["embedding"] = embedding
                 _persist_import_tasks()
                 snapshot = _registered_snapshot(project_id)
+                _start_embedding_worker(project_id, task_id)
                 json_response(self, {
                     "ok": True, "project": meta, "task_id": task_id, "report": report,
                     "snapshot_summary": {

@@ -3606,7 +3606,14 @@ window.__SS_VOUCHER__ = {"A项目-回款与逾期核算表.pdf": "assets/voucher
       const scopedOutstanding = cycles.reduce((sum, c) => sum + Number(c.outstanding || c.unpaid || 0), 0);
       const scopedOverdue = cycles.reduce((sum, c) => sum + Number(c.overdue_outstanding || (c.is_overdue ? c.outstanding : 0) || 0), 0);
       const scopedPaid = cycles.reduce((sum, c) => sum + Number(c.paid || 0), 0);
-      const scopedFee = cycles.reduce((sum, c) => sum + Number(c.fee_receivable || c.fee || 0), 0);
+      // 应收欠息取「尚未被回款抵扣」的费用。快照的 cycle 里没有逐期 fee_receivable，
+      // 所以这里直接用 KPI 的 fee_receivable_total（= 各月确认单 unpaid_fee 之和），
+      // 保证与接口 receivable_total / 经理视角同源。绝不能回退到 cycle.fee：
+      // fee 是计息引擎粗算值、未扣回款已冲抵部分。
+      const _kpiFeeReceivable = Number(((dashboardData || {}).kpis || {}).fee_receivable_total);
+      const scopedFee = Number.isFinite(_kpiFeeReceivable) && _kpiFeeReceivable > 0
+        ? _kpiFeeReceivable
+        : cycles.reduce((sum, c) => sum + Number(c.fee_receivable || c.confirmed_fee || c.display_fee || 0), 0);
       set('receivablePrincipalMetric', scopedOutstanding, '元');
       set('receivableFeeMetric', scopedFee, '元');
       set('receivableTotalMetric', scopedOutstanding + scopedFee, '元');
