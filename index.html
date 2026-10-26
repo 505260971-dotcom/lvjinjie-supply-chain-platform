@@ -8,7 +8,7 @@
     // GitHub Pages publishes the repository root. Keep the source app unchanged
     // for local use, but send the public Pages URL to the maintained static snapshot.
     if (location.hostname.endsWith('.github.io') && !location.pathname.includes('/docs/')) {
-      location.replace(new URL('docs/index.html?v=20261026b', location.href).href);
+      location.replace(new URL('docs/index.html?v=20261026cf', location.href).href);
     }
   </script>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f6fed'/%3E%3Cpath d='M10 16l4 4 8-9' stroke='white' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
@@ -3848,20 +3848,44 @@
         .then(async r => { const data = await r.json().catch(() => ({})); if (!r.ok) throw new Error(data.error || `接口失败（HTTP ${r.status}）`); return data; })
         .catch(err => ({ ok:false, error: err?.message || '审核接口失败', details:[], results:[], passed:0, failed:0, audit_trace:{degraded:true} }));
       // 阶段动画（单按钮自动跑完两层，无单独OCR按钮/面板）
+      // ★ 2026-10-26 提速：动画与接口并行，接口一旦命中本地缓存（后端回 audit_cache.hit）
+      //   就把剩余等待压缩到每阶段 120ms，整页从"固定等 1.6 秒"降到约 0.4 秒。
+      //   缓存未命中（真实全量扫描 PDF/OCR，实测 11～38 秒）时命中标志为 false，
+      //   四阶段时长与原来完全一致，观感不变、也不会让人误以为算得快。
+      let _auditSettled = null;
+      auditPromise.then(d => { _auditSettled = d; });
+      const _auditCacheHit = () =>
+        !!_auditSettled && _auditSettled.ok !== false &&
+        !!(_auditSettled.audit_cache && _auditSettled.audit_cache.hit);
+      const stageWait = async ms => {
+        const step = 50;
+        let waited = 0;
+        while (waited < ms) {
+          if (_auditCacheHit()) {
+            // 已命中缓存：再给一点时间让当前阶段的高亮被看见，不空等
+            if (waited >= 120) return;
+            await new Promise(r => setTimeout(r, step));
+            waited += step;
+            continue;
+          }
+          await new Promise(r => setTimeout(r, step));
+          waited += step;
+        }
+      };
       const stages = ['stage1', 'stage2', 'stage3', 'stage4'];
       stages.forEach(id => document.getElementById(id)?.classList.remove('active', 'done'));
       document.getElementById('stage1')?.classList.add('active');
       if (percentEl) percentEl.textContent = '25%';
       setAuditPhase('正在读取目录...');
-      await new Promise(r => setTimeout(r, 400));
+      await stageWait(400);
       document.getElementById('stage1')?.classList.add('done');
       document.getElementById('stage2')?.classList.add('active');
       setAuditPhase('第一层：文件名正则初筛中...');
-      await new Promise(r => setTimeout(r, 500));
+      await stageWait(500);
       document.getElementById('stage2')?.classList.add('done');
       document.getElementById('stage3')?.classList.add('active');
       setAuditPhase('第二层：OCR内容核对中...');
-      await new Promise(r => setTimeout(r, 700));
+      await stageWait(700);
       document.getElementById('stage3')?.classList.add('done');
        // 真实扫描包含 PDF 文本提取、扫描件 OCR 与有限轮次取证，通常需要数秒；
        // 过短的超时会把“正在扫描”误显示成“无数据”。
