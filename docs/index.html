@@ -1138,7 +1138,7 @@
               <button id="overdueStateAction" class="button" style="padding:5px 9px;font-size:11px" onclick="scanOverdue()">开始扫描</button>
             </div>
 
-            <!-- LangGraph 横向流程条 -->
+            <!-- 逾期处理横向流程条（本系统自有的定时任务 + 规则判断 + 模型起草，非外部编排框架） -->
             <div style="background:#f0f4f9;border-radius:10px;padding:15px;margin:15px 0;display:flex;align-items:center;justify-content:space-between;gap:8px;overflow-x:auto">
               <div style="text-align:center;flex-shrink:0">
                 <div style="width:36px;height:36px;border-radius:8px;background:white;display:flex;align-items:center;justify-content:center;margin:0 auto 5px">
@@ -1754,7 +1754,7 @@ window.__SS_VOUCHER__ = {"A项目-回款与逾期核算表.pdf": "assets/voucher
       if (view === 'overdue') loadOverdue();
       if (view === 'minister') loadMinisterDashboard();
        if (view === 'executive') { loadExecutiveDashboard(); loadUsageStats(); }
-      if (view === 'knowledge') setTimeout(drawLangGraph, 80);
+      if (view === 'knowledge') setTimeout(drawOverdueFlow, 80);
       if (view === 'finance' || view === 'ledger') loadBusinessData();
       if (view === 'fee-calc') loadFeeCalc();
       if (view === 'finance') setTimeout(() => { try { brandChart && brandChart.resize(); specChart && specChart.resize(); } catch (e) {} }, 60);
@@ -3891,7 +3891,7 @@ window.__SS_VOUCHER__ = {"A项目-回款与逾期核算表.pdf": "assets/voucher
         ${sources ? `<div class="sources" style="margin-top:7px"><span style="font-size:11.5px;color:#607386;padding:5px 0">证据来源：</span>${sources}</div>` : '<div style="margin-top:7px;font-size:11.5px;color:#8997a2">证据来源：当前回答未返回文件定位</div>'}
       </div>`;
     }
-    function drawLangGraph(){
+    function drawOverdueFlow(){
       const box = document.getElementById('lgCanvas');
       if(!box) return;
       const svg = document.getElementById('lgSvg');
@@ -4140,8 +4140,8 @@ window.__SS_VOUCHER__ = {"A项目-回款与逾期核算表.pdf": "assets/voucher
     if (!checkLogin()) { /* 未登录:登录页已显示,主界面被遮挡 */ }
     renderHistory(); renderTrend(); loadBusinessData(); loadFeeCalc(); lucide.createIcons(); initProjectSelector();
     startAutoRefresh();
-    setTimeout(drawLangGraph, 250);
-    window.addEventListener('resize', () => { try { drawLangGraph(); } catch (e) {} });
+    setTimeout(drawOverdueFlow, 250);
+    window.addEventListener('resize', () => { try { drawOverdueFlow(); } catch (e) {} });
 
     // 品牌/型号图表初始化（按当前时间筛选从台账聚合渲染）
     let brandChart, specChart;
