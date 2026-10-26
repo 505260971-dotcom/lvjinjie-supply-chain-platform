@@ -4840,6 +4840,7 @@ window.__SS_VOUCHER__ = {"A项目-回款与逾期核算表.pdf": "assets/voucher
 </script>
 
 
+
 <script data-static-v2="1">
 /* ==========================================================================
    静态体验版补丁 v2  —— 演示打磨（2026-10-26）
@@ -5189,23 +5190,22 @@ window.__SS_VOUCHER__ = {"A项目-回款与逾期核算表.pdf": "assets/voucher
     }, t + 700);
   }
 
-  /* 装一个不被外部赋值覆盖的 window.runWizardSteps */
-  (function installRunWizardSteps() {
+  /* 装 window.runWizardSteps，并持续守护：
+     index.html 里 runWizardSteps 是「全局函数声明」，它的 window 属性
+     configurable=false，所以不能用 defineProperty 拦截，只能直接赋值 + 轮询检查
+     是否被改回去。主脚本（v1 补丁）在本补丁之前执行，正常不会被覆盖，
+     但慢网络/异步场景要兜住。 */
+  function installRunWizardSteps() {
     try {
-      Object.defineProperty(window, 'runWizardSteps', {
-        configurable: true,
-        get: function () { return demoRunWizardSteps; },
-        set: function () {
-          /* 外部（主脚本）想覆盖：忽略，保持演示版 */
-          console.log(LOGP, '已忽略外部对 runWizardSteps 的覆盖，保持演示四阶段');
-        }
-      });
-    } catch (e) {
-      /* defineProperty 失败就退化为直接赋值 */
+      if (window.runWizardSteps === demoRunWizardSteps) return true;
       window.runWizardSteps = demoRunWizardSteps;
-      console.warn(LOGP, 'defineProperty 失败，退化为直接赋值', e);
+      return window.runWizardSteps === demoRunWizardSteps;
+    } catch (e) {
+      console.warn(LOGP, '挂载 runWizardSteps 失败', e);
+      return false;
     }
-  })();
+  }
+  installRunWizardSteps();
 
   /* 在向导弹窗顶部插入「一键演示」入口 */
   function patchWizardEntry() {
@@ -5266,14 +5266,16 @@ window.__SS_VOUCHER__ = {"A项目-回款与逾期核算表.pdf": "assets/voucher
     return true;
   }
 
-  /* 轮询到主脚本就绪为止（最多约 20 秒），避免慢网络下补丁先执行、后续不重试 */
+  /* 轮询到主脚本就绪为止（最多约 20 秒），避免慢网络下补丁先执行、后续不重试。
+     同时守护 runWizardSteps，防被主脚本改回去。 */
   function waitForMainScript() {
     var tries = 0;
     (function tick() {
       tries++;
       var a = patchWizardEntry();
       var b = patchSelectorRebuild();
-      if (a && b) return;
+      var c = installRunWizardSteps();
+      if (a && b && c) return;
       if (tries < 80) setTimeout(tick, 250);
       else console.warn(LOGP, '等待主脚本超时，向导入口未挂上');
     })();
