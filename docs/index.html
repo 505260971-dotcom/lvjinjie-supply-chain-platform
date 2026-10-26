@@ -4839,6 +4839,7 @@ window.__SS_VOUCHER__ = {"A项目-回款与逾期核算表.pdf": "assets/voucher
 
 </script>
 
+
 <script data-static-v2="1">
 /* ==========================================================================
    静态体验版补丁 v2  —— 演示打磨（2026-10-26）
@@ -5026,48 +5027,64 @@ window.__SS_VOUCHER__ = {"A项目-回款与逾期核算表.pdf": "assets/voucher
      体验版这里补一刀：角色变了就按新角色重算 PROJECT_LIST。 */
   function patchSelectorRebuild() {
     var _init = window.initProjectSelector;
-    if (typeof _init === 'function' && !_init.__v2) {
-      window.initProjectSelector = async function () {
-        var r = await _init.apply(this, arguments);
-        /* initProjectSelector 会按角色重写 PROJECT_LIST，把 C 冲掉，这里补回 */
-        if (C_ADDED) ensureProjectInList();
-        var sel = document.getElementById('projectSelector');
-        if (sel && typeof currentProject !== 'undefined') {
-          if (PROJECT_LIST.some(function (p) { return p.id === currentProject; })) {
-            sel.value = currentProject;
+    var okInit = false, okLogin = false;
+
+    if (typeof _init === 'function') {
+      if (_init.__v2) {
+        okInit = true;
+      } else {
+        window.initProjectSelector = async function () {
+          var r = await _init.apply(this, arguments);
+          /* initProjectSelector 会按角色重写 PROJECT_LIST，把 C 冲掉，这里补回 */
+          if (C_ADDED) ensureProjectInList();
+          var sel = document.getElementById('projectSelector');
+          if (sel && typeof currentProject !== 'undefined') {
+            if (PROJECT_LIST.some(function (p) { return p.id === currentProject; })) {
+              sel.value = currentProject;
+            }
           }
-        }
-        return r;
-      };
-      window.initProjectSelector.__v2 = true;
+          return r;
+        };
+        window.initProjectSelector.__v2 = true;
+        okInit = true;
+      }
     }
 
     var _login = window.staticQuickLogin;
-    if (typeof _login === 'function' && !_login.__v2) {
-      window.staticQuickLogin = function (username) {
-        var r = _login.apply(this, arguments);
-        /* applyUser 内是同步的，等一帧后按新角色重建下拉框 */
-        setTimeout(async function () {
-          try {
-            if (typeof window.initProjectSelector === 'function') await window.initProjectSelector();
-            if (C_ADDED) ensureProjectInList();
-            var sel = document.getElementById('projectSelector');
-            if (sel && typeof currentProject !== 'undefined' &&
-                PROJECT_LIST.some(function (p) { return p.id === currentProject; })) {
-              sel.value = currentProject;
-            }
-            console.log(LOGP, '角色切换后下拉框已重建，共 ' +
-              (typeof PROJECT_LIST !== 'undefined' ? PROJECT_LIST.length : '?') + ' 个项目');
-          } catch (e) { console.warn(LOGP, '角色切换重建下拉框失败', e); }
-        }, 120);
-        return r;
-      };
-      window.staticQuickLogin.__v2 = true;
+    if (typeof _login === 'function') {
+      if (_login.__v2) {
+        okLogin = true;
+      } else {
+        window.staticQuickLogin = function (username) {
+          var r = _login.apply(this, arguments);
+          /* applyUser 内是同步的，等一帧后按新角色重建下拉框 */
+          setTimeout(async function () {
+            try {
+              if (typeof window.initProjectSelector === 'function') await window.initProjectSelector();
+              if (C_ADDED) ensureProjectInList();
+              var sel = document.getElementById('projectSelector');
+              if (sel && typeof currentProject !== 'undefined' &&
+                  PROJECT_LIST.some(function (p) { return p.id === currentProject; })) {
+                sel.value = currentProject;
+              }
+              console.log(LOGP, '角色切换后下拉框已重建，共 ' +
+                (typeof PROJECT_LIST !== 'undefined' ? PROJECT_LIST.length : '?') + ' 个项目');
+            } catch (e) { console.warn(LOGP, '角色切换重建下拉框失败', e); }
+          }, 120);
+          return r;
+        };
+        window.staticQuickLogin.__v2 = true;
+        okLogin = true;
+      }
     }
+    return okInit && okLogin;
   }
 
-  /* 覆盖 v1 的 runWizardSteps：四阶段本地重放，结尾可真正进入 C 项目 */
-  window.runWizardSteps = function (mask, files) {
+  /* 覆盖 v1 的 runWizardSteps：四阶段本地重放，结尾可真正进入 C 项目。
+     ★ 这里必须用 defineProperty 装一个「只进不出」的口子：
+       主脚本（index.html 内的 v1 补丁）会再次 `window.runWizardSteps = ...`，
+       若直接赋值，本函数会被它覆盖回「只提示体验版、不注册」的旧版。 */
+  function demoRunWizardSteps(mask, files) {
     var drop = mask.querySelector('#wizDrop'); if (drop) drop.style.display = 'none';
     var stepsBox = mask.querySelector('#wizSteps'), progWrap = mask.querySelector('#wizProg');
     var bar = mask.querySelector('#wizBar'), statusEl = mask.querySelector('#wizStatus');
@@ -5170,12 +5187,33 @@ window.__SS_VOUCHER__ = {"A项目-回款与逾期核算表.pdf": "assets/voucher
       };
       reportBox.appendChild(btn);
     }, t + 700);
-  };
+  }
+
+  /* 装一个不被外部赋值覆盖的 window.runWizardSteps */
+  (function installRunWizardSteps() {
+    try {
+      Object.defineProperty(window, 'runWizardSteps', {
+        configurable: true,
+        get: function () { return demoRunWizardSteps; },
+        set: function () {
+          /* 外部（主脚本）想覆盖：忽略，保持演示版 */
+          console.log(LOGP, '已忽略外部对 runWizardSteps 的覆盖，保持演示四阶段');
+        }
+      });
+    } catch (e) {
+      /* defineProperty 失败就退化为直接赋值 */
+      window.runWizardSteps = demoRunWizardSteps;
+      console.warn(LOGP, 'defineProperty 失败，退化为直接赋值', e);
+    }
+  })();
 
   /* 在向导弹窗顶部插入「一键演示」入口 */
   function patchWizardEntry() {
     var _open = window.openNewProjectWizard;
-    if (typeof _open !== 'function' || _open.__v2) return;
+    /* 主脚本还没定义好就返回 false，外层会继续重试 ——
+       线上 2MB 页面在慢网络下首屏脚本可能晚于本补丁执行。 */
+    if (typeof _open !== 'function') return false;
+    if (_open.__v2) return true;
     window.openNewProjectWizard = function () {
       var r = _open.apply(this, arguments);
       setTimeout(function () {
@@ -5225,16 +5263,24 @@ window.__SS_VOUCHER__ = {"A项目-回款与逾期核算表.pdf": "assets/voucher
     };
     window.openNewProjectWizard.__v2 = true;
     console.log(LOGP, '新增项目向导已挂上一键演示入口');
+    return true;
   }
 
-  function bootPatches() {
-    patchWizardEntry();
-    patchSelectorRebuild();
+  /* 轮询到主脚本就绪为止（最多约 20 秒），避免慢网络下补丁先执行、后续不重试 */
+  function waitForMainScript() {
+    var tries = 0;
+    (function tick() {
+      tries++;
+      var a = patchWizardEntry();
+      var b = patchSelectorRebuild();
+      if (a && b) return;
+      if (tries < 80) setTimeout(tick, 250);
+      else console.warn(LOGP, '等待主脚本超时，向导入口未挂上');
+    })();
   }
 
-  if (document.readyState === 'complete') bootPatches();
-  else window.addEventListener('load', function () { setTimeout(bootPatches, 300); });
-  setTimeout(bootPatches, 1500);
+  waitForMainScript();
+  window.addEventListener('load', function () { setTimeout(waitForMainScript, 200); });
 
   window.__STATIC_V2__ = {
     C_PID: C_PID, C_INFO: C_INFO,
