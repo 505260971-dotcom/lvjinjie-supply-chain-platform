@@ -979,7 +979,7 @@
         </section>
 
         <section class="view" data-view="fee-calc">
-          <div class="page-head"><div><h2>资金占用费与回款</h2><p>月度确认单、累计费用与回款统计</p></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="button primary" onclick="openFeeDemo()"><i data-lucide="play" width="15"></i>开始演示</button></div></div>
+          <div class="page-head"><div><h2>资金占用费与回款</h2><p>月度确认单、累计费用与回款统计</p></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="button" id="financeVideoOpen" type="button" aria-haspopup="dialog" aria-controls="financeVideoDialog"><i data-lucide="video" width="15"></i>财务专员账号视角</button><button class="button primary" onclick="openFeeDemo()"><i data-lucide="play" width="15"></i>开始演示</button></div></div>
           <div class="mainline-flow risk"><span class="flow-no">02</span><b>从业务数据到风险决策</b><span>台账 + 合同 + 回款单 → 付款条件判断 → 应收与逾期计算 → 资金占用费核算 → 催款函生成 → 负责人审批</span></div>
           <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:12px 16px;margin-bottom:15px">
             <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap">
@@ -5348,6 +5348,50 @@ window.__SS_VOUCHER__ = {"A项目-回款与逾期核算表.pdf": "assets/voucher
   console.log(LOGP, '演示补丁 v2 已装载：结算周期问答就绪；新增项目C 可一键演示');
 })();
 
+</script>
+<style>
+  #financeVideoDialog{width:min(1000px,calc(100vw - 32px));max-height:calc(100dvh - 32px);padding:0;border:1px solid var(--line);border-radius:16px;background:var(--surface);color:var(--ink);box-shadow:0 24px 80px #07172355;overflow:auto}
+  #financeVideoDialog::backdrop{background:rgba(9,23,37,.68)}
+  .finance-video-head{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 22px}
+  .finance-video-head h3{margin:0 0 6px;font-size:19px}
+  .finance-video-head p{margin:0;color:var(--muted);font-size:13px;line-height:1.6}
+  #financeVideoPlayer{display:block;width:100%;max-height:calc(100dvh - 170px);background:#101c27;object-fit:contain}
+  #financeVideoError{padding:12px 22px;font-size:13px;color:var(--red)}
+  @media(max-width:640px){[data-view="fee-calc"]>.page-head{flex-wrap:wrap}.finance-video-head{padding:14px;align-items:flex-start}.finance-video-head h3{font-size:17px}}
+</style>
+<dialog id="financeVideoDialog" aria-labelledby="financeVideoTitle" aria-describedby="financeVideoDescription">
+  <div class="finance-video-head">
+    <div><h3 id="financeVideoTitle">财务专员账号视角</h3><p id="financeVideoDescription">查看财务专员如何在自己的账号上传回款单，填写回款信息并提交回款。</p></div>
+    <button class="button" id="financeVideoClose" type="button" aria-label="关闭视频" autofocus>关闭</button>
+  </div>
+  <video id="financeVideoPlayer" controls playsinline preload="none" poster="assets/videos/finance-repayment-upload.jpg" aria-label="财务专员上传回款单操作视频">
+    <source src="assets/videos/finance-repayment-upload.mp4" type="video/mp4">
+    你的浏览器暂不支持视频播放，请<a href="assets/videos/finance-repayment-upload.mp4">打开视频</a>观看。
+  </video>
+  <p id="financeVideoError" hidden>视频暂时无法播放，请刷新重试，或<a href="assets/videos/finance-repayment-upload.mp4" target="_blank" rel="noopener">直接打开视频</a>。</p>
+</dialog>
+<script>
+  (() => {
+    const dialog = document.getElementById('financeVideoDialog');
+    const video = document.getElementById('financeVideoPlayer');
+    const openButton = document.getElementById('financeVideoOpen');
+    openButton.addEventListener('click', () => {
+      dialog.showModal();
+      video.currentTime = 0;
+      video.play().catch(() => { /* 播放被浏览器拦截时，保留原生播放按钮。 */ });
+    });
+    document.getElementById('financeVideoClose').addEventListener('click', () => dialog.close());
+    dialog.addEventListener('click', event => {
+      const bounds = dialog.getBoundingClientRect();
+      if (event.target === dialog && (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom)) dialog.close();
+    });
+    dialog.addEventListener('close', () => {
+      video.pause();
+      openButton.focus({preventScroll:true});
+    });
+    video.addEventListener('error', () => { document.getElementById('financeVideoError').hidden = false; });
+    video.querySelector('source').addEventListener('error', () => { document.getElementById('financeVideoError').hidden = false; });
+  })();
 </script>
 </body>
 </html>
