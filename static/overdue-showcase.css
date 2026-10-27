@@ -40,6 +40,7 @@
 .od-current-rule{display:block;color:var(--tier);font-size:10px;font-weight:700;margin-top:12px;visibility:hidden}.od-risk-tier.is-current{background:#fff;box-shadow:0 0 0 2px var(--tier),0 7px 20px #264b6715}.od-risk-tier.is-current .od-current-rule{visibility:visible}
 .od-rule-note{font-size:11px;color:#758998;line-height:1.8;margin:14px 0 0}.od-rule-mechanism{margin-top:13px;border-top:1px solid #e6edf2;padding-top:12px;display:flex;gap:16px;flex-wrap:wrap;font-size:11px;color:#597582}.od-rule-mechanism b{color:#315d70}
 [data-view="overdue"] .metrics{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+[data-view="overdue"] .panel>[hidden]{display:none!important}
 [data-view="overdue"] .metric:first-child{background:#fff8f4;border-color:#f1d8c8}[data-view="overdue"] .metric:first-child .num{color:#b75841}
 [data-view="overdue"] .page-head .button.primary{background:linear-gradient(120deg,#1d6873,#277e8b);border-color:#287383;box-shadow:0 4px 13px #235b7130}
 /* Presentation dialog: one scene at a time, all controls stay in view. */
