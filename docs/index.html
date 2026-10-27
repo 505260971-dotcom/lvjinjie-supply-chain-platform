@@ -1843,6 +1843,16 @@ window.__SS_VOUCHER__ = {"A项目-回款与逾期核算表.pdf": "assets/voucher
     function managerJump(target) {
       if (!['业务部经理','总经理'].includes(activeUser?.role)) return;
       const map = {pulse:'managerPulseAnchor', projects:'ministerProjects', alerts:'managerAlertsAnchor', report:'managerReportAnchor'};
+      // 「总经理驾驶舱」按钮本身走 switchView('executive')，不走这里。
+      // 但保留兜底：任何带 executive 目标的调用直接切回驾驶舱，
+      // 避免 map 里查不到锚点、又无条件切到 minister 的错跳（2026-10-27 修）。
+      if (target === 'executive') {
+        switchView('executive');
+        document.querySelectorAll('#managerNav button').forEach(b => b.classList.toggle('active', b.dataset.managerTarget === 'executive'));
+        return;
+      }
+      const anchorId = map[target];
+      if (!anchorId) return;   // 未知目标不跳，避免落到错误视图
       // ★ 这 4 个锚点都挂在「业务部经理工作台」(view=minister) 里。
       //   总经理默认停在 executive（集团经营驾驶舱），此时 minister 视图是隐藏的，
       //   直接 scrollIntoView 找不到可视位置，点了看起来像没反应。
