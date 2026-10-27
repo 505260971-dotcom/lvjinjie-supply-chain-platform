@@ -483,6 +483,7 @@
         <p>合同 / 台账 / 回款 / 逾期 / 单据 一体化智能看板</p>
          <div style="display:inline-flex;align-items:center;gap:7px;margin-top:12px;padding:7px 11px;border:1px solid #cfe2ed;border-radius:999px;background:#f5fbff;color:#245d93;font-size:11px;font-weight:600">在线体验版 · 2026-10-22 · 10 个项目 · 5 个演示角色</div>
       </div>
+      <button class="button login-btn management-video-open" id="managementVideoOpen" type="button" aria-haspopup="dialog" aria-controls="managementVideoDialog"><i data-lucide="video" width="17"></i>观看视频 · 经理与总经理</button>
       <form class="login-form" onsubmit="doLogin(event)">
         <div class="field"><label>账号</label><input id="loginUser" autocomplete="username" placeholder="请输入账号" value="lijuanyan"></div>
         <div class="field"><label>密码</label><input id="loginPass" type="password" autocomplete="current-password" placeholder="请输入密码"></div>
@@ -5391,6 +5392,56 @@ window.__SS_VOUCHER__ = {"A项目-回款与逾期核算表.pdf": "assets/voucher
     });
     video.addEventListener('error', () => { document.getElementById('financeVideoError').hidden = false; });
     video.querySelector('source').addEventListener('error', () => { document.getElementById('financeVideoError').hidden = false; });
+  })();
+</script>
+<style>
+  .login-screen{gap:16px}
+  .login-card{max-height:calc(100dvh - 96px);overflow-y:auto;flex-shrink:0}
+  .management-video-open{gap:8px;margin-bottom:20px;background:#edf7f3;border:1px solid #bbdccc;color:#24654f;font-size:14px}
+  .management-video-open:hover{background:#deefe6}
+  #managementVideoDialog{width:min(1100px,calc(100vw - 24px));max-height:calc(100dvh - 24px);padding:0;border:1px solid #d6e1e8;border-radius:16px;background:#fff;color:#162737;box-shadow:0 24px 80px #07172355;overflow:auto}
+  #managementVideoDialog::backdrop{background:rgba(9,23,37,.78)}
+  .management-video-head{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 20px}
+  .management-video-head h3{margin:0 0 5px;font-size:18px}
+  .management-video-head p{margin:0;color:#64748b;font-size:12px;line-height:1.6}
+  #managementVideoPlayer{display:block;width:100%;max-height:calc(100dvh - 150px);background:#122330;object-fit:contain}
+  #managementVideoError{padding:12px 20px;font-size:13px;color:#b23d3d}
+  @media(max-width:640px){.management-video-head{padding:12px;align-items:flex-start}.management-video-head h3{font-size:16px}}
+</style>
+<dialog id="managementVideoDialog" aria-labelledby="managementVideoTitle" aria-describedby="managementVideoDescription">
+  <div class="management-video-head">
+    <div><h3 id="managementVideoTitle">业务部经理与总经理账号演示</h3><p id="managementVideoDescription">团队经营与逾期风险 · 经理待办与汇报摘要 · 总经理经营驾驶舱｜女声讲解 / 中文字幕</p></div>
+    <button class="button" id="managementVideoClose" type="button" aria-label="关闭管理层演示视频" autofocus>关闭</button>
+  </div>
+  <video id="managementVideoPlayer" controls playsinline preload="none" poster="assets/videos/management-accounts-tour.jpg" aria-label="业务部经理与总经理账号操作演示，含女声讲解和中文字幕">
+    <source src="assets/videos/management-accounts-tour.mp4" type="video/mp4">
+    你的浏览器暂不支持视频播放，请<a href="assets/videos/management-accounts-tour.mp4">打开视频</a>观看。
+  </video>
+  <p id="managementVideoError" hidden>视频暂时无法播放，请刷新重试，或<a href="assets/videos/management-accounts-tour.mp4" target="_blank" rel="noopener">直接打开视频</a>。</p>
+</dialog>
+<script>
+  (() => {
+    const dialog = document.getElementById('managementVideoDialog');
+    const video = document.getElementById('managementVideoPlayer');
+    const openButton = document.getElementById('managementVideoOpen');
+    const error = document.getElementById('managementVideoError');
+    openButton.addEventListener('click', () => {
+      error.hidden = true;
+      dialog.showModal();
+      video.currentTime = 0;
+      video.play().catch(() => { /* 保留原生播放按钮，供浏览器限制自动播放时使用。 */ });
+    });
+    document.getElementById('managementVideoClose').addEventListener('click', () => dialog.close());
+    dialog.addEventListener('click', event => {
+      const bounds = dialog.getBoundingClientRect();
+      if (event.target === dialog && (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom)) dialog.close();
+    });
+    dialog.addEventListener('close', () => {
+      video.pause();
+      openButton.focus({preventScroll:true});
+    });
+    video.addEventListener('error', () => { error.hidden = false; });
+    video.querySelector('source').addEventListener('error', () => { error.hidden = false; });
   })();
 </script>
 </body>
