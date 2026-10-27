@@ -465,6 +465,7 @@
        @media(max-width:560px){.executive-hero{padding:20px 17px}.executive-hero h3{font-size:19px}.executive-meta{position:relative;right:auto;bottom:auto;display:block;margin-top:10px}.executive-kpi{padding:12px}.executive-kpi strong{font-size:17px}.executive-rank-row{grid-template-columns:24px minmax(58px,.7fr) minmax(45px,1fr) auto;gap:6px}.executive-rank-value{font-size:10px}.perspective-select{min-width:0;width:132px;padding:7px 4px;font-size:11px}}
        .usage-bars{display:grid;gap:8px}.usage-dept-row{display:grid;grid-template-columns:minmax(92px,1fr) minmax(80px,2fr) auto;gap:10px;align-items:center;font-size:11px;color:#cbd8dc}.usage-dept-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.usage-dept-track{height:7px;border-radius:8px;background:#263d47;overflow:hidden}.usage-dept-track i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#61b59d,#c1d49b)}.usage-dept-count{color:#9fb1b7;white-space:nowrap;font-variant-numeric:tabular-nums}.usage-empty{color:#91a5ac;font-size:11px;padding:10px 0}
   </style>
+<link rel="stylesheet" href="static/overdue-showcase.css?v=20261028">
 </head>
 <body>
   <!-- ===== 登录页 ===== -->
@@ -1115,6 +1116,16 @@
               <h3>逾期摘要</h3>
               <button class="button" onclick="toggleOverdueDetail()" id="overdueToggleBtn"><i data-lucide="chevrons-up" width="15"></i>收起</button>
             </div>
+<section class="od-command" aria-label="逾期风险监测">
+  <div class="od-command-head"><div><p class="od-eyebrow">RISK INTELLIGENCE / 风险监测</p><h3>从发现逾期，到责任人确认</h3></div><span class="od-live" id="odFlowMode">每 10 分钟复查 · 动态路径示意</span></div>
+  <div class="od-flow" id="odLiveFlow" aria-label="逾期处理路径"><div class="od-node"><span class="od-node-num">01</span><div class="od-node-icon"><i data-lucide="timer"></i></div><b>定时触发</b><small>每 10 分钟复查</small></div><span class="od-wire" aria-hidden="true" style="--od-delay:-0.4s"></span><div class="od-node"><span class="od-node-num">02</span><div class="od-node-icon"><i data-lucide="database"></i></div><b>数据读取</b><small>周期 / 合同 / 回款</small></div><span class="od-wire" aria-hidden="true" style="--od-delay:-0.8s"></span><div class="od-node"><span class="od-node-num">03</span><div class="od-node-icon"><i data-lucide="git-branch"></i></div><b>条件判断</b><small>按阈值分级</small></div><span class="od-wire" aria-hidden="true" style="--od-delay:-1.2s"></span><div class="od-node"><span class="od-node-num">04</span><div class="od-node-icon"><i data-lucide="file-text"></i></div><b>催款函生成</b><small>高风险进入此节点</small></div><span class="od-wire" aria-hidden="true" style="--od-delay:-1.6s"></span><div class="od-node"><span class="od-node-num">05</span><div class="od-node-icon"><i data-lucide="send"></i></div><b>飞书推送</b><small>经办人确认留痕</small></div></div>
+  <div class="od-flow-caption"><span id="odFlowCaption" aria-live="polite">按风险档位触发相应动作 · 经办人复核后转发甲方</span><button class="od-preview-btn" id="odFlowPreview" type="button">预览流转动效 ↗</button></div>
+  <div id="odRiskBanner" class="od-alert" data-tier="none">
+    <div class="od-radar" aria-hidden="true"><span id="odRiskIcon">✓</span></div>
+    <div class="od-alert-copy"><div class="od-alert-kicker"><span id="odRiskKicker">风险监测 · 等待数据</span><span class="od-risk-pill" id="odRiskPill">持续监控</span></div><div id="odRiskTitle">读取风险状态…</div><div id="odRiskDesc">按合同条件核算逾期余额与天数。</div><div id="odRiskMeta"></div></div>
+    <div class="od-alert-aside"><small>最长逾期</small><strong id="odRiskDays">—</strong><small>天 / 起息日计第 1 天</small></div>
+  </div>
+</section>
             <div class="metrics" style="grid-template-columns:repeat(3,minmax(0,1fr))">
               <div class="metric"><div class="label">当前逾期总额</div><div class="num" id="odTotal">0.00<span class="unit">元</span></div></div>
               <div class="metric"><div class="label">逾期周期数</div><div class="num" id="odCount">2<span class="unit">个</span></div></div>
@@ -1126,78 +1137,15 @@
               <button id="overdueStateAction" class="button" style="padding:5px 9px;font-size:11px" onclick="scanOverdue()">开始扫描</button>
             </div>
 
-            <!-- 逾期处理横向流程条（本系统自有的定时任务 + 规则判断 + 模型起草，非外部编排框架） -->
-            <div style="background:#f0f4f9;border-radius:10px;padding:15px;margin:15px 0;display:flex;align-items:center;justify-content:space-between;gap:8px;overflow-x:auto">
-              <div style="text-align:center;flex-shrink:0">
-                <div style="width:36px;height:36px;border-radius:8px;background:white;display:flex;align-items:center;justify-content:center;margin:0 auto 5px">
-                  <i data-lucide="timer" width="18" style="color:#3b82f6"></i>
-                </div>
-                <div style="font-size:12px;font-weight:600">定时触发</div>
-                <div style="font-size:10px;color:#6b7280">每10分钟自动复查</div>
-              </div>
-              <div style="color:#94a3b8;font-size:18px">→</div>
-              <div style="text-align:center;flex-shrink:0">
-                <div style="width:36px;height:36px;border-radius:8px;background:white;display:flex;align-items:center;justify-content:center;margin:0 auto 5px">
-                  <i data-lucide="database" width="18" style="color:#f59e0b"></i>
-                </div>
-                <div style="font-size:12px;font-weight:600">数据读取</div>
-                <div style="font-size:10px;color:#6b7280">周期/回款/合同</div>
-              </div>
-              <div style="color:#94a3b8;font-size:18px">→</div>
-              <div style="text-align:center;flex-shrink:0">
-                <div style="width:36px;height:36px;border-radius:8px;background:white;display:flex;align-items:center;justify-content:center;margin:0 auto 5px">
-                  <i data-lucide="git-branch" width="18" style="color:#8b5cf6"></i>
-                </div>
-                <div style="font-size:12px;font-weight:600">条件判断</div>
-                <div style="font-size:10px;color:#6b7280">是否逾期</div>
-              </div>
-              <div style="color:#94a3b8;font-size:18px">→</div>
-              <div style="text-align:center;flex-shrink:0">
-                <div style="width:36px;height:36px;border-radius:8px;background:white;display:flex;align-items:center;justify-content:center;margin:0 auto 5px">
-                  <i data-lucide="file-text" width="18" style="color:#ef4444"></i>
-                </div>
-                <div style="font-size:12px;font-weight:600">催款函生成</div>
-                <div style="font-size:10px;color:#6b7280">AI自动生成催款函</div>
-              </div>
-              <div style="color:#94a3b8;font-size:18px">→</div>
-              <div style="text-align:center;flex-shrink:0;background:#e2e8f0;border-radius:8px;padding:8px">
-                <div style="width:36px;height:36px;border-radius:8px;background:white;display:flex;align-items:center;justify-content:center;margin:0 auto 5px">
-                  <i data-lucide="send" width="18" style="color:#3b82f6"></i>
-                </div>
-                <div style="font-size:12px;font-weight:600">飞书推送</div>
-                <div style="font-size:10px;color:#6b7280">自动经办人飞书消息</div>
-              </div>
-            </div>
-             <div style="font-size:11px;color:#6b7280;text-align:center;margin-bottom:15px">Agent 状态机：监测变化 → 合同条件判断 → 风险分级 → 生成催办 → 业务员确认 / 关闭 / 升级</div>
 
-             <!-- 动态风险卡：颜色和文案由规则事实 + Agent 决策驱动 -->
-             <div id="odRiskBanner" style="background:#f8fafc;border:1px solid #dbe4ef;border-radius:10px;padding:15px;display:flex;gap:12px;align-items:flex-start;margin-bottom:15px">
-              <div style="width:28px;height:28px;border-radius:50%;background:#fee2e2;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-                 <span id="odRiskIcon" style="color:#64748b;font-weight:bold">i</span>
-              </div>
-                <div>
-                  <div id="odRiskTitle" style="font-weight:600;color:#475569;font-size:15px">当前无逾期，系统持续监控</div>
-                  <div id="odRiskDesc" style="font-size:12px;color:#64748b;margin-top:3px">到期后仍有未收款时，系统将生成催款函并通知经办人。</div>
-                  <div id="odRiskMeta" style="font-size:11px;color:#64748b;margin-top:7px"></div>
-                </div>
-             </div>
-
-             <details open style="margin:0 0 15px;border:1px solid #dbe4ef;border-radius:10px;background:#fff;overflow:hidden">
-              <summary style="cursor:pointer;padding:12px 15px;font-weight:700;color:#244b61;background:#f8fbfd">风险分级与 Agent 工作机制</summary>
-              <div style="padding:13px 15px;color:#526b7b;font-size:12px;line-height:1.65">
-               <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:560px"><thead><tr style="color:#718493;text-align:left"><th style="padding:7px;border-bottom:1px solid #e5edf2">逾期天数</th><th style="padding:7px;border-bottom:1px solid #e5edf2">风险等级</th><th style="padding:7px;border-bottom:1px solid #e5edf2">系统动作</th><th style="padding:7px;border-bottom:1px solid #e5edf2">催款话术</th></tr></thead><tbody>
-                <tr><td style="padding:7px;border-bottom:1px solid #edf2f5">未到起息日</td><td style="padding:7px;border-bottom:1px solid #edf2f5">持续监控</td><td style="padding:7px;border-bottom:1px solid #edf2f5">暂不动作</td><td style="padding:7px;border-bottom:1px solid #edf2f5">—</td></tr>
-                <tr><td style="padding:7px;border-bottom:1px solid #edf2f5">1–4 天</td><td style="padding:7px;border-bottom:1px solid #edf2f5">低</td><td style="padding:7px;border-bottom:1px solid #edf2f5">持续观察</td><td style="padding:7px;border-bottom:1px solid #edf2f5">首次提醒</td></tr>
-                <tr><td style="padding:7px;border-bottom:1px solid #edf2f5">5–14 天</td><td style="padding:7px;border-bottom:1px solid #edf2f5">中</td><td style="padding:7px;border-bottom:1px solid #edf2f5">电话提示经办人</td><td style="padding:7px;border-bottom:1px solid #edf2f5">首次提醒</td></tr>
-                <tr><td style="padding:7px;border-bottom:1px solid #edf2f5">15–29 天</td><td style="padding:7px;border-bottom:1px solid #edf2f5">高</td><td style="padding:7px;border-bottom:1px solid #edf2f5">生成催款函</td><td style="padding:7px;border-bottom:1px solid #edf2f5">正式催收</td></tr>
-                <tr><td style="padding:7px">≥30 天</td><td style="padding:7px">高</td><td style="padding:7px">追加停止供货警示</td><td style="padding:7px">严正警示</td></tr>
-               </tbody></table></div>
-               <div style="margin-top:9px;color:#64748b">口径说明：起息日当天计为逾期第 1 天，以系统当前合同配置为准。</div>
-               <div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:12px"><span class="tag info">1 监听变化</span><span style="color:#94a3b8">→</span><span class="tag info">2 周期重算</span><span style="color:#94a3b8">→</span><span class="tag info">3 条件判断</span><span style="color:#94a3b8">→</span><span class="tag warn">4 风险分档</span><span style="color:#94a3b8">→</span><span class="tag ok">5 生成动作并留痕</span></div>
-               <div style="margin-top:10px;padding:9px 10px;border-left:3px solid #2f9e8f;background:#f3fbf9">金额、天数和账期由本地规则引擎确定性计算；模型只负责风险表达、建议动作和催款话术。模型不可用时自动退回规则档位，业务不中断。</div>
-               <div style="margin-top:8px;padding:9px 10px;border-left:3px solid #3b82f6;background:#f2f7fd">「开始演示」为分步讲解动画：按固定剧本回放逾期升级与催办闭环，<b>不调用大模型、不请求后端业务接口</b>，因此可随时暂停、拖动进度、反复重放，不受本地模型速度影响。</div>
-              </div>
-             </details>
+<details class="od-risk-rules" open>
+  <summary>风险分级与 Agent 工作机制 <span>逾期越久，处置逐级加强</span></summary>
+  <div class="od-risk-content"><ol class="od-risk-scale" id="odRiskScale"><li class="od-risk-tier" data-rule="0"><div class="od-tier-head">持续监控<small>01</small></div><strong>未到起息日</strong><p>暂不动作</p><small>话术 / —</small><span class="od-current-rule">● 当前命中档位</span></li><li class="od-risk-tier" data-rule="1"><div class="od-tier-head">低风险<small>02</small></div><strong>1–4 天</strong><p>持续观察</p><small>话术 / 首次提醒</small><span class="od-current-rule">● 当前命中档位</span></li><li class="od-risk-tier" data-rule="2"><div class="od-tier-head">中风险<small>03</small></div><strong>5–14 天</strong><p>电话提示经办人</p><small>话术 / 首次提醒</small><span class="od-current-rule">● 当前命中档位</span></li><li class="od-risk-tier" data-rule="3"><div class="od-tier-head">高风险<small>04</small></div><strong>15–29 天</strong><p>生成催款函</p><small>话术 / 正式催收</small><span class="od-current-rule">● 当前命中档位</span></li><li class="od-risk-tier" data-rule="4"><div class="od-tier-head">高风险 · 停供警示<small>05</small></div><strong>≥30 天</strong><p>追加停止供货警示</p><small>话术 / 严正警示</small><span class="od-current-rule">● 当前命中档位</span></li></ol>
+    <p class="od-rule-note">起息日当天计为逾期第 1 天，以当前合同配置为准；高风险停供警示须由有权限的负责人复核处置。</p>
+    <div class="od-rule-mechanism"><span><b>规则引擎</b> 核算金额 / 天数 / 账期</span><span><b>AI 辅助</b> 风险表达 / 话术起草</span><span><b>人工确认</b> 复核 / 发送 / 升级</span></div>
+    <p class="od-rule-note">「开始演示」按示例账期回放风险升级与催办闭环，飞书消息为模拟推送。可暂停、跳步与反复重播。</p>
+  </div>
+</details>
 
             <!-- 操作按钮 -->
             <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;align-items:center;margin-bottom:15px">
@@ -1242,61 +1190,18 @@
 
   <div id="valueModal" class="value-modal" hidden><div class="value-box"><div style="display:flex;justify-content:space-between;align-items:center"><h3 id="valueTitle">板块价值卡片</h3><button class="button" onclick="closeValueCard()">✕</button></div><div id="valueBody"></div></div></div>
 
-  <div id="odDemoOverlay" class="demo-overlay" hidden>
-    <div class="demo-stage">
-      <div class="demo-head">
-        <div>
-          <h3>逾期提醒 · 自动演示</h3>
-          <p id="odDemoStep">准备开始…</p>
-        </div>
-        <button id="odDemoXBtn" type="button" class="icon-btn" style="position:relative;z-index:10001;pointer-events:auto" onpointerdown="closeOdDemo(event);return false" onclick="closeOdDemo(event);return false" aria-label="关闭演示">✕</button>
-      </div>
-      <div class="demo-progress" id="odDemoProgress">
-        <span><i></i></span><span><i></i></span><span><i></i></span><span><i></i></span><span><i></i></span><span><i></i></span>
-      </div>
-      <div class="demo-grid" style="grid-template-columns:minmax(300px,1fr) minmax(340px,1.1fr)">
-        <div class="demo-pane">
-          <div class="demo-pane-title">事件时间线 <span id="odDemoCount">0 个事件</span></div>
-          <div id="odDemoAgent" style="display:none;margin-bottom:10px;padding:10px;border:1px solid #dbe4ef;border-radius:8px;background:#fbfdff">
-            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
-              <b style="font-size:12.5px">风险判断 Agent</b>
-              <span id="odDemoAgentTag" class="tag">等待判断</span>
-            </div>
-            <div id="odDemoAgentBody" style="margin-top:7px;font-size:12px;color:#475569;line-height:1.7">扫描后由规则引擎算出事实，Agent 判断风险等级与建议动作。</div>
-          </div>
-          <input id="odDemoSlider" class="od-demo-slider" type="range" min="0" max="1" value="0" step="1" disabled
-                 oninput="odDemoSeek(this.value)" onchange="odDemoSeek(this.value)" aria-label="演示进度滑动条">
-          <div class="od-slider-label"><span id="odDemoSliderLabel">演示进度 0 / 0</span><span>拖动可停留在任意事件</span></div>
-          <div id="odDemoTimeline" class="timeline demo-timeline-scroll"></div>
-        </div>
-        <div class="demo-pane">
-          <div class="demo-pane-title">催款函生成</div>
-          <div id="odDemoDoc" class="demo-note" style="font-size:12.5px">
-            <div class="note-head">等待生成 <small>先扫描产生逾期</small></div>
-          </div>
-          <div id="odDemoFeishu" class="feishu-mini" hidden>
-            <div class="fm-bar"><i data-lucide="bot" width="14"></i>飞书 · 李鹃妍（智都集团）</div>
-            <div class="fm-body">
-              <div class="message-flow-visual" aria-label="消息推送动态示意"><span class="mf-avatar">A</span><span class="mf-line"></span><span class="mf-bubble">催款函</span><span class="mf-check">✓</span></div>
-              <div class="fc-title"><i data-lucide="bell-ring" width="14"></i>A项目演示 · 逾期提醒</div>
-              <div class="fc-body" id="odDemoFeishuMsg">…</div>
-              <div class="fc-file"><i data-lucide="file-text" width="16"></i><div class="fc-file-name" id="odDemoFeishuFile">催款函.docx</div></div>
-              <div class="fc-time" id="odDemoFeishuTime">已送达</div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="demo-foot" style="padding:0 20px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
-        <div id="odDemoDone" style="color:var(--green);font-size:13px;font-weight:600"></div>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-          <button class="button" id="odDemoRestartBtn" type="button" onclick="odDemoRestart()"><i data-lucide="rotate-ccw" width="15"></i>重来</button>
-          <button class="button" id="odDemoPauseBtn" type="button" onclick="odDemoTogglePause()"><i data-lucide="pause" width="15"></i>暂停</button>
-          <button class="button" id="odDemoNextBtn" type="button" onclick="odDemoNext()"><i data-lucide="step-forward" width="15"></i>下一步</button>
-          <button class="button primary" id="odDemoCloseBtn" onclick="closeOdDemo()" hidden><i data-lucide="check" width="15"></i>完成，关闭</button>
-        </div>
-      </div>
-    </div>
+<dialog id="odDemoOverlay" class="od-show-dialog" aria-labelledby="odShowTitle" aria-describedby="odShowDescription">
+  <header class="od-show-head"><div><p class="od-eyebrow">RISK INTELLIGENCE / 逾期预警演示</p><h2 id="odShowTitle">一笔逾期，如何被发现与处置</h2><div class="od-show-meta" id="odShowDescription"><span>固定示例数据</span><span>飞书模拟推送</span>经办人确认 ≠ 欠款已结清</div></div><button class="od-show-close" id="odDemoXBtn" onclick="closeOdDemo(event)" type="button" aria-label="关闭演示">×</button></header>
+  <div class="od-flow" id="odDemoFlow" aria-label="逾期处理路径"><div class="od-node"><span class="od-node-num">01</span><div class="od-node-icon"><i data-lucide="timer"></i></div><b>定时触发</b><small>每 10 分钟复查</small></div><span class="od-wire" aria-hidden="true" style="--od-delay:-0.4s"></span><div class="od-node"><span class="od-node-num">02</span><div class="od-node-icon"><i data-lucide="database"></i></div><b>数据读取</b><small>周期 / 合同 / 回款</small></div><span class="od-wire" aria-hidden="true" style="--od-delay:-0.8s"></span><div class="od-node"><span class="od-node-num">03</span><div class="od-node-icon"><i data-lucide="git-branch"></i></div><b>条件判断</b><small>按阈值分级</small></div><span class="od-wire" aria-hidden="true" style="--od-delay:-1.2s"></span><div class="od-node"><span class="od-node-num">04</span><div class="od-node-icon"><i data-lucide="file-text"></i></div><b>催款函生成</b><small>高风险进入此节点</small></div><span class="od-wire" aria-hidden="true" style="--od-delay:-1.6s"></span><div class="od-node"><span class="od-node-num">05</span><div class="od-node-icon"><i data-lucide="send"></i></div><b>模拟飞书</b><small>经办人确认留痕</small></div></div>
+  <div class="od-show-scene" id="odShowScene" data-level="none">
+    <article class="od-story" id="odSceneStory"><div class="od-scene-top"><span id="odSceneDay"></span><b id="odSceneRisk"></b></div><h3 id="odSceneTitle"></h3><p id="odSceneNote"></p><div class="od-scene-amount"><div><small>本周期未收余额 / 示例</small><strong id="odSceneAmount"></strong></div><div class="od-scene-days"><small>逾期天数</small><b id="odSceneDays"></b></div></div><div class="od-scene-action"><b>本阶段处置</b><span id="odSceneAction"></span></div><div class="od-scene-ladder" id="odSceneLadder"><span>监控</span><span>1–4 天</span><span>5–14 天</span><span>15–29 天</span><span>≥30 天</span></div></article>
+    <aside class="od-evidence"><div class="od-evidence-head"><span id="odEvidenceTitle">判断依据</span><span id="odEvidenceBadge">示例数据</span></div><div class="od-evidence-body" id="odEvidenceBody"></div></aside>
   </div>
+  <nav class="od-show-chapters" id="odDemoChapters" aria-label="演示章节"></nav>
+  <div style="padding:0 25px 13px"><label for="odDemoSlider" style="display:block;font-size:10px;color:#92adbf;margin-bottom:7px">拖动回看 · 选择步骤后暂停，便于讲解</label><input id="odDemoSlider" class="od-demo-slider" type="range" min="0" max="7" value="0" step="1" oninput="odDemoSeek(this.value)" aria-label="演示进度"></div>
+  <footer class="od-show-foot"><span class="od-show-status" id="odDemoStatus" role="status"></span><div class="od-show-controls"><select id="odDemoSpeed" aria-label="演示速度"><option value="1">标准节奏</option><option value="1.6">慢速讲解</option></select><button onclick="odDemoRestart()" type="button">重播</button><button id="odDemoPrevBtn" type="button">上一步</button><button id="odDemoPauseBtn" onclick="odDemoTogglePause()" class="primary" type="button">暂停播放</button><button id="odDemoNextBtn" onclick="odDemoNext()" type="button">下一步</button></div></footer>
+</dialog>
+<script src="static/overdue-showcase.js?v=20261028"></script>
 
   <div id="feishuOverlay" class="demo-overlay" hidden>
     <div class="feishu-window">
@@ -2196,8 +2101,7 @@
     function renderOverdueRiskAgent(st) {
       const agent = st && st.risk_agent || {};
       const decisions = agent.decisions || [];
-      const priorities = {高:3, 中:2, 低:1};
-      let top = decisions.slice().sort((a,b) => (priorities[b.risk_level]||0) - (priorities[a.risk_level]||0))[0];
+      let top = odResolveRisk(st);
       const banner = document.getElementById('odRiskBanner');
       const icon = document.getElementById('odRiskIcon');
       const title = document.getElementById('odRiskTitle');
@@ -2279,31 +2183,7 @@
         const monitor = document.getElementById('odMonitorStatus');
         if (monitor) monitor.textContent = `自动监控中 · 上次复查 ${(_odSum.checked_at || '-').replace('T',' ')} · 下次 ${(_odSum.next_check_at || '-').replace('T',' ')}`;
         renderOverdueRiskAgent(st);
-        const due = st.summary.next_due_date ? new Date(`${st.summary.next_due_date}T00:00:00`) : null;
-        const today = new Date(); today.setHours(0,0,0,0);
-        const days = due ? Math.ceil((due - today) / 86400000) : null;
-        const title = document.getElementById('odRiskTitle');
-        const desc = document.getElementById('odRiskDesc');
-        if (title && desc) {
-          if (Number(_odSum.current_overdue || 0) > 0) {
-            const _odTop = ((st.risk_agent || {}).decisions || []).slice()
-              .sort((a,b) => ({'停止供货':4,'发催款函':3,'电话提示':2,'暂不动作':1}[b.action]||0) - ({'停止供货':4,'发催款函':3,'电话提示':2,'暂不动作':1}[a.action]||0))[0] || {};
-            title.textContent = `发现真实逾期 · ${Number(_odSum.current_overdue).toLocaleString('zh-CN',{minimumFractionDigits:2})} 元`;
-            title.style.color = '#991b1b';
-            // 文案跟随 Agent 的实际判断，避免「暂不动作」时也写「进入催款函节点」自相矛盾。
-            if (_odTop.action === '发催款函' || _odTop.action === '停止供货') {
-              desc.textContent = `Agent 判定${_odTop.action}，流程已进入催款函生成节点，请负责人复核后发送。`;
-            } else if (_odTop.action === '电话提示') {
-              desc.textContent = 'Agent 判定中风险，建议先电话提示经办人跟进，暂不生成催款函。';
-            } else {
-              desc.textContent = 'Agent 判定低风险，暂不动作，系统持续监控并按阈值自动升级。';
-            }
-          } else if (days !== null && days >= 0) {
-            title.textContent = `待到期监控 · 距离逾期还有 ${days} 天`;
-            title.style.color = '#92400e';
-            desc.textContent = `预计逾期日 ${st.summary.next_due_date}；后台每10分钟自动复查，达到阈值后生成催款函。`;
-          }
-        }
+        odRenderSpotlight(st, odResolveRisk(st));
         document.getElementById('odPeriodsBody').innerHTML = st.periods.map(p => `<tr>
           <td>${p.period}</td><td>¥ ${money(p.settlement)}</td><td>¥ ${money(p.paid)}</td>
           <td class="${p.is_overdue ? 'bad-num' : ''}">¥ ${money(p.unpaid)}</td><td>${p.overdue_start || '-'}</td>
@@ -2413,17 +2293,6 @@
         .catch(e => showToast('操作失败：' + e.message));
     }
     // ========== 逾期提醒 · 自动演示 ==========
-    function closeOdDemo(ev) {
-      if (ev) { ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation(); }
-      odDemoPlaying = false; odDemoPaused = false;
-      odDemoStopTimer();
-      const overlay = document.getElementById('odDemoOverlay');
-      if (overlay) {
-        overlay.hidden = true;
-        overlay.style.display = 'none';
-        overlay.setAttribute('aria-hidden', 'true');
-      }
-    }
     function closeOverdue(id) {
       fetch(`/api/overdue/reminder/${id}/close`, { method: 'POST' })
         .then(r => r.json()).then(r => { showToast(r.ok ? '催款函已关闭' : (r.error || '关闭失败')); loadOverdue(); })
@@ -2461,276 +2330,7 @@
       if (!btn) return;
       closeFeishuSuccess(ev);
     }, true);
-    // ========================================================================
-    // 逾期提醒 · 自动演示（纯前端固定剧本）
-    // ------------------------------------------------------------------------
-    // 演示目标：让评委看到「逾期发生 → 逐级升级 → 催款函 → 飞书 → 确认」的
-    // 完整闭环。演示过程不调用大模型、不请求后端业务接口、不写库，
-    // 因此不会出现等待、卡顿、步骤失败或前后数据自相矛盾的问题。
-    // 页面主体（逾期摘要 / 周期表 / 提醒记录时间线）仍由真实业务数据渲染，
-    // 二者口径已对齐：都按 2026-10-08 起息、余额 135,906.45 元。
-    // ========================================================================
-    const OD_DEMO_SCRIPT = [
-        {
-            day: '2026-10-08', tag: '数据读取', title: '读取结算周期与合同规则', tone: 'ok',
-            note: '来源：A项目演示业务台账、回款回单与合同规则；共 4 个结算周期，其中 1 个已到起息日；当前未收 979,153.50 元、其中逾期 135,906.45 元',
-            agent: {
-                level: '', tag: '持续监控', headline: '读取完成：4 个结算周期，其中 1 个已到起息日',
-                lines: ['未到起息日的周期继续监控，系统不会提前计息',
-                        '已到起息日的周期按合同规则进入逾期判定'],
-                ms: 12
-            },
-            doc: { head: '等待生成', sub: '先扫描产生逾期事件' }
-        },
-        {
-            day: '2026-10-08', tag: '新增逾期', title: '周期 2026-07-21~08-20 到达起息日，生成逾期', tone: 'bad',
-            note: '结算 304,637.68 元 · 已付 168,731.23 元 · 未收 135,906.45 元 · 逾期 1 天',
-            agent: {
-                level: '低', tag: '低风险', headline: '建议动作：暂不动作（持续观察）',
-                lines: ['逾期 1 天，落在 1–4 天区间，按规则属低风险',
-                        '未收本金 135,906.45 元，暂不生成催款函，系统按阈值自动升级'],
-                ms: 34
-            },
-            doc: { head: '暂不生成催款函', sub: '低风险阶段仅持续观察' }
-        },
-        {
-            day: '2026-10-20', tag: '逾期余额重算', title: '逾期余额重算（跨过 5 天阈值）', tone: 'warn',
-            note: '按合同约定规则重算逾期余额与资金占用费；逾期累计 13 天',
-            agent: {
-                level: '中', tag: '中风险', headline: '建议动作：电话提示经办人',
-                lines: ['逾期 13 天，落在 5–14 天区间，风险等级升为中',
-                        '未收本金 135,906.45 元，资金占用费按合同约定规则同步累计'],
-                ms: 47
-            },
-            doc: { head: '暂不生成催款函', sub: '中风险阶段电话提示经办人' }
-        },
-        {
-            day: '2026-10-23', tag: '风险升级', title: '逾期进入 15–29 天区间，风险升为「高」', tone: 'bad',
-            note: '逾期累计 16 天，Agent 判定「发催款函」，进入催款函生成节点',
-            agent: {
-                level: '高', tag: '高风险', headline: '建议动作：发催款函（正式催收话术）',
-                lines: ['逾期 16 天，落在 15–29 天区间，风险等级升为高',
-                        '该周期未付 135,906.45 元，触发催款函生成节点'],
-                ms: 41
-            },
-            doc: { head: '生成催款函', sub: '数据取自真实台账与合同规则，格式复刻《催款函》模板' }
-        },
-        {
-            day: '2026-10-23', tag: '催款函生成', title: '按公文模板自动生成催款函', tone: 'ok',
-            note: '催款函-A项目-20261009.docx · 已供钢 802.829 吨 · 应付未付款 133,571.22 元 · 付款期限 2026-11-10',
-            agent: {
-                level: '高', tag: '高风险', headline: '催款函已生成，待经办人确认后转发甲方',
-                lines: ['结算 1,433,571.22 元 = 货款 1,427,945.19 元 + 资金占用费 5,626.03 元',
-                        '已付 1,300,000.00 元，应付未付 133,571.22 元'],
-                ms: 22
-            },
-            doc: {
-                full: true, file: '催款函-A项目-20261009.docx',
-                head: '催款函', sub: '公文格式：标题方正小标宋二号 · 正文仿宋_GB2312 三号 · 行距固定 28.5 磅'
-            }
-        },
-        {
-            day: '2026-10-23', tag: '发送消息', title: '催款函推送经办人飞书', tone: 'warn',
-            note: '发送给 李鹃妍（智都集团），经办人确认后可转发甲方',
-            agent: {
-                level: '高', tag: '高风险', headline: '消息已送达，等待经办人确认',
-                lines: ['飞书卡片：周期 20260721-20260820 · 逾期金额 133,571.22 元',
-                        '经办人确认为闭环最后一步'],
-                ms: 18
-            },
-            doc: { full: true, file: '催款函-A项目-20261009.docx', feishu: true,
-                   head: '催款函', sub: '公文格式：标题方正小标宋二号 · 正文仿宋_GB2312 三号 · 行距固定 28.5 磅' }
-        },
-        {
-            day: '2026-10-23', tag: '经办人确认', title: '经办人确认，催办闭环完成', tone: 'ok',
-            note: '闭环：扫描 → 事件 → 风险分级 → 催款函 → 飞书 → 确认',
-            agent: {
-                level: '高', tag: '已闭环', headline: '催款函已确认，闭环完成',
-                lines: ['本轮催办闭环：逾期事件 2 条 · 风险判断 3 档 · 催款函 1 份',
-                        '若继续逾期满 30 天，将追加「停止供货」警示'],
-                ms: 15
-            },
-            doc: { full: true, file: '催款函-A项目-20261009.docx', feishu: true, confirmed: true,
-                   head: '催款函', sub: '已确认 · 可转发甲方' }
-        }
-    ];
-
-    let odDemoIdx = -1, odDemoTimer = null, odDemoPaused = false, odDemoPlaying = false;
-    const OD_DEMO_STEP_MS = 2200;
-
-    function odDemoRenderAgent(a) {
-        const box = document.getElementById('odDemoAgent');
-        if (!box) return;
-        const tag = document.getElementById('odDemoAgentTag');
-        const body = document.getElementById('odDemoAgentBody');
-        if (!a) { box.style.display = 'none'; return; }
-        box.style.display = 'block';
-        const palette = { '高': 'bad', '中': 'warn', '低': 'info' };
-        tag.textContent = a.tag || '持续监控';
-        tag.className = 'tag ' + (palette[a.level] || '');
-        body.innerHTML =
-            `<div><span class="tag ${palette[a.level] || ''}">${odEsc(a.level ? a.level + '风险' : '持续监控')}</span> ` +
-            `<b>${odEsc(a.headline || '')}</b></div>` +
-            (a.lines || []).map(t => `<div style="margin-top:4px">${odEsc(t)}</div>`).join('') +
-            `<div style="margin-top:6px;color:#94a3b8">规则引擎判定 · 阈值表 1–4 低 / 5–14 中 / 15–29 高 / ≥30 高（停止供货） · 用时 ${a.ms || 0} ms</div>`;
-    }
-
-    function odDemoRenderDoc(step, state) {
-        const doc = document.getElementById('odDemoDoc');
-        // 错误分支：本演示不调后端，保留占位以免误用
-        if (!state) { doc.innerHTML = `<div class="note-head">${odEsc(step.doc.head)} <small>${odEsc(step.doc.sub || '')}</small></div>`; return; }
-        const f = state.doc || step.doc;
-        if (f.full) {
-            doc.innerHTML = `
-              <div class="word-preview">
-                <div class="wp-title">催&ensp;&ensp;款&ensp;&ensp;函</div>
-                <div class="wp-body">
-                  <p class="no-indent">致欠款方：示例项目方有限公司</p>
-                  <p>2024年8月23日，我司与贵司签订《指定供应项目专用协议》（合同编号:CJT 01 01 2025 027 06 005），于2024年8月27日开始为贵司【A项目供应链项目】供应钢筋，期间我司供货保障正常，贵司未按期足额支付货款及资金占用费。</p>
-                  <p>截至2026年10月20日，已供钢 802.829 吨，已办理结算金额 1,433,571.22 元，其中货款 1,427,945.19 元、资金占用费 5,626.03 元；已付款 1,300,000.00 元，应付未付款 133,571.22 元，其中货款 127,945.19 元、资金占用费 5,626.03 元。</p>
-                  <p>为今后业务更好开展，请贵司于 2026年11月10日 前将上述应付未付货款、资金占用费支付完毕。</p>
-                  <p>故我司特函告贵司如下：</p>
-                  <p>1、请贵司积极筹措资金向我司全额支付上述欠款。</p>
-                  <p>2、在未收到上述全额欠款之前，我司有权根据原合同约定的或者有关法律允许的所有必要的法律措施追究贵司的法律责任，维护我司的合法权益。</p>
-                  <p>3、本催款函并不构成对原合同的任何修改，贵司在原合同项下的义务也不因本催款函而发生任何减免或免除。</p>
-                  <div class="wp-sign">广州绿色金融街投资管理有限公司<br>联系人：李鹃妍<br>2026年10月9日</div>
-                  <div class="wp-page">— 1 —</div>
-                </div>
-              </div>
-              <div class="wp-foot"><span style="max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${odEsc(f.file)}</span><span class="tag ${f.confirmed ? 'ok' : 'warn'}">${f.confirmed ? '已确认' : '待确认'}</span></div>
-              <div class="demo-hint">${odEsc(f.sub || '')}</div>`;
-        } else {
-            doc.innerHTML = `<div class="note-head">${odEsc(f.head)} <small>${odEsc(f.sub || '')}</small></div>`;
-        }
-    }
-
-    function odDemoRenderFeishu(step, state) {
-        const fs = document.getElementById('odDemoFeishu');
-        if (!state || !state.feishu) { fs.hidden = true; return; }
-        fs.hidden = false;
-        document.getElementById('odDemoFeishuMsg').innerHTML =
-            `周期 <b>20260721-20260820</b> 逾期金额 <b>¥ 133,571.22</b>，已生成催款函，请确认后转发甲方。`;
-        document.getElementById('odDemoFeishuFile').textContent = '催款函-A项目-20261009.docx';
-        document.getElementById('odDemoFeishuTime').textContent = state.confirmed ? '经办人已确认 · 可转发甲方' : '已送达 · 待经办人确认';
-        if (window.lucide) lucide.createIcons();
-    }
-
-    function odDemoUpdateSlider() {
-        const sl = document.getElementById('odDemoSlider');
-        const lb = document.getElementById('odDemoSliderLabel');
-        if (!sl || !lb) return;
-        sl.min = 0;
-        sl.max = String(OD_DEMO_SCRIPT.length - 1);
-        if (odDemoIdx >= 0) sl.value = String(odDemoIdx);
-        lb.textContent = `演示进度 ${Math.max(0, odDemoIdx) + 1} / ${OD_DEMO_SCRIPT.length} · ${odDemoIdx >= 0 ? OD_DEMO_SCRIPT[odDemoIdx].day : ''}`;
-    }
-
-    function odDemoSetStep(i) {
-        const step = OD_DEMO_SCRIPT[i];
-        if (!step) return;
-        odDemoIdx = i;
-        document.querySelectorAll('#odDemoProgress span').forEach((sp, idx) => {
-            sp.classList.toggle('done', idx < i);
-            sp.classList.toggle('active', idx === i);
-        });
-        document.getElementById('odDemoStep').textContent =
-            `${i + 1}/${OD_DEMO_SCRIPT.length} ${step.tag} · ${step.day} — ${step.title}`;
-        const tl = document.getElementById('odDemoTimeline');
-        tl.innerHTML = OD_DEMO_SCRIPT.map((st, idx) => {
-            const active = idx === i ? 'box-shadow:0 0 0 2px var(--blue);' : '';
-            return `<div class="timeline-item ${idx <= i ? st.tone : ''}" style="${active}${idx > i ? 'opacity:.42' : ''}">
-              <div class="tl-head"><span>${st.tag}</span><b>${st.day}</b></div>
-              <div class="tl-note">${idx <= i ? st.note : '（待播放）'}</div></div>`;
-        }).join('');
-        document.getElementById('odDemoCount').textContent = `${i + 1} 个事件`;
-        const activeEl = tl.children[i];
-        if (activeEl && activeEl.scrollIntoView) activeEl.scrollIntoView({ block: 'nearest' });
-        odDemoRenderAgent(step.agent);
-        odDemoRenderDoc(step, step);
-        odDemoRenderFeishu(step, step.doc);
-        odDemoUpdateSlider();
-        const done = document.getElementById('odDemoDone');
-        const closeBtn = document.getElementById('odDemoCloseBtn');
-        if (i === OD_DEMO_SCRIPT.length - 1) {
-            done.textContent = '演示完成：逾期监控 + 风险分级 + 催办全闭环（固定演示数据）';
-            closeBtn.hidden = false; closeBtn.style.display = 'inline-flex';
-        } else {
-            done.textContent = '';
-            closeBtn.hidden = true; closeBtn.style.display = 'none';
-        }
-        if (window.lucide) lucide.createIcons();
-    }
-
-    function odDemoStopTimer() { clearTimeout(odDemoTimer); odDemoTimer = null; }
-
-    function odDemoScheduleNext() {
-        odDemoStopTimer();
-        if (!odDemoPlaying || odDemoPaused) return;
-        if (odDemoIdx >= OD_DEMO_SCRIPT.length - 1) { odDemoPlaying = false; odDemoSyncPauseBtn(); return; }
-        odDemoTimer = setTimeout(() => { if (odDemoPlaying && !odDemoPaused) odDemoStepNext(); }, OD_DEMO_STEP_MS);
-    }
-
-    function odDemoStepNext() {
-        if (odDemoIdx < OD_DEMO_SCRIPT.length - 1) odDemoSetStep(odDemoIdx + 1);
-        odDemoScheduleNext();
-    }
-
-    function odDemoSyncPauseBtn() {
-        const b = document.getElementById('odDemoPauseBtn');
-        if (!b) return;
-        b.innerHTML = odDemoPaused
-            ? '<i data-lucide="play" width="15"></i>继续'
-            : '<i data-lucide="pause" width="15"></i>暂停';
-        if (window.lucide) lucide.createIcons();
-    }
-
-    function odDemoTogglePause() {
-        if (odDemoIdx < 0) return;
-        odDemoPaused = !odDemoPaused;
-        odDemoSyncPauseBtn();
-        if (odDemoPaused) odDemoStopTimer();
-        else { odDemoPlaying = true; odDemoScheduleNext(); }
-    }
-
-    function odDemoNext() {
-        if (odDemoIdx < 0) return;
-        odDemoPaused = true; odDemoPlaying = false;
-        odDemoSyncPauseBtn();
-        odDemoStopTimer();
-        if (odDemoIdx < OD_DEMO_SCRIPT.length - 1) odDemoSetStep(odDemoIdx + 1);
-    }
-
-    function odDemoSeek(v) {
-        const i = Math.max(0, Math.min(OD_DEMO_SCRIPT.length - 1, parseInt(v, 10) || 0));
-        odDemoPaused = true; odDemoPlaying = false;
-        odDemoSyncPauseBtn();
-        odDemoStopTimer();
-        odDemoSetStep(i);
-    }
-
-    function odDemoRestart() {
-        odDemoStopTimer();
-        odDemoPaused = false; odDemoPlaying = true; odDemoIdx = -1;
-        odDemoSyncPauseBtn();
-        odDemoSetStep(0);
-        odDemoScheduleNext();
-    }
-
-    function openOverdueDemo() {
-        if (odDemoPlaying) return;
-        const overlay = document.getElementById('odDemoOverlay');
-        overlay.hidden = false;
-        overlay.style.display = 'flex';
-        overlay.style.pointerEvents = 'auto';
-        overlay.setAttribute('aria-hidden', 'false');
-        const closeBtn = document.getElementById('odDemoCloseBtn');
-        closeBtn.hidden = true; closeBtn.style.display = 'none';
-        const sl = document.getElementById('odDemoSlider');
-        if (sl) { sl.disabled = false; sl.max = String(OD_DEMO_SCRIPT.length - 1); sl.value = '0'; }
-        document.getElementById('odDemoFeishu').hidden = true;
-        document.getElementById('odDemoTimeline').innerHTML = '';
-        odDemoRestart();
-    }
+    // 逾期演示由 static/overdue-showcase.js 管理。
     // ========== 登录 / 登出 ==========
      const SESSION_KEY = 'tower_session';
      let activeUser = null;
@@ -4234,7 +3834,7 @@
       const btn = document.getElementById('overdueToggleBtn');
       const panel = document.querySelector('[data-view="overdue"] section.panel');
       if (!panel) return;
-      const children = Array.from(panel.children).slice(2);
+      const children = Array.from(panel.children).filter(c => !c.classList.contains("section-head") && !c.classList.contains("od-command"));
       const isHidden = children.some(c => c.hidden);
       children.forEach(c => c.hidden = !isHidden);
       btn.innerHTML = isHidden ? '<i data-lucide="chevrons-up" width="15"></i>收起' : '<i data-lucide="chevrons-down" width="15"></i>展开全部';
