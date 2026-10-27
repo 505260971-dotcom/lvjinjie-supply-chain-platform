@@ -1743,7 +1743,7 @@ window.__SS_VOUCHER__ = {"A项目-回款与逾期核算表.pdf": "assets/voucher
     function closeValueCard(){document.getElementById('valueModal').hidden=true;}
     setTimeout(()=>installValueCard('knowledge'),0);
      function switchView(view) {
-       if ((view === 'minister' || view === 'executive') && activeUser?.role !== '业务部经理') view = 'knowledge';
+       if ((view === 'minister' || view === 'executive') && !['业务部经理','总经理'].includes(activeUser?.role)) view = 'knowledge';
        if (view !== 'minister') installValueCard(view);
       currentView = view;
       document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.dataset.view === view));
@@ -1837,14 +1837,26 @@ window.__SS_VOUCHER__ = {"A项目-回款与逾期核算表.pdf": "assets/voucher
     }
     function toggleHistory() { fullHistory = !fullHistory; renderHistory(); }
     function cycleView() {
-      const views = activeUser && activeUser.role === '业务部经理' ? ['minister','executive'] : ['knowledge','finance','documents','ledger','overdue'];
+      const views = activeUser && activeUser.role === '业务部经理' ? ['minister','executive'] : activeUser?.role === '总经理' ? ['executive'] : ['knowledge','finance','documents','ledger','overdue'];
       switchView(views[(views.indexOf(currentView) + 1) % views.length]);
     }
     function managerJump(target) {
-      if (activeUser?.role !== '业务部经理') return;
+      if (!['业务部经理','总经理'].includes(activeUser?.role)) return;
       const map = {pulse:'managerPulseAnchor', projects:'ministerProjects', alerts:'managerAlertsAnchor', report:'managerReportAnchor'};
-      const el = document.getElementById(map[target]);
-      if (el) el.scrollIntoView({behavior:'smooth', block:'start'});
+      // ★ 这 4 个锚点都挂在「业务部经理工作台」(view=minister) 里。
+      //   总经理默认停在 executive（集团经营驾驶舱），此时 minister 视图是隐藏的，
+      //   直接 scrollIntoView 找不到可视位置，点了看起来像没反应。
+      //   所以先切到 minister 让锚点可见，再滚动。
+      if (currentView !== 'minister') {
+        switchView('minister');
+        setTimeout(function () {
+          const el0 = document.getElementById(map[target]);
+          if (el0) el0.scrollIntoView({behavior:'smooth', block:'start'});
+        }, 120);
+      } else {
+        const el = document.getElementById(map[target]);
+        if (el) el.scrollIntoView({behavior:'smooth', block:'start'});
+      }
       document.querySelectorAll('#managerNav button').forEach(b => b.classList.toggle('active', b.dataset.managerTarget === target));
     }
     function renderLedger() {
@@ -2920,7 +2932,7 @@ window.__SS_VOUCHER__ = {"A项目-回款与逾期核算表.pdf": "assets/voucher
       document.getElementById('loginScreen').classList.add('hidden');
       const ministerNav = document.getElementById('ministerNav');
        const perspectiveSelect = document.getElementById('perspectiveSelect');
-        const isMinister = u.role === '业务部经理';
+        const isMinister = ['业务部经理','总经理'].includes(u.role);
         const projectInfo = (PROJECT_LIST || []).find(p => p.id === currentProject);
         const brandSubtitle = document.getElementById('brandSubtitle');
         const crumbProject = document.querySelector('.crumb b');
@@ -2947,11 +2959,11 @@ window.__SS_VOUCHER__ = {"A项目-回款与逾期核算表.pdf": "assets/voucher
       lucide.createIcons();
       // 经营小结后台预热:模型生成较慢,先静默生成并缓存,进入经营数据统计秒开
       if (!isMinister) fetch('/api/health-report', { method: 'POST' }).catch(() => {});
-        if (isMinister) {
+        if (u.role === '总经理') {
+          setTimeout(() => switchView('executive'), 0);
+        } else if (u.role === '业务部经理') {
           if (!opts.stayView) setTimeout(() => switchView('minister'), 0);
-         } else if (u.role === '总经理') {
-           setTimeout(() => switchView('executive'), 0);
-         } else if (['财务专员','财务主管'].includes(u.role)) {
+        } else if (['财务专员','财务主管'].includes(u.role)) {
            setTimeout(() => switchView('finance'), 0);
          } else if (currentView === 'minister' || currentView === 'executive') switchView('knowledge');
     }
