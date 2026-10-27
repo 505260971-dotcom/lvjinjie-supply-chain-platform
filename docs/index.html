@@ -4104,7 +4104,7 @@ window.__SS_VOUCHER__ = {"A项目-回款与逾期核算表.pdf": "assets/voucher
          const missingText = [...new Set([...missing, ...missingTypes.map(type => `缺少${type}`)])];
          const reason = conflicts.map(item => item.reason || '字段金额不一致').join('；');
          const sourceButtons = conflicts.map(item => item.source
-           ? `<button class="button" style="font-size:11px;padding:4px 8px" onclick="window.open('#voucher-offline)}','_blank')">查看原件</button>`
+           ? `<button class="button" style="font-size:11px;padding:4px 8px" data-source="${escapeAskHtml(item.source)}" onclick="openAuditSource(this.dataset.source)">查看原件</button>`
            : '').join('');
          const detail = conflicts.length ? reason : (missingText.length ? missingText.join('、') : `已匹配 ${types.length} 类资料，共 ${rows.length} 份`);
          return `<div class="result-row" style="${issue ? (conflicts.length ? 'background:#fff1f2;border-color:#fecdd3' : 'background:#fff7ed') : ''}">
@@ -4124,14 +4124,14 @@ window.__SS_VOUCHER__ = {"A项目-回款与逾期核算表.pdf": "assets/voucher
         const conflictIssueHtml = conflictItems.map(item => {
           const detail = item.reason || '关联单据金额不一致';
           const sourceButton = item.source
-            ? `<button class="button ghost" onclick="window.open('#voucher-offline)}','_blank')">查看原件</button>`
+            ? `<button class="button ghost" data-source="${escapeAskHtml(item.source)}" onclick="openAuditSource(this.dataset.source)">查看原件</button>`
             : '';
           return `<article class="audit-issue-card conflict"><span class="audit-issue-card-label">金额冲突</span><div><div class="audit-issue-card-date">${item.date || '未标日期'}</div><div class="audit-issue-card-detail">${detail}</div></div>${sourceButton}</article>`;
         }).join('');
         const verdicts = Array.isArray(auditData?.agent_verdicts) ? auditData.agent_verdicts : [];
         const trace = auditData?.audit_trace || {};
         const traceHtml = `<div class="audit-trace" style="margin:10px 0;padding:10px 12px;border:1px solid #dbeafe;background:#f8fbff;border-radius:10px"><div style="font-weight:700;margin-bottom:8px">审核 Agent 取证轨迹 <span class="tag ${trace.degraded ? 'warn' : 'ok'}">${trace.degraded ? '本地规则引擎已接管' : '大模型已参与'}</span></div>${(trace.nodes || []).map(n => `<div style="display:flex;gap:8px;align-items:center;padding:4px 0;font-size:12px"><span class="tag neutral">${n.label || n.id}</span><span style="color:#64748b">${n.duration_ms ?? 0} ms</span><span>${n.detail || ''}</span></div>`).join('')}<div style="margin-top:6px;color:#64748b;font-size:11px">总耗时 ${trace.total_ms ?? '-'} ms</div></div>`;
-        const verdictHtml = verdicts.length ? `<div class="audit-verdicts" style="margin:10px 0"><div style="font-weight:700;margin-bottom:7px">Agent 定性与证据链</div>${verdicts.map(v => `<article class="audit-issue-card ${v.verified ? 'conflict' : 'missing'}"><span class="audit-issue-card-label">${v.verdict || '待复核'}</span><div><div class="audit-issue-card-date">${v.date || '未标日期'} · ${v.decided_by === 'llm' ? '模型定性' : '规则接管'}</div><div class="audit-issue-card-detail">${v.conclusion || '证据不足，建议人工复核'}${(v.evidence || []).map(e => `<div style="font-size:11px;color:#64748b;margin-top:3px">证据：${e.doc || e.source || ''} · ${e.location || ''}</div>`).join('')}</div></div>${v.file ? `<button class="button ghost" onclick="window.open('#voucher-offline)}','_blank')">查看原件</button>` : ''}</article>`).join('')}</div>` : '';
+        const verdictHtml = verdicts.length ? `<div class="audit-verdicts" style="margin:10px 0"><div style="font-weight:700;margin-bottom:7px">Agent 定性与证据链</div>${verdicts.map(v => `<article class="audit-issue-card ${v.verified ? 'conflict' : 'missing'}"><span class="audit-issue-card-label">${v.verdict || '待复核'}</span><div><div class="audit-issue-card-date">${v.date || '未标日期'} · ${v.decided_by === 'llm' ? '模型定性' : '规则接管'}</div><div class="audit-issue-card-detail">${v.conclusion || '证据不足，建议人工复核'}${(v.evidence || []).map(e => `<div style="font-size:11px;color:#64748b;margin-top:3px">证据：${e.doc || e.source || ''} · ${e.location || ''}</div>`).join('')}</div></div>${v.file ? `<button class="button ghost" data-source="${escapeAskHtml(v.file)}" onclick="openAuditSource(this.dataset.source)">查看原件</button>` : ''}</article>`).join('')}</div>` : '';
         const historyRows = Array.isArray(auditData?.history) ? auditData.history : [];
         const historyHtml = historyRows.length ? `<div class="audit-trace" style="margin:10px 0;padding:10px 12px;border:1px solid #dbeafe;background:#fbfdff;border-radius:10px"><div style="font-weight:700;margin-bottom:7px">历史对比 · 本次 vs 上次</div>${historyRows.map(h => `<div style="display:flex;gap:8px;align-items:center;padding:4px 0;font-size:12px"><span class="tag neutral">${escapeAskHtml(h.issue_type || 'audit')}</span><span>${escapeAskHtml(h.comparison || '已记录')}</span>${h.current ? `<span style="color:#64748b">本次 #${h.current.run_id}</span>` : ''}${h.previous ? `<span style="color:#64748b">上次 #${h.previous.run_id}</span>` : ''}</div>`).join('')}</div>` : '';
         const degradedHtml = trace.degraded ? `<div style="margin:8px 0;padding:9px 12px;border-radius:8px;background:#fff7ed;color:#9a3412;border:1px solid #fed7aa">本地规则引擎已接管 · 大模型暂不可用：${trace.llm?.reason || '取证循环未完成'}</div>` : '';
@@ -4777,6 +4777,20 @@ window.__SS_VOUCHER__ = {"A项目-回款与逾期核算表.pdf": "assets/voucher
     for (var i = 0; i < keys.length; i++) { if (VCH[keys[i]]) return VCH[keys[i]]; }
     return null;
   }
+  /* 单据核查冲突项也要能回到对应原件。冲突卡片只有一个 source，
+     这里复用同一份静态凭证映射，打开单张原件预览。 */
+  window.openAuditSource = function (source) {
+    var url = voucherPng(source) || 'static/demo/demo_delivery_note.svg';
+    var t = document.getElementById('voucherToast');
+    if (!t) { t = document.createElement('div'); t.id = 'voucherToast'; document.body.appendChild(t); }
+    t.style.pointerEvents = 'auto';
+    t.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;font-weight:700;margin-bottom:10px;font-size:16px">' +
+      '<span>冲突原件查看</span><button class="button" onclick="closeVoucherToast()" aria-label="关闭原件">✕</button></div>' +
+      '<div style="height:70vh;overflow:auto;background:#303030;border-radius:6px;padding:12px;text-align:center">' +
+      '<img src="' + url + '" alt="冲突单据原件" style="display:block;width:100%;height:auto;max-height:none;object-fit:contain;background:#fff;margin:0 auto"></div>' +
+      '<small style="display:block;margin-top:10px;color:#c8cdd4;word-break:break-all">来源：' + String(source || '演示凭证') + '</small>';
+    t.classList.add('show');
+  };
   var _toastVoucher = window.toastVoucher;
   window.toastVoucher = function (ev, btn) {
     if (ev && ev.stopPropagation) ev.stopPropagation();
