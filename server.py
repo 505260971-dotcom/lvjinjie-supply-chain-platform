@@ -1926,7 +1926,7 @@ def detect_question_type(question: str) -> str:
 
 
 def retrieve_chunks(question: str, limit: int = 4) -> list[dict[str, Any]]:
-    """检索合同类文档（BM25 + 可用时的 bge-m3 余弦相似度）。"""
+    """检索合同类文档（n-gram 词重叠打分 + 可用时的 bge-m3 余弦相似度，0.5/0.5 融合）。"""
     def tokens(value: str) -> set[str]:
         out: set[str] = set()
         for run in re.findall(r"[\u4e00-\u9fff]+", value.lower()):
@@ -1957,7 +1957,7 @@ def retrieve_chunks(question: str, limit: int = 4) -> list[dict[str, Any]]:
             query_vector = (body.get("embeddings") or [None])[0]
             vector_ready = isinstance(query_vector, list) and bool(query_vector)
         except Exception as exc:
-            print(f"[retrieval] vector query unavailable ({type(exc).__name__}); using BM25", flush=True)
+            print(f"[retrieval] vector query unavailable ({type(exc).__name__}); using n-gram scoring", flush=True)
             vector_ready = False
     def cosine(left, right):
         if not isinstance(left, list) or not isinstance(right, list) or len(left) != len(right):
@@ -3388,7 +3388,7 @@ def answer_question(question: str) -> dict[str, Any]:
         trace.append({"node": "faq_direct", "output": {"answer": answer, "data_range": data_range}})
 
     elif intent == "contract":
-        # ---- 分支C：合同规则问题，强制走合同检索（BM25+关键词扩展） ----
+        # ---- 分支C：合同规则问题，强制走合同检索（n-gram 打分+关键词扩展） ----
         retrieval = contract_retrieve(question)
         trace.append({"node": "contract_retriever", "output": {
             "matched_chunks": len(retrieval["chunks"]),
@@ -5394,7 +5394,7 @@ def _start_embedding_worker(project_id: str, task_id: str = "") -> bool:
     而不是调度）。同步跑会把「确认注册并打开项目」按钮变成 109 秒无响应，
     路演现场看就是卡死。
 
-    为什么不干脆删掉向量化：retrieve_chunks 是 BM25 + 余弦的混合排序，
+    为什么不干脆删掉向量化：retrieve_chunks 是 n-gram 词重叠 + 余弦的混合排序，
     有向量时合同问答召回更好；异步补建两头都不损失。
 
     ★ 关键：本线程**不能**进 DATASET_CONTEXT_LOCK，也不能依赖 _activate_dataset。
@@ -7004,7 +7004,7 @@ def audit_tool_lookup_contract(topic: str) -> dict[str, Any]:
     retrieved = contract_retrieve(topic or "付款条件 结算 资金占用费")
     evidence = [{"text": chunk.get("content", "")[:400], "doc": chunk.get("source_path"),
                  "location": f"合同切片 {chunk.get('chunk_index')}"} for chunk in retrieved.get("chunks", [])]
-    return {"value": evidence, "source": {"doc": "合同", "location": "BM25/向量检索结果（含切片定位）"}}
+    return {"value": evidence, "source": {"doc": "合同", "location": "关键词/向量检索结果（含切片定位）"}}
 
 
 def audit_tool_lookup_repayment(date_from: str, date_to: str) -> dict[str, Any]:
@@ -8517,7 +8517,7 @@ class Handler(BaseHTTPRequestHandler):
                 #   ① seed_knowledge 同步跑（仅 3.8s，且合同问答的语料就是它落的库，
                 #      挪到后台会让刚注册的项目"问不出合同内容"，不能省）；
                 #   ② 向量化丢后台（73s，只影响语义召回；未建完时 retrieve_chunks
-                #      自动降级 BM25，问答照常可答——见 retrieve_chunks 的 try 分支）。
+                #      自动降级纯关键词打分，问答照常可答——见 retrieve_chunks 的 try 分支）。
                 try:
                     _registered_call(project_id, seed_knowledge)
                 except Exception as exc:  # 索引失败不该让注册失败
