@@ -7,6 +7,7 @@
   <img alt="RAG" src="https://img.shields.io/badge/RAG-n--gram%20%2B%20bge--m3-8A2BE2"/>
   <img alt="Agent" src="https://img.shields.io/badge/Agent-有界%20ReAct%20%C2%B7%20HITL-FF6B35"/>
   <img alt="Offline" src="https://img.shields.io/badge/%E7%A6%BB%E7%BA%BF-%E6%A0%B8%E5%BF%83%E5%8A%9F%E8%83%BD%E5%8F%AF%E7%94%A8-2EA043"/>
+  <a href="https://github.com/505260971-dotcom/lvjinjie-supply-chain-platform/actions/workflows/regression.yml"><img alt="regression" src="https://github.com/505260971-dotcom/lvjinjie-supply-chain-platform/actions/workflows/regression.yml/badge.svg"/></a>
 </p>
 
 **面向钢材供应链业务的本地控制塔**：把合同、送货单、网价、对账单、发票和回款凭证串成一条**可核查、可计算、可追溯**的业务链路，覆盖单据完整性核查、业务台账、经营统计、资金占用费核算、逾期提醒、项目资料问答六大模块，服务业务员、业务部经理、财务专员、财务主管、总经理五类岗位。
@@ -252,6 +253,20 @@ python agent_harness.py http://127.0.0.1:8787 --category audit --timeout 300
 - **工具选择**：是否选中了正确的工具（路由正确性）；
 - **数字锚定**：回答中的数字是否与规则引擎计算值逐项一致；
 - **越界拒答**：超出授权范围的问题是否被正确拒绝。
+
+### 持续集成：基线不是写在文档里，是每次提交都验一遍
+
+`.github/workflows/regression.yml` 在每次 push / PR 时启动服务并跑完整 35 条，**任何一条失败都会让构建变红**（`agent_harness.py` 在有失败时返回非零退出码），失败用例和失败环节（语义 / 证据 / 路由 / 数字 / 护栏）会写进 Actions 的 Job Summary。
+
+CI 环境是**刻意做差**的：
+
+| 维度 | 本地演示环境 | CI | 意义 |
+| --- | --- | --- | --- |
+| 云端模型 | DeepSeek Key 已配置 | 不注入任何 Key | 验证「模型不可用」时的兜底 |
+| 本地模型 | ollama + bge-m3 | 无 | 验证向量检索缺失时的词法降级 |
+| OCR | 可装 rapidocr | 不安装 | 验证可选依赖缺失不污染结果 |
+
+即：**基线不依赖任何外部服务，纯规则引擎路径也能 35/35 复现**。这也是「换模型、改提示词前先跑基线」这条规矩能成立的前提——否则基线一换环境就飘，等于没有基线。
 
 ---
 

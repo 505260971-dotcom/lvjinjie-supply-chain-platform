@@ -1,0 +1,101 @@
+name: regression
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: regression-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  harness:
+    name: 35 条回归基线
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PORT: 8787
+      # 刻意不注入任何模型 Key：
+      # 让 CI 跑在「云端模型不可用 → 规则引擎兜底」的降级链上，
+      # 证明最差环境下评测基线依然可复现，不被外部 API 稳定性干扰。
+      PYTHONIOENCODING: utf-8
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: 安装运行依赖
+        # 不装 rapidocr_onnxruntime：它是可选依赖（扫描件 OCR），
+        # 刻意留空以验证 server.py 的缺失依赖告警与降级路径。
+        run: |
+          python -m pip install --upgrade pip
+          pip install "openpyxl>=3.1" "pymupdf>=1.23" "pypdf>=4.0" "python-docx>=1.1"
+
+      - name: 启动服务并等待就绪
+        # 双闸门：① /api/health 返回 200 ② 一次真实问答能拿到答案。
+        # 只等 ① 不够——服务已监听但索引/预热未完成时，评测前几条会超时失败（本机实测过）。
+        run: |
+          python -u server.py > server.log 2>&1 &
+          echo $! > server.pid
+
+          echo "::group::等待 /api/health"
+          health_ok=0
+          for _ in {1..120}; do
+            if curl -sf --max-time 2 "http://127.0.0.1:${PORT}/api/health" > /dev/null; then
+              health_ok=1; echo "health 就绪"; break
+            fi
+            sleep 2
+          done
+          echo "::endgroup::"
+          if [ "$health_ok" != "1" ]; then
+            echo "::error::服务未能在 240s 内监听端口"
+            tail -80 server.log
+            exit 1
+          fi
+          curl -s "http://127.0.0.1:${PORT}/api/health"; echo
+
+          echo "::group::等待真实问答可用"
+          ask_ok=0
+          for _ in {1..30}; do
+            if curl -sf --max-time 20 -X POST "http://127.0.0.1:${PORT}/api/ask" \
+                 -H "Content-Type: application/json" \
+                 -d '{"question":"项目累计销售额是多少","role":"finance"}' | grep -q '"answer"'; then
+              ask_ok=1; echo "问答就绪"; break
+            fi
+            sleep 2
+          done
+          echo "::endgroup::"
+          if [ "$ask_ok" != "1" ]; then
+            echo "::error::服务已监听但问答接口 60s 内未返回可用答案"
+            tail -80 server.log
+            exit 1
+          fi
+
+      - name: 运行回归基线
+        run: python agent_harness.py "http://127.0.0.1:${PORT}" --json > harness-report.json
+
+      - name: 写入 Job 摘要
+        if: always()
+        run: python .github/scripts/summarize_harness.py harness-report.json >> "$GITHUB_STEP_SUMMARY"
+
+      - name: 上传完整报告
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: harness-report
+          path: harness-report.json
+          if-no-files-found: warn
+
+      - name: 失败时输出服务日志
+        if: failure()
+        run: tail -100 server.log
+
+      - name: 停止服务
+        if: always()
+        run: kill "$(cat server.pid)" 2>/dev/null || true

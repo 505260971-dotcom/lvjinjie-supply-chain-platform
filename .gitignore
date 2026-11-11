@@ -20,3 +20,7 @@ id_rsa*
 id_ed25519*
 # 隔离出的真实业务单据（绝不上传）
 _quarantine_*/
+
+# 评测产物
+harness-report.json
+_cold.log
