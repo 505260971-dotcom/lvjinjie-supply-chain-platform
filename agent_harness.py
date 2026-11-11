@@ -62,8 +62,10 @@ def _cases() -> list[Case]:
         Case("overdue_status", "risk", "目前有哪些逾期周期", must_any=("逾期", "周期"), route="查询逾期状态"),
         Case("overdue_balance", "risk", "当前逾期金额是多少", ("逾期",), route="查询逾期状态"),
         Case("overdue_start", "risk", "每个周期的起息日是什么", must_any=("起息", "逾期"), route="查询逾期状态"),
-        Case("fee_current", "risk", "当前资金占用费怎么计算", ("资金占用费",), route="计算资金占用费", numbers=(5626.03,)),
-        Case("fee_total", "risk", "累计资金占用费是多少", ("资金占用费",), route="计算资金占用费", numbers=(5626.03,)),
+        # 数字锚定基线锚定「数据集版本 v3」（3 张回单 20260915/20261010/20261018）。
+        # 演示资料增删回单后必须重新核算并同步这里，见 README「评测与验收」。
+        Case("fee_current", "risk", "当前资金占用费怎么计算", ("资金占用费",), route="计算资金占用费", numbers=(6468.65,)),
+        Case("fee_total", "risk", "累计资金占用费是多少", ("资金占用费",), route="计算资金占用费", numbers=(6468.65,)),
         Case("fee_formula", "risk", "资金占用费的计算公式是什么", must_any=("资金占用费", "利率", "计息"), route="计算资金占用费"),
         Case("fee_period", "risk", "某个结算周期的占用费明细", must_any=("占用费", "周期"), route="计算资金占用费"),
         Case("chitchat_hello", "guardrail", "你好", must_any=("你好", "项目资料"), route="无需查询", evidence=False, guardrail=True),
@@ -157,7 +159,7 @@ def _evaluate_finance_intake(base: str, timeout: float) -> list[dict[str, Any]]:
             {"case": "finance_intake_idempotency", "category": "finance", "question": "重复银行流水号幂等", "pass": status in {200, 201} and duplicate.get("duplicated") is True, "failed_layers": [] if status in {200, 201} and duplicate.get("duplicated") is True else ["idempotency"], "elapsed_ms": elapsed},
             {"case": "finance_intake_role_gate", "category": "finance", "question": "财务专员不能确认", "pass": staff_confirm == 403, "failed_layers": [] if staff_confirm == 403 else ["role_gate"], "elapsed_ms": elapsed},
             {"case": "finance_intake_confirm", "category": "finance", "question": "主管确认进入回款链", "pass": manager_confirm == 200 and confirmed.get("status") == "confirmed" and confirmed.get("repayment_id"), "failed_layers": [] if manager_confirm == 200 and confirmed.get("status") == "confirmed" and confirmed.get("repayment_id") else ["confirm"], "elapsed_ms": elapsed},
-            {"case": "finance_intake_fee_anchor", "category": "finance", "question": "资金占用费接口保持稳定", "pass": abs(float(fee.get("grand_total") or 0) - 5626.03) < 0.01, "failed_layers": [] if abs(float(fee.get("grand_total") or 0) - 5626.03) < 0.01 else ["fee_anchor"], "elapsed_ms": elapsed},
+            {"case": "finance_intake_fee_anchor", "category": "finance", "question": "资金占用费接口保持稳定", "pass": abs(float(fee.get("grand_total") or 0) - 6468.65) < 0.01, "failed_layers": [] if abs(float(fee.get("grand_total") or 0) - 6468.65) < 0.01 else ["fee_anchor"], "elapsed_ms": elapsed},
         ]
     except (OSError, ValueError, json.JSONDecodeError, KeyError) as exc:
         return [{"case": "finance_intake_suite", "category": "finance", "question": "财务回款接口回归", "pass": False, "failed_layers": ["request"], "error": str(exc), "elapsed_ms": round((time.perf_counter() - started) * 1000, 1)}]

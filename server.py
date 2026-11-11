@@ -50,6 +50,33 @@ try:
 except Exception:  # pragma: no cover
     RapidOCR = None
 
+# 可选依赖到位情况：缺件时相关功能会静默降级——pypdf 缺失时送货单/回单解析
+# 直接返回空，台账与资金占用费会「看起来正常但全是 0」。这里集中登记，
+# 由启动横幅与 /api/health 明示，遵循与业务数据同样的 fail-closed 原则。
+DEPS_STATUS: dict[str, bool] = {
+    "pypdf": PdfReader is not None,
+    "pymupdf": pymupdf is not None,
+    "rapidocr": RapidOCR is not None,
+}
+
+
+def _warn_missing_deps() -> None:
+    """在启动与 bootstrap 时响亮提示缺失的可选依赖，避免静默归零误导使用者。"""
+    missing = [name for name, ok in DEPS_STATUS.items() if not ok]
+    if not missing:
+        return
+    impact = {
+        "pypdf": "送货单/网价/回单 PDF 解析返回空，台账与资金占用费全部为 0",
+        "pymupdf": "部分 PDF 文字抽取降级",
+        "rapidocr": "扫描件/图片型回单无法 OCR，回款识别降级",
+    }
+    LOGGER.warning("=" * 62)
+    LOGGER.warning("可选依赖缺失: %s", ", ".join(missing))
+    for _name in missing:
+        LOGGER.warning("  - %s: %s", _name, impact.get(_name, "相关功能降级"))
+    LOGGER.warning("修复方法: pip install -r requirements.txt")
+    LOGGER.warning("=" * 62)
+
 BASE_DIR = Path(__file__).resolve().parent
 ROOT = BASE_DIR.parent
 LOGGER = logging.getLogger("control_tower")
@@ -4779,6 +4806,7 @@ def health_payload() -> dict[str, Any]:
     return {
         "status": "ok",
         "model_provider": MODEL_PROVIDER,
+        "deps": dict(DEPS_STATUS),
         "deepseek_configured": bool(DEEPSEEK_API_KEY),
         "model": DEEPSEEK_MODEL if MODEL_PROVIDER == "deepseek" and DEEPSEEK_API_KEY else OLLAMA_MODEL,
         "ollama": {"base": OLLAMA_BASE, "model": OLLAMA_MODEL, "models": models},
@@ -8909,6 +8937,7 @@ def traceback_text() -> str:
 
 
 def bootstrap() -> None:
+    _warn_missing_deps()
     refresh_all()
     start_reindex()
 
