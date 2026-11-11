@@ -210,7 +210,7 @@ python server.py
 │  ├─ assets/videos/            # 两段实操录屏（含封面图）
 │  ├─ assets/vouchers/          # 凭证缩略图
 │  └─ index.html                # 静态体验版入口
-├─ releases/                    # 打包交付件
+├─ releases/                    # 打包交付件说明（离线包见 GitHub Releases）
 ├─ 评委请先读我.md               # 演示口径与注意事项
 └─ 路演现场速查卡.md             # 现场演示路径速查
 ```
@@ -284,4 +284,4 @@ CI 环境是**刻意做差**的：
 - [评委请先读我](./评委请先读我.md) — 演示口径与限制说明
 - [路演现场速查卡](./路演现场速查卡.md) — 现场演示最短路径
 - [docs/](./docs/) — 图文说明书、录屏与凭证素材
-- [releases/](./releases/) — 打包交付件
+- [Releases](https://github.com/505260971-dotcom/lvjinjie-supply-chain-platform/releases) — 离线演示交付包（含图文说明书，双击启动）
