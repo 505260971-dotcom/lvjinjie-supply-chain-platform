@@ -442,6 +442,14 @@ def main(argv: list[str] | None = None) -> int:
     else:
         print(f"总通过率: {passed}/{len(results)} = {report['pass_rate']:.1%}")
         print(f"护栏用例: {guardrail_passed}/{len(guardrails)} = {'PASS' if report['guardrails_ok'] else 'FAIL'}")
+    # 空用例集必须判失败：否则「一条都没跑」会被算成「全部通过」，
+    # 在 CI 里就是最危险的假绿（用例收集出错、服务地址写错都会走到这里）。
+    if not results:
+        print("ERROR: 用例集为空，未执行任何用例，判定失败", file=sys.stderr)
+        return 1
+    if not guardrails:
+        print("ERROR: 护栏用例缺失，无法验证越界拒答，判定失败", file=sys.stderr)
+        return 1
     return 0 if passed == len(results) and report["guardrails_ok"] else 1
 
 

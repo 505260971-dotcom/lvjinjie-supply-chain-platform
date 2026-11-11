@@ -80,6 +80,29 @@ jobs:
       - name: 运行回归基线
         run: python agent_harness.py "http://127.0.0.1:${PORT}" --json > harness-report.json
 
+      - name: 校验报告完整性
+        # 防「假绿」：报告缺失、用例数为 0、护栏用例丢失，都不允许判通过。
+        if: always()
+        run: |
+          python - <<'PY'
+          import json, pathlib, sys
+          path = pathlib.Path("harness-report.json")
+          if not path.exists():
+              print("::error::未生成 harness-report.json")
+              sys.exit(1)
+          d = json.loads(path.read_text(encoding="utf-8"))
+          total = d.get("total") or 0
+          passed = d.get("passed") or 0
+          rate = d.get("pass_rate") or 0
+          print(f"通过 {passed}/{total}（{rate:.1%}）| 护栏 {d.get('guardrail_passed')}/{d.get('guardrail_total')}")
+          if total == 0:
+              print("::error::用例数为 0，疑似空跑")
+              sys.exit(1)
+          if not d.get("guardrail_total"):
+              print("::error::护栏用例缺失，越界拒答未被验证")
+              sys.exit(1)
+          PY
+
       - name: 写入 Job 摘要
         if: always()
         run: python .github/scripts/summarize_harness.py harness-report.json >> "$GITHUB_STEP_SUMMARY"
